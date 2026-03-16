@@ -1,0 +1,14 @@
+﻿# Enforce LF in repo for consistent CI behavior.
+# Contributors on Windows can still use CRLF locally if their tooling requires it,
+# but Git will normalize on commit.
+
+* text=auto eol=lf
+
+*.ps1 text eol=lf
+*.cmd text eol=crlf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary

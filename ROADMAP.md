@@ -1,19 +1,20 @@
 ﻿# Roadmap
 
-This roadmap is intentionally pragmatic: prioritize reproducibility, documentation quality, and safe contribution patterns.
+This roadmap focuses on building a reliable foundation for community contributions.
 
-## Near term (v0.x)
-- Establish module metadata standard and validation.
-- Add initial NinjaTrader order flow examples (minimal, documented, non-marketing).
-- Add TradingView Pine v5 indicator/strategy examples.
-- Add a generated “module catalog” in the root README (from metadata).
+## v0.x (foundation)
+- ✅ Repo scaffold (docs, templates, examples)
+- Add module catalog generation from `metadata.yaml`
+- Add additional example modules:
+  - NinjaTrader indicator example
+  - TradingView strategy example
+- Improve contribution workflow (validation expectations + review rules)
 
-## Mid term (v1.0)
-- Shared research + validation methodology docs.
-- Python research tooling skeleton (data handling, analysis notebooks, metrics).
-- Consistent parameter conventions across platforms.
+## v1.0 (usable library)
+- Curated set of order-flow modules with consistent documentation
+- Shared risk/execution utilities for NinjaTrader modules (where appropriate)
+- More robust metadata validation
 
-## Long term
-- Backtesting harnesses where feasible.
-- Strategy regression tests / golden files (platform-specific).
-- More execution/risk utilities.
+## Later
+- Python research tooling skeleton (data ingestion, metrics, notebooks)
+- Optional docs site (GitHub Pages)

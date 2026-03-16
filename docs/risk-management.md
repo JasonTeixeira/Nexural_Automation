@@ -1,15 +1,20 @@
 ﻿# Risk Management
 
-This project treats risk as a first-class concern.
+This repo treats risk as part of the engineering work, not an afterthought.
 
-## Non-negotiables
-- Always support simulation-first validation.
-- Avoid suggesting that users trade live without independent verification.
-- Prefer conservative defaults.
+## Minimum expectations (for strategy contributions)
+- define a stop / invalidation condition
+- define session boundaries (when it is allowed to trade)
+- include a max-loss safety brake (daily or per-session)
+- document what happens on disconnect/reconnect
 
-## Common controls
-- max daily loss / max trades
-- session windows
-- cooldown after loss
-- volatility filter
-- slippage and commission awareness
+## Practical controls to consider
+- max daily loss
+- max trades per day
+- cooldown after consecutive losses
+- volatility filters
+- news/time filters
+- position sizing model
+
+## Notes
+Even “good” logic can fail in live conditions due to microstructure, slippage, and execution issues.

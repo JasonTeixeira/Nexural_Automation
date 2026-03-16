@@ -1,24 +1,38 @@
 ﻿# Strategy Module Template
 
-## Summary
-Describe the strategy in plain language:
-- what market condition it targets
-- what signals it uses
-- what risk controls are included
+Use this template when adding a new **strategy** module for NinjaTrader or TradingView.
 
-## Safety & responsibility
-This module is provided for research/education only. You are solely responsible for backtesting, simulation testing, configuration, and any live use. See the root **DISCLAIMER.md**.
+## Quick start
+1. Copy this folder into the appropriate platform:
+   - NinjaTrader: `platforms/ninjatrader/Strategies/<StrategyName>/`
+   - TradingView: `platforms/tradingview/strategies/<StrategyName>/`
+2. Fill out `metadata.yaml`.
+3. Write the `README.md` and `parameters.md` first.
+4. Add code under `src/`.
 
-## Files in this module
-- `src/` — source code
-- `metadata.yaml` — machine-readable metadata used for cataloging
-- `parameters.md` — parameter documentation (defaults + units)
-- `notes.md` — research notes + failure modes
-- `changelog.md` — module-specific changelog
-- `screenshots/` — optional visuals
-- `test-results/` — optional test artifacts / logs
+## What makes a good module
+A good module is:
+- clear about what it is trying to do
+- honest about where it fails
+- explicit about parameters and units
+- reproducible (someone else can run the same sim test)
 
-## Implementation notes
-- Keep logic deterministic where possible.
-- Prefer explicit naming over clever shorthand.
-- Avoid hard-coding instrument/session assumptions unless required; document them if you do.
+## Required files
+- `metadata.yaml`
+- `README.md`
+- `parameters.md`
+- `notes.md`
+- `changelog.md`
+- directories: `src/`, `screenshots/`, `test-results/`
+
+## README expectations
+Your module README should include:
+- purpose and market context
+- entry/exit logic (plain language)
+- required data (volumetric, bid/ask, etc.)
+- risk controls (max loss, session rules)
+- assumptions and failure modes
+
+## Safety
+Research/education only. Users are responsible for validation and any live use.
+See the repository `DISCLAIMER.md`.

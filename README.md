@@ -1,62 +1,100 @@
-﻿# Nexural Trading Systems Monorepo (Order Flow Automation)
+﻿# Nexural Trading Systems (Order Flow Templates + Examples)
 
-**Status:** early-stage, community-ready scaffold (**templates + examples**) for order flow / futures automation.
+A practical, open-source monorepo for:
+- **NinjaTrader 8** strategies and indicators (primary)
+- **TradingView Pine Script v5** indicators and strategies (secondary)
+- shared **order flow** research notes, validation checklists, and reusable templates
+- future **Python** research/analytics tooling
 
-## Read this first (Legal + Risk)
-This repository is published openly for **educational and research purposes only**.
-
-Trading futures, derivatives, and leveraged products involves **substantial risk of loss** and is not suitable for all investors. **You can lose more than your initial investment.**
-
-**No Financial Advice / No Guarantees**
-- Nothing in this repo constitutes financial, investment, legal, accounting, or tax advice.
-- No strategy, indicator, template, or example in this repo is guaranteed to be profitable.
-
-**Assumption of Risk / Responsibility**
-By using any code or information in this repository, you agree that you are solely responsible for:
-- validating logic,
-- backtesting,
-- simulation testing,
-- live deployment,
-- configuration, risk controls, broker/exchange settings, and operational monitoring.
-
-**No Liability**
-To the maximum extent permitted by law, **Jason Teixeira and Nexural** (and all contributors/maintainers) disclaim all liability for any losses, damages, claims, or costs arising from your use of this repository.
-
-See **[DISCLAIMER.md](DISCLAIMER.md)** and **[LICENSE](LICENSE)**.
+> This project is for **research, education, and simulation-first development**. It is not a signal service.
 
 ---
 
-## What this repo is
-A production-quality, contributor-friendly **monorepo** for:
-- **NinjaTrader 8** strategy templates and examples (order flow / futures)
-- **NinjaTrader 8** indicator templates and examples
-- **TradingView Pine Script v5** indicator/strategy templates and examples
-- Future expansion: **Python** research/analytics/backtesting tooling
+## Quick safety note (please read)
+- **Not financial advice.**
+- **No guarantees.** Nothing here is guaranteed profitable.
+- Futures and leveraged trading can result in **substantial losses**.
+- If you use any code from this repo, you are responsible for **validation, simulation, configuration, risk controls, and compliance**.
 
-## Repository layout (high level)
-- **docs/**: architecture, installation, conventions, risk/backtesting policy
-- **platforms/**: platform-specific code
-  - **platforms/ninjatrader/**
-  - **platforms/tradingview/**
-  - **platforms/python/** (future-ready)
-- **templates/**: standard module templates for strategies/indicators
-- **examples/**: workflows, screenshots, sample configs
-- **configs/**: market/session/risk presets and examples
-- **scripts/**: repo tools (validation, release tooling)
-- **tests-notes/**: validation checklists and known limitations
-- **.github/**: issue templates, PR template, CI workflows
+Full disclaimer: **[DISCLAIMER.md](DISCLAIMER.md)**.
 
-## Quickstart: add a new module
-1) Copy a template folder:
-   - `templates/strategy-template/` → `platforms/ninjatrader/Strategies/<StrategyName>/` (or TradingView)
-   - `templates/indicator-template/` → `platforms/ninjatrader/Indicators/<IndicatorName>/` (or TradingView)
-2) Fill in `metadata.yaml`, `README.md`, and `parameters.md`.
-3) Add code to `src/`.
-4) Add test notes and (optionally) screenshots.
-5) Open a PR.
+---
 
-## Contributing
-Read **[CONTRIBUTING.md](CONTRIBUTING.md)** and the workflow in **docs/contribution-workflow.md**.
+## What you’ll find here
 
-## License
-Apache-2.0. See **[LICENSE](LICENSE)**.
+### Templates (recommended starting point)
+- `templates/strategy-template/`
+- `templates/indicator-template/`
+
+Each module template includes:
+- `metadata.yaml`
+- `README.md` (logic + assumptions + failure modes)
+- `parameters.md`
+- `notes.md`
+- `changelog.md`
+- `src/`, `screenshots/`, `test-results/`
+
+### Example modules
+- NinjaTrader strategy example: `platforms/ninjatrader/Strategies/AbsorptionReversal/`
+- TradingView indicator example: `platforms/tradingview/indicators/VWAPReversion/`
+
+---
+
+## Supported platforms
+- **NinjaTrader 8** (NinjaScript/C#) — primary focus
+- **TradingView** (Pine Script v5)
+- **Python** (planned)
+
+See: **[docs/supported-platforms.md](docs/supported-platforms.md)**
+
+---
+
+## Core principles
+- **Simulation-first**: treat live trading as a separate, high-risk deployment step.
+- **Clarity over cleverness**: readable code + documented assumptions.
+- **Reproducibility**: parameter tables, test notes, and data assumptions.
+- **No hype**: no marketing language and no performance claims.
+
+---
+
+## Repo layout (where to look)
+- `docs/` — architecture, installation, conventions, safety policies
+- `platforms/` — platform-specific modules
+- `templates/` — standardized module templates
+- `configs/` — example presets (markets/sessions/risk)
+- `tests-notes/` — validation and sim checklists
+- `.github/` — issue templates, PR template, CI
+
+---
+
+## Quick start
+
+### NinjaTrader users
+1. Browse `platforms/ninjatrader/`.
+2. Start from a template: copy `templates/strategy-template/` into `platforms/ninjatrader/Strategies/<StrategyName>/`.
+3. Fill out the docs first (`metadata.yaml`, `README.md`, `parameters.md`).
+4. Add NinjaScript code under `src/`.
+
+### TradingView users
+1. Browse `platforms/tradingview/`.
+2. For indicators, start from `templates/indicator-template/` and place your `.pine` under `src/`.
+
+### Contributors
+- Read **[CONTRIBUTING.md](CONTRIBUTING.md)**
+- Then read: **[docs/contribution-workflow.md](docs/contribution-workflow.md)**
+
+---
+
+## Roadmap
+See **[ROADMAP.md](ROADMAP.md)**.
+
+Current status: early scaffold with templates + examples. The next focus is adding well-documented NinjaTrader order-flow modules.
+
+---
+
+## Start here (recommended reading order)
+1. `DISCLAIMER.md`
+2. `docs/architecture.md`
+3. `docs/naming-conventions.md`
+4. `templates/strategy-template/README.md`
+5. `CONTRIBUTING.md`
