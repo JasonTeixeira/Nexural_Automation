@@ -1,0 +1,835 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Nexural Trading
+// Ultimate ORB Indicator v4.5 - Final Polish
+
+//@version=6
+indicator("Nexural ORB", shorttitle="Nexural ORB", overlay=true, max_lines_count=500, max_boxes_count=100, max_labels_count=500, max_bars_back=5000)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// NEXURAL ULTIMATE ORB v4.5 - FINAL EDITION
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GROUPS
+// ─────────────────────────────────────────────────────────────────────────────
+string GP_GENERAL    = "═══ GENERAL ═══"
+string GP_SESSION    = "═══ SESSION ═══"
+string GP_ORB        = "═══ ORB TIMEFRAMES ═══"
+string GP_QUALITY    = "═══ QUALITY SCORING ═══"
+string GP_CONFLUENCE = "═══ CONFLUENCE DETECTION ═══"
+string GP_BREAKOUT   = "═══ BREAKOUT SETTINGS ═══"
+string GP_VISUALS    = "═══ VISUALS ═══"
+string GP_EXTENSIONS = "═══ EXTENSIONS & TARGETS ═══"
+string GP_ALERTS     = "═══ ALERTS ═══"
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INPUTS
+// ─────────────────────────────────────────────────────────────────────────────
+string marketType = input.string("US Futures", "Market Type", options=["US Stocks", "US Futures", "Forex", "Crypto", "Custom"], group=GP_GENERAL)
+bool currentSessionOnly = input.bool(false, "Current Session Only", group=GP_GENERAL)
+int historyDays = input.int(5, "History Days", minval=1, maxval=20, group=GP_GENERAL)
+
+string customSession = input.session("0930-1600", "Custom Session", group=GP_SESSION)
+string sessionTimezone = input.string("America/New_York", "Timezone", options=["America/New_York", "America/Chicago", "America/Los_Angeles", "Europe/London", "Asia/Tokyo", "UTC"], group=GP_SESSION)
+
+// 5m ORB Settings
+bool show5mORB = input.bool(true, "Show 5m ORB", inline="5m1", group=GP_ORB)
+color color5m = input.color(color.new(#E91E63, 0), "", inline="5m1", group=GP_ORB)
+int width5m = input.int(2, "Width", minval=1, maxval=5, inline="5m2", group=GP_ORB)
+string style5m = input.string("Solid", "Style", options=["Solid", "Dashed", "Dotted"], inline="5m2", group=GP_ORB)
+
+// 15m ORB Settings
+bool show15mORB = input.bool(true, "Show 15m ORB", inline="15m1", group=GP_ORB)
+color color15m = input.color(color.new(#00E676, 0), "", inline="15m1", group=GP_ORB)
+int width15m = input.int(3, "Width", minval=1, maxval=5, inline="15m2", group=GP_ORB)
+string style15m = input.string("Solid", "Style", options=["Solid", "Dashed", "Dotted"], inline="15m2", group=GP_ORB)
+
+// 30m ORB Settings
+bool show30mORB = input.bool(true, "Show 30m ORB", inline="30m1", group=GP_ORB)
+color color30m = input.color(color.new(#2196F3, 0), "", inline="30m1", group=GP_ORB)
+int width30m = input.int(2, "Width", minval=1, maxval=5, inline="30m2", group=GP_ORB)
+string style30m = input.string("Dashed", "Style", options=["Solid", "Dashed", "Dotted"], inline="30m2", group=GP_ORB)
+
+// 60m ORB Settings
+bool show60mORB = input.bool(true, "Show 60m ORB", inline="60m1", group=GP_ORB)
+color color60m = input.color(color.new(#FF9800, 0), "", inline="60m1", group=GP_ORB)
+int width60m = input.int(2, "Width", minval=1, maxval=5, inline="60m2", group=GP_ORB)
+string style60m = input.string("Dotted", "Style", options=["Solid", "Dashed", "Dotted"], inline="60m2", group=GP_ORB)
+
+bool showQualityScore = input.bool(true, "Show ORB Quality Score", group=GP_QUALITY)
+int qualityATRPeriod = input.int(14, "ATR Period", minval=5, maxval=50, group=GP_QUALITY)
+int qualityRangeLookback = input.int(20, "Range Comparison Period", minval=5, maxval=50, group=GP_QUALITY)
+
+bool showConfluence = input.bool(true, "Detect Confluence Zones", group=GP_CONFLUENCE)
+float confluenceTolerance = input.float(0.15, "Confluence Tolerance (%)", minval=0.01, maxval=1.0, step=0.01, group=GP_CONFLUENCE)
+bool showOpeningPrint = input.bool(true, "Show Session Open", group=GP_CONFLUENCE)
+bool showOvernightHL = input.bool(true, "Show Overnight High/Low", group=GP_CONFLUENCE)
+
+bool showBreakoutSignals = input.bool(true, "Show Breakout Signals", group=GP_BREAKOUT)
+bool useVolumeFilter = input.bool(true, "Volume Filter", group=GP_BREAKOUT)
+float volumeMultiplier = input.float(1.2, "Volume Multiplier", minval=0.5, maxval=5.0, group=GP_BREAKOUT)
+bool useTimeFilter = input.bool(true, "Time Filter", group=GP_BREAKOUT)
+int noBreakoutAfterHour = input.int(14, "No Breakouts After Hour", minval=0, maxval=23, group=GP_BREAKOUT)
+bool detectReclaim = input.bool(true, "Detect ORB Reclaim", group=GP_BREAKOUT)
+color colorBull = input.color(color.new(#00E676, 0), "Bull Color", inline="bo", group=GP_BREAKOUT)
+color colorBear = input.color(color.new(#FF5252, 0), "Bear Color", inline="bo", group=GP_BREAKOUT)
+
+bool showFill = input.bool(true, "Show ORB Fill Zone", group=GP_VISUALS)
+bool showLabels = input.bool(true, "Show Price Labels", group=GP_VISUALS)
+bool showDashboard = input.bool(true, "Show Dashboard", group=GP_VISUALS)
+bool showDistanceToLevel = input.bool(true, "Show Distance to Levels", group=GP_VISUALS)
+bool showMidline = input.bool(true, "Show Midline (50%)", group=GP_VISUALS)
+color colorConfluence = input.color(color.new(#FFD700, 0), "Confluence Highlight", group=GP_VISUALS)
+
+bool showExtensions = input.bool(true, "Show Range Extensions", group=GP_EXTENSIONS)
+float ext1Mult = input.float(1.0, "Extension 1 Multiplier", minval=0.5, maxval=3.0, step=0.5, group=GP_EXTENSIONS)
+float ext2Mult = input.float(1.5, "Extension 2 Multiplier", minval=0.5, maxval=3.0, step=0.5, group=GP_EXTENSIONS)
+color colorExtension = input.color(color.new(#9E9E9E, 30), "Extension Color", group=GP_EXTENSIONS)
+
+bool alertOnBreakout = input.bool(true, "Alert on Breakout", group=GP_ALERTS)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SESSION FUNCTIONS
+// ─────────────────────────────────────────────────────────────────────────────
+getSessionString() =>
+    switch marketType
+        "US Stocks" => "0930-1600"
+        "US Futures" => "0930-1600"
+        "Forex" => "0000-2359"
+        "Crypto" => "0000-2359"
+        "Custom" => customSession
+        => "0930-1600"
+
+getOvernightSession() =>
+    switch marketType
+        "US Futures" => "1800-0929"
+        => "1600-0929"
+
+inSession() =>
+    not na(time(timeframe.period, getSessionString(), sessionTimezone))
+
+isNewSession() =>
+    inSess = inSession()
+    inSess and not inSess[1]
+
+inOvernight() =>
+    not na(time(timeframe.period, getOvernightSession(), sessionTimezone))
+
+isNewOvernight() =>
+    inON = inOvernight()
+    inON and not inON[1]
+
+currentHour = hour(time, sessionTimezone)
+
+shouldShow(string tf) =>
+    switch tf
+        "5" => show5mORB
+        "15" => show15mORB
+        "30" => show30mORB
+        "60" => show60mORB
+        => true
+
+// Get line style from string
+getLineStyle(string styleStr) =>
+    switch styleStr
+        "Solid" => line.style_solid
+        "Dashed" => line.style_dashed
+        "Dotted" => line.style_dotted
+        => line.style_solid
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FILTERS
+// ─────────────────────────────────────────────────────────────────────────────
+avgVolume = ta.sma(volume, 20)
+volumeConfirmed = not useVolumeFilter or (volume >= avgVolume * volumeMultiplier)
+volumeRatio = nz(volume / avgVolume, 1.0)
+timeAllowed = not useTimeFilter or (currentHour < noBreakoutAfterHour)
+allFiltersPass = volumeConfirmed and timeAllowed
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SESSION OPEN
+// ─────────────────────────────────────────────────────────────────────────────
+var float sessionOpen = na
+if isNewSession()
+    sessionOpen := open
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OVERNIGHT HIGH/LOW
+// ─────────────────────────────────────────────────────────────────────────────
+var float overnightHigh = na
+var float overnightLow = na
+var bool overnightComplete = false
+
+if isNewOvernight()
+    overnightHigh := high
+    overnightLow := low
+    overnightComplete := false
+
+if inOvernight() and not overnightComplete
+    overnightHigh := math.max(nz(overnightHigh, high), high)
+    overnightLow := math.min(nz(overnightLow, low), low)
+
+if isNewSession()
+    overnightComplete := true
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ORB CALCULATION
+// ─────────────────────────────────────────────────────────────────────────────
+var float orb5High = na, var float orb5Low = na, var int orb5StartBar = na, var bool orb5Complete = false
+var float orb15High = na, var float orb15Low = na, var int orb15StartBar = na, var bool orb15Complete = false
+var float orb30High = na, var float orb30Low = na, var int orb30StartBar = na, var bool orb30Complete = false
+var float orb60High = na, var float orb60Low = na, var int orb60StartBar = na, var bool orb60Complete = false
+var int sessionStartBar = na
+
+if isNewSession()
+    orb5High := high, orb5Low := low, orb5StartBar := bar_index, orb5Complete := false
+    orb15High := high, orb15Low := low, orb15StartBar := bar_index, orb15Complete := false
+    orb30High := high, orb30Low := low, orb30StartBar := bar_index, orb30Complete := false
+    orb60High := high, orb60Low := low, orb60StartBar := bar_index, orb60Complete := false
+    sessionStartBar := bar_index
+
+minutesPerBar = timeframe.in_seconds() / 60
+minsIntoSession = na(sessionStartBar) ? 0 : (bar_index - sessionStartBar) * minutesPerBar
+
+if inSession() and not na(orb5StartBar)
+    mins5 = (bar_index - orb5StartBar) * minutesPerBar
+    mins15 = (bar_index - orb15StartBar) * minutesPerBar
+    mins30 = (bar_index - orb30StartBar) * minutesPerBar
+    mins60 = (bar_index - orb60StartBar) * minutesPerBar
+    
+    if mins5 < 5 and not orb5Complete
+        orb5High := math.max(orb5High, high)
+        orb5Low := math.min(orb5Low, low)
+    else
+        orb5Complete := true
+    
+    if mins15 < 15 and not orb15Complete
+        orb15High := math.max(orb15High, high)
+        orb15Low := math.min(orb15Low, low)
+    else
+        orb15Complete := true
+    
+    if mins30 < 30 and not orb30Complete
+        orb30High := math.max(orb30High, high)
+        orb30Low := math.min(orb30Low, low)
+    else
+        orb30Complete := true
+    
+    if mins60 < 60 and not orb60Complete
+        orb60High := math.max(orb60High, high)
+        orb60Low := math.min(orb60Low, low)
+    else
+        orb60Complete := true
+
+orb5Range = orb5High - orb5Low
+orb15Range = orb15High - orb15Low
+orb30Range = orb30High - orb30Low
+orb60Range = orb60High - orb60Low
+
+// Midline
+orb15Mid = (orb15High + orb15Low) / 2
+
+// Extensions (based on 15m ORB)
+ext1High = orb15High + (orb15Range * ext1Mult)
+ext1Low = orb15Low - (orb15Range * ext1Mult)
+ext2High = orb15High + (orb15Range * ext2Mult)
+ext2Low = orb15Low - (orb15Range * ext2Mult)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HISTORICAL ORB STORAGE
+// ─────────────────────────────────────────────────────────────────────────────
+var array<int> histStartBars = array.new_int(0)
+var array<int> histEndBars = array.new_int(0)
+var array<float> hist5High = array.new_float(0)
+var array<float> hist5Low = array.new_float(0)
+var array<float> hist15High = array.new_float(0)
+var array<float> hist15Low = array.new_float(0)
+var array<float> hist30High = array.new_float(0)
+var array<float> hist30Low = array.new_float(0)
+var array<float> hist60High = array.new_float(0)
+var array<float> hist60Low = array.new_float(0)
+var array<bool> hist5Complete = array.new_bool(0)
+var array<bool> hist15Complete = array.new_bool(0)
+var array<bool> hist30Complete = array.new_bool(0)
+var array<bool> hist60Complete = array.new_bool(0)
+
+// Track previous session end
+var int prevSessionEnd = na
+
+// When session ends (transition from in-session to out-of-session), store the data
+wasInSession = inSession()[1] and not inSession()
+
+if wasInSession and not na(sessionStartBar)
+    // Store the completed session
+    array.push(histStartBars, sessionStartBar)
+    array.push(histEndBars, bar_index)
+    array.push(hist5High, orb5High)
+    array.push(hist5Low, orb5Low)
+    array.push(hist15High, orb15High)
+    array.push(hist15Low, orb15Low)
+    array.push(hist30High, orb30High)
+    array.push(hist30Low, orb30Low)
+    array.push(hist60High, orb60High)
+    array.push(hist60Low, orb60Low)
+    array.push(hist5Complete, orb5Complete)
+    array.push(hist15Complete, orb15Complete)
+    array.push(hist30Complete, orb30Complete)
+    array.push(hist60Complete, orb60Complete)
+    
+    // Limit history size
+    if array.size(histStartBars) > historyDays
+        array.shift(histStartBars)
+        array.shift(histEndBars)
+        array.shift(hist5High)
+        array.shift(hist5Low)
+        array.shift(hist15High)
+        array.shift(hist15Low)
+        array.shift(hist30High)
+        array.shift(hist30Low)
+        array.shift(hist60High)
+        array.shift(hist60Low)
+        array.shift(hist5Complete)
+        array.shift(hist15Complete)
+        array.shift(hist30Complete)
+        array.shift(hist60Complete)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// QUALITY SCORING
+// ─────────────────────────────────────────────────────────────────────────────
+atrValue = ta.atr(qualityATRPeriod)
+avgDailyRange = ta.sma(ta.tr, qualityRangeLookback)
+
+getRangeClass(float rangeVal) =>
+    if na(avgDailyRange) or avgDailyRange == 0
+        "NORMAL"
+    else
+        ratio = rangeVal / avgDailyRange
+        if ratio < 0.4
+            "TIGHT"
+        else if ratio > 0.8
+            "WIDE"
+        else
+            "NORMAL"
+
+rangeClass15 = getRangeClass(orb15Range)
+
+calcQualityScore() =>
+    score = 0
+    if rangeClass15 == "TIGHT"
+        score += 2
+    else if rangeClass15 == "NORMAL"
+        score += 1
+    if volumeRatio > 1.5
+        score += 2
+    else if volumeRatio > 1.0
+        score += 1
+    dow = dayofweek
+    if dow >= dayofweek.tuesday and dow <= dayofweek.thursday
+        score += 1
+    if dow == dayofweek.monday and currentHour < 11
+        score -= 1
+    if dow == dayofweek.friday and currentHour > 13
+        score -= 1
+    if not na(overnightHigh) and not na(overnightLow)
+        onRange = overnightHigh - overnightLow
+        if onRange > atrValue * 0.5
+            score += 1
+    score
+
+qualityScore = calcQualityScore()
+
+getQualityGrade(int score) =>
+    if score >= 5
+        "A+"
+    else if score >= 4
+        "A"
+    else if score >= 2
+        "B"
+    else
+        "C"
+
+qualityGrade = getQualityGrade(qualityScore)
+qualityColor = qualityGrade == "A+" ? #00E676 : qualityGrade == "A" ? #69F0AE : qualityGrade == "B" ? #FFEB3B : #FF5252
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONFLUENCE DETECTION
+// ─────────────────────────────────────────────────────────────────────────────
+isNearLevel(float price1, float price2, float tolerancePct) =>
+    if na(price1) or na(price2)
+        false
+    else
+        diff = math.abs(price1 - price2)
+        tolerance = price1 * (tolerancePct / 100)
+        diff <= tolerance
+
+confluence15High = false
+confluence15Low = false
+confluence5High = false
+confluence5Low = false
+
+if orb5Complete and showConfluence
+    if showOpeningPrint and isNearLevel(orb5High, sessionOpen, confluenceTolerance)
+        confluence5High := true
+    if showOvernightHL and isNearLevel(orb5High, overnightHigh, confluenceTolerance)
+        confluence5High := true
+    if showOpeningPrint and isNearLevel(orb5Low, sessionOpen, confluenceTolerance)
+        confluence5Low := true
+    if showOvernightHL and isNearLevel(orb5Low, overnightLow, confluenceTolerance)
+        confluence5Low := true
+
+if orb15Complete and showConfluence
+    if showOpeningPrint and isNearLevel(orb15High, sessionOpen, confluenceTolerance)
+        confluence15High := true
+    if showOvernightHL and isNearLevel(orb15High, overnightHigh, confluenceTolerance)
+        confluence15High := true
+    if showOpeningPrint and isNearLevel(orb15Low, sessionOpen, confluenceTolerance)
+        confluence15Low := true
+    if showOvernightHL and isNearLevel(orb15Low, overnightLow, confluenceTolerance)
+        confluence15Low := true
+    if shouldShow("5") and isNearLevel(orb15High, orb5High, confluenceTolerance)
+        confluence15High := true
+    if shouldShow("30") and isNearLevel(orb15High, orb30High, confluenceTolerance)
+        confluence15High := true
+    if shouldShow("60") and isNearLevel(orb15Low, orb60Low, confluenceTolerance)
+        confluence15Low := true
+
+hasConfluence = confluence15High or confluence15Low or confluence5High or confluence5Low
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BREAKOUT DETECTION
+// ─────────────────────────────────────────────────────────────────────────────
+var int breakout5State = 0
+var int breakout15State = 0
+var int breakout30State = 0
+var int breakout60State = 0
+var bool reclaim15Fired = false
+
+if isNewSession()
+    breakout5State := 0
+    breakout15State := 0
+    breakout30State := 0
+    breakout60State := 0
+    reclaim15Fired := false
+
+bull5 = orb5Complete and inSession() and close > orb5High and close[1] <= orb5High and allFiltersPass and breakout5State == 0
+bear5 = orb5Complete and inSession() and close < orb5Low and close[1] >= orb5Low and allFiltersPass and breakout5State == 0
+
+if bull5
+    breakout5State := 1
+if bear5
+    breakout5State := -1
+
+bull15 = orb15Complete and inSession() and close > orb15High and close[1] <= orb15High and allFiltersPass and breakout15State == 0
+bear15 = orb15Complete and inSession() and close < orb15Low and close[1] >= orb15Low and allFiltersPass and breakout15State == 0
+
+if bull15
+    breakout15State := 1
+if bear15
+    breakout15State := -1
+
+bull30 = orb30Complete and inSession() and close > orb30High and close[1] <= orb30High and allFiltersPass and breakout30State == 0
+bear30 = orb30Complete and inSession() and close < orb30Low and close[1] >= orb30Low and allFiltersPass and breakout30State == 0
+
+if bull30
+    breakout30State := 1
+if bear30
+    breakout30State := -1
+
+bull60 = orb60Complete and inSession() and close > orb60High and close[1] <= orb60High and allFiltersPass and breakout60State == 0
+bear60 = orb60Complete and inSession() and close < orb60Low and close[1] >= orb60Low and allFiltersPass and breakout60State == 0
+
+if bull60
+    breakout60State := 1
+if bear60
+    breakout60State := -1
+
+priceInsideORB15 = close > orb15Low and close < orb15High
+wasOutside15 = close[1] <= orb15Low or close[1] >= orb15High
+reclaim15Signal = detectReclaim and breakout15State != 0 and not reclaim15Fired and priceInsideORB15 and wasOutside15 and inSession()
+
+if reclaim15Signal
+    reclaim15Fired := true
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DISTANCE TO LEVELS
+// ─────────────────────────────────────────────────────────────────────────────
+dist15High = orb15Complete ? close - orb15High : na
+dist15Low = orb15Complete ? close - orb15Low : na
+nearestLevel15 = math.abs(nz(dist15High)) < math.abs(nz(dist15Low)) ? "HIGH" : "LOW"
+nearestDist15 = nearestLevel15 == "HIGH" ? dist15High : dist15Low
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COUNTDOWN
+// ─────────────────────────────────────────────────────────────────────────────
+mins5Remaining = orb5Complete ? 0 : math.max(0, 5 - minsIntoSession)
+mins15Remaining = orb15Complete ? 0 : math.max(0, 15 - minsIntoSession)
+mins30Remaining = orb30Complete ? 0 : math.max(0, 30 - minsIntoSession)
+mins60Remaining = orb60Complete ? 0 : math.max(0, 60 - minsIntoSession)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DRAW HISTORICAL ORB LINES
+// ─────────────────────────────────────────────────────────────────────────────
+var array<line> histLines = array.new_line(0)
+var array<box> histBoxes = array.new_box(0)
+
+if barstate.islast and not currentSessionOnly
+    // Clear old historical drawings
+    for ln in histLines
+        line.delete(ln)
+    array.clear(histLines)
+    
+    for bx in histBoxes
+        box.delete(bx)
+    array.clear(histBoxes)
+    
+    // Draw historical ORBs
+    histCount = array.size(histStartBars)
+    if histCount > 0
+        for i = 0 to histCount - 1
+            startBar = array.get(histStartBars, i)
+            endBar = array.get(histEndBars, i)
+            
+            // 5m historical
+            if shouldShow("5") and array.get(hist5Complete, i)
+                h5 = array.get(hist5High, i)
+                l5 = array.get(hist5Low, i)
+                array.push(histLines, line.new(startBar, h5, endBar, h5, color=color.new(color5m, 50), width=width5m, style=getLineStyle(style5m)))
+                array.push(histLines, line.new(startBar, l5, endBar, l5, color=color.new(color5m, 50), width=width5m, style=getLineStyle(style5m)))
+            
+            // 15m historical
+            if shouldShow("15") and array.get(hist15Complete, i)
+                h15 = array.get(hist15High, i)
+                l15 = array.get(hist15Low, i)
+                array.push(histLines, line.new(startBar, h15, endBar, h15, color=color.new(color15m, 50), width=width15m, style=getLineStyle(style15m)))
+                array.push(histLines, line.new(startBar, l15, endBar, l15, color=color.new(color15m, 50), width=width15m, style=getLineStyle(style15m)))
+                if showFill
+                    array.push(histBoxes, box.new(startBar, h15, endBar, l15, bgcolor=color.new(color15m, 95), border_color=na))
+            
+            // 30m historical
+            if shouldShow("30") and array.get(hist30Complete, i)
+                h30 = array.get(hist30High, i)
+                l30 = array.get(hist30Low, i)
+                array.push(histLines, line.new(startBar, h30, endBar, h30, color=color.new(color30m, 50), width=width30m, style=getLineStyle(style30m)))
+                array.push(histLines, line.new(startBar, l30, endBar, l30, color=color.new(color30m, 50), width=width30m, style=getLineStyle(style30m)))
+            
+            // 60m historical
+            if shouldShow("60") and array.get(hist60Complete, i)
+                h60 = array.get(hist60High, i)
+                l60 = array.get(hist60Low, i)
+                array.push(histLines, line.new(startBar, h60, endBar, h60, color=color.new(color60m, 50), width=width60m, style=getLineStyle(style60m)))
+                array.push(histLines, line.new(startBar, l60, endBar, l60, color=color.new(color60m, 50), width=width60m, style=getLineStyle(style60m)))
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DRAW CURRENT SESSION ORB LINES
+// ─────────────────────────────────────────────────────────────────────────────
+var line line5H = na, var line line5L = na
+var line line15H = na, var line line15L = na, var line line15M = na
+var line line30H = na, var line line30L = na
+var line line60H = na, var line line60L = na
+var line lineOpen = na
+var line lineONH = na, var line lineONL = na
+var line lineExt1H = na, var line lineExt1L = na
+var line lineExt2H = na, var line lineExt2L = na
+var box orbFill = na
+
+// Line extension distance
+int lineExtend = 15
+
+if barstate.islast and inSession()
+    // Delete previous lines
+    line.delete(line5H), line.delete(line5L)
+    line.delete(line15H), line.delete(line15L), line.delete(line15M)
+    line.delete(line30H), line.delete(line30L)
+    line.delete(line60H), line.delete(line60L)
+    line.delete(lineOpen), line.delete(lineONH), line.delete(lineONL)
+    line.delete(lineExt1H), line.delete(lineExt1L)
+    line.delete(lineExt2H), line.delete(lineExt2L)
+    box.delete(orbFill)
+    
+    int lineEnd = bar_index + lineExtend
+    
+    // ═══ FILL ZONE FIRST (so it's behind lines) ═══
+    if showFill and orb15Complete and shouldShow("15")
+        fillColor = hasConfluence ? color.new(colorConfluence, 90) : color.new(color15m, 90)
+        orbFill := box.new(sessionStartBar, orb15High, lineEnd, orb15Low, bgcolor=fillColor, border_color=na)
+    
+    // ═══ EXTENSIONS - FAINT (Priority 4) ═══
+    if showExtensions and orb15Complete
+        lineExt1H := line.new(sessionStartBar, ext1High, lineEnd, ext1High, color=color.new(colorExtension, 50), width=1, style=line.style_dotted)
+        lineExt1L := line.new(sessionStartBar, ext1Low, lineEnd, ext1Low, color=color.new(colorExtension, 50), width=1, style=line.style_dotted)
+        lineExt2H := line.new(sessionStartBar, ext2High, lineEnd, ext2High, color=color.new(colorExtension, 70), width=1, style=line.style_dotted)
+        lineExt2L := line.new(sessionStartBar, ext2Low, lineEnd, ext2Low, color=color.new(colorExtension, 70), width=1, style=line.style_dotted)
+    
+    // ═══ AUXILIARY LEVELS - SUBTLE (Priority 5) ═══
+    if showOpeningPrint
+        lineOpen := line.new(sessionStartBar, sessionOpen, lineEnd, sessionOpen, color=color.new(#FFFFFF, 65), width=1, style=line.style_dotted)
+    
+    if showOvernightHL and overnightComplete
+        lineONH := line.new(sessionStartBar, overnightHigh, lineEnd, overnightHigh, color=color.new(#9C27B0, 65), width=1, style=line.style_dotted)
+        lineONL := line.new(sessionStartBar, overnightLow, lineEnd, overnightLow, color=color.new(#9C27B0, 65), width=1, style=line.style_dotted)
+    
+    // ═══ 60m ORB - User configured style (Priority 3) ═══
+    if shouldShow("60") and orb60Complete
+        line60H := line.new(sessionStartBar, orb60High, lineEnd, orb60High, color=color60m, width=width60m, style=getLineStyle(style60m))
+        line60L := line.new(sessionStartBar, orb60Low, lineEnd, orb60Low, color=color60m, width=width60m, style=getLineStyle(style60m))
+    
+    // ═══ 30m ORB - User configured style (Priority 2) ═══
+    if shouldShow("30") and orb30Complete
+        line30H := line.new(sessionStartBar, orb30High, lineEnd, orb30High, color=color30m, width=width30m, style=getLineStyle(style30m))
+        line30L := line.new(sessionStartBar, orb30Low, lineEnd, orb30Low, color=color30m, width=width30m, style=getLineStyle(style30m))
+    
+    // ═══ 15m ORB - User configured style (Priority 2) ═══
+    if shouldShow("15") and orb15Complete
+        color15H = confluence15High ? colorConfluence : color15m
+        color15L = confluence15Low ? colorConfluence : color15m
+        line15H := line.new(sessionStartBar, orb15High, lineEnd, orb15High, color=color15H, width=width15m, style=getLineStyle(style15m))
+        line15L := line.new(sessionStartBar, orb15Low, lineEnd, orb15Low, color=color15L, width=width15m, style=getLineStyle(style15m))
+        
+        // Midline
+        if showMidline
+            line15M := line.new(sessionStartBar, orb15Mid, lineEnd, orb15Mid, color=color.new(color15m, 50), width=1, style=line.style_dashed)
+    
+    // ═══ 5m ORB - User configured style (Priority 1 - drawn last so on top) ═══
+    if shouldShow("5") and orb5Complete
+        color5H = confluence5High ? colorConfluence : color5m
+        color5L = confluence5Low ? colorConfluence : color5m
+        line5H := line.new(sessionStartBar, orb5High, lineEnd, orb5High, color=color5H, width=width5m, style=getLineStyle(style5m))
+        line5L := line.new(sessionStartBar, orb5Low, lineEnd, orb5Low, color=color5L, width=width5m, style=getLineStyle(style5m))
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BREAKOUT SIGNALS
+// ─────────────────────────────────────────────────────────────────────────────
+bullSignal = showBreakoutSignals and ((bull5 and shouldShow("5")) or (bull15 and shouldShow("15")) or (bull30 and shouldShow("30")) or (bull60 and shouldShow("60")))
+bearSignal = showBreakoutSignals and ((bear5 and shouldShow("5")) or (bear15 and shouldShow("15")) or (bear30 and shouldShow("30")) or (bear60 and shouldShow("60")))
+
+plotshape(bullSignal ? low : na, "Bull", shape.triangleup, location.belowbar, colorBull, size=size.small)
+plotshape(bearSignal ? high : na, "Bear", shape.triangledown, location.abovebar, colorBear, size=size.small)
+plotshape(reclaim15Signal ? close : na, "Reclaim", shape.xcross, location.absolute, #FFC107, size=size.small)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SMART COMBINED LABELS - Merge matching prices
+// ─────────────────────────────────────────────────────────────────────────────
+var label lbl5H = na, var label lbl5L = na
+var label lbl15H = na, var label lbl15L = na, var label lblMid = na
+var label lbl30H = na, var label lbl30L = na
+var label lbl60H = na, var label lbl60L = na
+var label lblOpen = na, var label lblONH = na, var label lblONL = na
+var label lblExt1H = na, var label lblExt1L = na
+var label lblExt2H = na, var label lblExt2L = na
+
+if barstate.islast and showLabels and inSession()
+    // Delete old labels
+    label.delete(lbl5H), label.delete(lbl5L)
+    label.delete(lbl15H), label.delete(lbl15L), label.delete(lblMid)
+    label.delete(lbl30H), label.delete(lbl30L)
+    label.delete(lbl60H), label.delete(lbl60L)
+    label.delete(lblOpen), label.delete(lblONH), label.delete(lblONL)
+    label.delete(lblExt1H), label.delete(lblExt1L)
+    label.delete(lblExt2H), label.delete(lblExt2L)
+    
+    int labelX = bar_index + lineExtend + 2
+    float tolerance = orb15Range * 0.02  // 2% of range for "same level"
+    
+    // === 5m LABELS (separate, always shown if enabled) ===
+    if shouldShow("5") and orb5Complete
+        color5H = confluence5High ? colorConfluence : color5m
+        color5L = confluence5Low ? colorConfluence : color5m
+        lbl5H := label.new(labelX, orb5High, "5H " + str.tostring(orb5High, format.mintick), style=label.style_label_left, color=color.new(color5H, 80), textcolor=color5H, size=size.small)
+        lbl5L := label.new(labelX, orb5Low, "5L " + str.tostring(orb5Low, format.mintick), style=label.style_label_left, color=color.new(color5L, 80), textcolor=color5L, size=size.small)
+    
+    // === HIGH LABELS ===
+    // Check if 15H, 30H, 60H are the same
+    bool h15_30_same = shouldShow("15") and shouldShow("30") and math.abs(orb15High - orb30High) < tolerance
+    bool h15_60_same = shouldShow("15") and shouldShow("60") and math.abs(orb15High - orb60High) < tolerance
+    bool h30_60_same = shouldShow("30") and shouldShow("60") and math.abs(orb30High - orb60High) < tolerance
+    
+    if shouldShow("15") and orb15Complete
+        string highText = "15H"
+        color highCol = color15m
+        if h15_30_same and h15_60_same
+            highText := "15H/30H/60H"
+        else if h15_30_same
+            highText := "15H/30H"
+        else if h15_60_same
+            highText := "15H/60H"
+        
+        if confluence15High
+            highCol := colorConfluence
+        
+        lbl15H := label.new(labelX, orb15High, highText + " " + str.tostring(orb15High, format.mintick), style=label.style_label_left, color=color.new(highCol, 80), textcolor=highCol, size=size.small)
+    
+    // Only show 30H if different from 15H
+    if shouldShow("30") and orb30Complete and not h15_30_same
+        string text30H = h30_60_same and not h15_60_same ? "30H/60H" : "30H"
+        lbl30H := label.new(labelX, orb30High, text30H + " " + str.tostring(orb30High, format.mintick), style=label.style_label_left, color=color.new(color30m, 80), textcolor=color30m, size=size.small)
+    
+    // Only show 60H if different from both
+    if shouldShow("60") and orb60Complete and not h15_60_same and not h30_60_same
+        lbl60H := label.new(labelX, orb60High, "60H " + str.tostring(orb60High, format.mintick), style=label.style_label_left, color=color.new(color60m, 80), textcolor=color60m, size=size.small)
+    
+    // === LOW LABELS ===
+    bool l15_30_same = shouldShow("15") and shouldShow("30") and math.abs(orb15Low - orb30Low) < tolerance
+    bool l15_60_same = shouldShow("15") and shouldShow("60") and math.abs(orb15Low - orb60Low) < tolerance
+    bool l30_60_same = shouldShow("30") and shouldShow("60") and math.abs(orb30Low - orb60Low) < tolerance
+    
+    if shouldShow("15") and orb15Complete
+        string lowText = "15L"
+        color lowCol = color15m
+        if l15_30_same and l15_60_same
+            lowText := "15L/30L/60L"
+        else if l15_30_same
+            lowText := "15L/30L"
+        else if l15_60_same
+            lowText := "15L/60L"
+        
+        if confluence15Low
+            lowCol := colorConfluence
+        
+        lbl15L := label.new(labelX, orb15Low, lowText + " " + str.tostring(orb15Low, format.mintick), style=label.style_label_left, color=color.new(lowCol, 80), textcolor=lowCol, size=size.small)
+    
+    // Only show 30L if different
+    if shouldShow("30") and orb30Complete and not l15_30_same
+        string text30L = l30_60_same and not l15_60_same ? "30L/60L" : "30L"
+        lbl30L := label.new(labelX, orb30Low, text30L + " " + str.tostring(orb30Low, format.mintick), style=label.style_label_left, color=color.new(color30m, 80), textcolor=color30m, size=size.small)
+    
+    // Only show 60L if different from both
+    if shouldShow("60") and orb60Complete and not l15_60_same and not l30_60_same
+        lbl60L := label.new(labelX, orb60Low, "60L " + str.tostring(orb60Low, format.mintick), style=label.style_label_left, color=color.new(color60m, 80), textcolor=color60m, size=size.small)
+    
+    // === MIDLINE ===
+    if showMidline and orb15Complete
+        lblMid := label.new(labelX, orb15Mid, "MID " + str.tostring(orb15Mid, format.mintick), style=label.style_label_left, color=color.new(color15m, 85), textcolor=color.new(color15m, 40), size=size.small)
+    
+    // === AUXILIARY LABELS (smaller, fainter) ===
+    if showOpeningPrint
+        lblOpen := label.new(labelX, sessionOpen, "OPEN " + str.tostring(sessionOpen, format.mintick), style=label.style_label_left, color=color.new(#FFFFFF, 85), textcolor=color.new(#FFFFFF, 40), size=size.tiny)
+    
+    if showOvernightHL and overnightComplete
+        lblONH := label.new(labelX, overnightHigh, "ONH " + str.tostring(overnightHigh, format.mintick), style=label.style_label_left, color=color.new(#9C27B0, 85), textcolor=color.new(#9C27B0, 40), size=size.tiny)
+        lblONL := label.new(labelX, overnightLow, "ONL " + str.tostring(overnightLow, format.mintick), style=label.style_label_left, color=color.new(#9C27B0, 85), textcolor=color.new(#9C27B0, 40), size=size.tiny)
+    
+    // === EXTENSION LABELS ===
+    if showExtensions and orb15Complete
+        lblExt1H := label.new(labelX, ext1High, str.tostring(ext1Mult, "#.#") + "x " + str.tostring(ext1High, format.mintick), style=label.style_label_left, color=color.new(colorExtension, 85), textcolor=color.new(colorExtension, 30), size=size.tiny)
+        lblExt1L := label.new(labelX, ext1Low, str.tostring(ext1Mult, "#.#") + "x " + str.tostring(ext1Low, format.mintick), style=label.style_label_left, color=color.new(colorExtension, 85), textcolor=color.new(colorExtension, 30), size=size.tiny)
+        lblExt2H := label.new(labelX, ext2High, str.tostring(ext2Mult, "#.#") + "x " + str.tostring(ext2High, format.mintick), style=label.style_label_left, color=color.new(colorExtension, 90), textcolor=color.new(colorExtension, 50), size=size.tiny)
+        lblExt2L := label.new(labelX, ext2Low, str.tostring(ext2Mult, "#.#") + "x " + str.tostring(ext2Low, format.mintick), style=label.style_label_left, color=color.new(colorExtension, 90), textcolor=color.new(colorExtension, 50), size=size.tiny)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BREAKOUT LABELS
+// ─────────────────────────────────────────────────────────────────────────────
+if showBreakoutSignals and bullSignal
+    tfLabel = bull5 and shouldShow("5") ? "5m" : bull15 and shouldShow("15") ? "15m" : bull30 and shouldShow("30") ? "30m" : "60m"
+    label.new(bar_index, low, tfLabel + " ▲", style=label.style_label_up, color=color.new(colorBull, 70), textcolor=colorBull, size=size.small)
+
+if showBreakoutSignals and bearSignal
+    tfLabel = bear5 and shouldShow("5") ? "5m" : bear15 and shouldShow("15") ? "15m" : bear30 and shouldShow("30") ? "30m" : "60m"
+    label.new(bar_index, high, tfLabel + " ▼", style=label.style_label_down, color=color.new(colorBear, 70), textcolor=colorBear, size=size.small)
+
+if reclaim15Signal
+    label.new(bar_index, close, "⚠️ RECLAIM", style=label.style_label_center, color=color.new(#FFC107, 70), textcolor=#FFC107, size=size.small)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONFLUENCE LABEL
+// ─────────────────────────────────────────────────────────────────────────────
+var label lblConf = na
+
+if barstate.islast and showConfluence and hasConfluence and inSession()
+    label.delete(lblConf)
+    yPos = confluence15High ? orb15High : orb15Low
+    lblConf := label.new(sessionStartBar + math.round((bar_index - sessionStartBar) / 2), yPos, "⚡ CONFLUENCE", style=label.style_label_center, color=color.new(colorConfluence, 30), textcolor=colorConfluence, size=size.normal)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DASHBOARD
+// ─────────────────────────────────────────────────────────────────────────────
+// Get style indicator for dashboard
+getStyleIndicator(string styleStr) =>
+    switch styleStr
+        "Solid" => "━"
+        "Dashed" => "┅"
+        "Dotted" => "···"
+        => "━"
+
+var table dashboard = table.new(position.top_right, 5, 8, bgcolor=color.new(#0d1117, 5), border_color=color.new(#30363d, 50), border_width=1)
+
+if barstate.islast and showDashboard
+    // Header
+    table.cell(dashboard, 0, 0, "NEXURAL ORB", text_color=#00E676, text_size=size.normal, bgcolor=color.new(#161b22, 0))
+    table.cell(dashboard, 1, 0, showQualityScore ? "QUALITY:" : "", text_color=color.gray, text_size=size.small, bgcolor=color.new(#161b22, 0))
+    table.cell(dashboard, 2, 0, showQualityScore ? qualityGrade : "", text_color=qualityColor, text_size=size.normal, bgcolor=color.new(#161b22, 0))
+    table.cell(dashboard, 3, 0, rangeClass15, text_color=rangeClass15 == "TIGHT" ? #00E676 : rangeClass15 == "WIDE" ? #FF9800 : color.gray, text_size=size.small, bgcolor=color.new(#161b22, 0))
+    table.cell(dashboard, 4, 0, inSession() ? "● LIVE" : "○ CLOSED", text_color=inSession() ? #00E676 : #FF5252, text_size=size.small, bgcolor=color.new(#161b22, 0))
+    
+    // Column headers
+    table.cell(dashboard, 0, 1, "TF", text_color=color.gray, text_size=size.small)
+    table.cell(dashboard, 1, 1, "HIGH", text_color=color.gray, text_size=size.small)
+    table.cell(dashboard, 2, 1, "LOW", text_color=color.gray, text_size=size.small)
+    table.cell(dashboard, 3, 1, "RANGE", text_color=color.gray, text_size=size.small)
+    table.cell(dashboard, 4, 1, "STATUS", text_color=color.gray, text_size=size.small)
+    
+    // 5m
+    if shouldShow("5")
+        st5 = not orb5Complete ? str.tostring(mins5Remaining, "#") + "m" : breakout5State == 1 ? "▲ BULL" : breakout5State == -1 ? "▼ BEAR" : "RANGE"
+        stCol5 = not orb5Complete ? color.yellow : breakout5State == 1 ? colorBull : breakout5State == -1 ? colorBear : color.gray
+        table.cell(dashboard, 0, 2, "5m " + getStyleIndicator(style5m), text_color=color5m, text_size=size.small)
+        table.cell(dashboard, 1, 2, str.tostring(orb5High, format.mintick), text_color=color5m, text_size=size.small)
+        table.cell(dashboard, 2, 2, str.tostring(orb5Low, format.mintick), text_color=color5m, text_size=size.small)
+        table.cell(dashboard, 3, 2, str.tostring(orb5Range, format.mintick), text_color=color.white, text_size=size.small)
+        table.cell(dashboard, 4, 2, st5, text_color=stCol5, text_size=size.small)
+    
+    // 15m
+    if shouldShow("15")
+        st15 = not orb15Complete ? str.tostring(mins15Remaining, "#") + "m" : breakout15State == 1 ? "▲ BULL" : breakout15State == -1 ? "▼ BEAR" : "RANGE"
+        stCol15 = not orb15Complete ? color.yellow : breakout15State == 1 ? colorBull : breakout15State == -1 ? colorBear : color.gray
+        table.cell(dashboard, 0, 3, "15m " + getStyleIndicator(style15m), text_color=color15m, text_size=size.small)
+        table.cell(dashboard, 1, 3, str.tostring(orb15High, format.mintick), text_color=color15m, text_size=size.small)
+        table.cell(dashboard, 2, 3, str.tostring(orb15Low, format.mintick), text_color=color15m, text_size=size.small)
+        table.cell(dashboard, 3, 3, str.tostring(orb15Range, format.mintick), text_color=color.white, text_size=size.small)
+        table.cell(dashboard, 4, 3, st15, text_color=stCol15, text_size=size.small)
+    
+    // 30m
+    if shouldShow("30")
+        st30 = not orb30Complete ? str.tostring(mins30Remaining, "#") + "m" : breakout30State == 1 ? "▲ BULL" : breakout30State == -1 ? "▼ BEAR" : "RANGE"
+        stCol30 = not orb30Complete ? color.yellow : breakout30State == 1 ? colorBull : breakout30State == -1 ? colorBear : color.gray
+        table.cell(dashboard, 0, 4, "30m " + getStyleIndicator(style30m), text_color=color30m, text_size=size.small)
+        table.cell(dashboard, 1, 4, str.tostring(orb30High, format.mintick), text_color=color30m, text_size=size.small)
+        table.cell(dashboard, 2, 4, str.tostring(orb30Low, format.mintick), text_color=color30m, text_size=size.small)
+        table.cell(dashboard, 3, 4, str.tostring(orb30Range, format.mintick), text_color=color.white, text_size=size.small)
+        table.cell(dashboard, 4, 4, st30, text_color=stCol30, text_size=size.small)
+    
+    // 60m
+    if shouldShow("60")
+        st60 = not orb60Complete ? str.tostring(mins60Remaining, "#") + "m" : breakout60State == 1 ? "▲ BULL" : breakout60State == -1 ? "▼ BEAR" : "RANGE"
+        stCol60 = not orb60Complete ? color.yellow : breakout60State == 1 ? colorBull : breakout60State == -1 ? colorBear : color.gray
+        table.cell(dashboard, 0, 5, "60m " + getStyleIndicator(style60m), text_color=color60m, text_size=size.small)
+        table.cell(dashboard, 1, 5, str.tostring(orb60High, format.mintick), text_color=color60m, text_size=size.small)
+        table.cell(dashboard, 2, 5, str.tostring(orb60Low, format.mintick), text_color=color60m, text_size=size.small)
+        table.cell(dashboard, 3, 5, str.tostring(orb60Range, format.mintick), text_color=color.white, text_size=size.small)
+        table.cell(dashboard, 4, 5, st60, text_color=stCol60, text_size=size.small)
+    
+    // Distance
+    if showDistanceToLevel and orb15Complete
+        distVal = nz(nearestDist15, 0)
+        distStr = distVal > 0 ? "+" + str.tostring(distVal, format.mintick) : str.tostring(distVal, format.mintick)
+        distColor = distVal > 0 ? colorBull : distVal < 0 ? colorBear : color.gray
+        table.cell(dashboard, 0, 6, "DIST TO " + nearestLevel15, text_color=color.gray, text_size=size.small)
+        table.cell(dashboard, 1, 6, distStr, text_color=distColor, text_size=size.small)
+        table.cell(dashboard, 2, 6, "", text_size=size.small)
+        table.cell(dashboard, 3, 6, "", text_size=size.small)
+        table.cell(dashboard, 4, 6, "", text_size=size.small)
+    
+    // Confluence
+    if showConfluence and hasConfluence
+        table.cell(dashboard, 0, 7, "⚡ CONFLUENCE", text_color=colorConfluence, text_size=size.small, bgcolor=color.new(colorConfluence, 85))
+        table.cell(dashboard, 1, 7, "", bgcolor=color.new(colorConfluence, 85))
+        table.cell(dashboard, 2, 7, "", bgcolor=color.new(colorConfluence, 85))
+        table.cell(dashboard, 3, 7, "", bgcolor=color.new(colorConfluence, 85))
+        table.cell(dashboard, 4, 7, "", bgcolor=color.new(colorConfluence, 85))
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ALERTS
+// ─────────────────────────────────────────────────────────────────────────────
+alertcondition(bull5 or bull15 or bull30 or bull60, title="Bull Breakout", message="🟢 Bullish ORB breakout")
+alertcondition(bear5 or bear15 or bear30 or bear60, title="Bear Breakout", message="🔴 Bearish ORB breakout")
+alertcondition(hasConfluence, title="Confluence Zone", message="⚡ Price at confluence zone")
+alertcondition(reclaim15Signal, title="ORB Reclaim", message="⚠️ Price reclaimed ORB - potential reversal")
