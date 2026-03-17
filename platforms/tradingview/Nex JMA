@@ -1,0 +1,154 @@
+//@version=6
+indicator("Nexural JMA", shorttitle="Nexural JMA", overlay=true)
+
+// ============================================================================
+// INPUTS
+// ============================================================================
+length = input.int(7, "JMA Length", minval=1, group="JMA Settings")
+phase = input.int(50, "Phase", minval=-100, maxval=100, group="JMA Settings")
+power = input.int(2, "Power", minval=1, maxval=5, group="JMA Settings")
+src = input.source(close, "Source", group="JMA Settings")
+
+showZones = input.bool(true, "Show Support/Resistance Zones", group="Visual")
+useGradient = input.bool(true, "Use Strength Gradient on Cloud", group="Visual")
+showTable = input.bool(true, "Show Info Table", group="Visual")
+
+showSignals = input.bool(true, "Show Entry Signals", group="Signals")
+enableAlerts = input.bool(true, "Enable Alerts", group="Signals")
+
+// ============================================================================
+// JMA CALCULATION
+// ============================================================================
+jmaCalc(source, len, ph, pw) =>
+    phaseRatio = ph < -100 ? 0.5 : ph > 100 ? 2.5 : ph / 100 + 1.5
+    beta = 0.45 * (len - 1) / (0.45 * (len - 1) + 2)
+    alpha = math.pow(beta, pw)
+    
+    var float e0 = na
+    var float e1 = na
+    var float e2 = na
+    var float jma = na
+    
+    e0 := (1 - alpha) * source + alpha * nz(e0)
+    e1 := (source - e0) * (1 - beta) + beta * nz(e1)
+    e2 := (e0 + phaseRatio * e1 - nz(jma)) * math.pow(1 - alpha, 2) + math.pow(alpha, 2) * nz(e2)
+    jma := e2 + nz(jma)
+    jma
+
+jma = jmaCalc(src, length, phase, power)
+
+// ============================================================================
+// CORRECTED SCORE CALCULATIONS (0-100)
+// ============================================================================
+
+// 1. MOMENTUM SCORE - Fixed calculation
+momentumScore = int(na)
+momentumScore := int(ta.percentrank(math.abs(ta.roc(close, 10)), 100))
+
+// 2. VOLUME SCORE - Fixed to be actual percentile
+volumeScore = int(na)
+volumeScore := int(ta.percentrank(volume, 100))
+
+// 3. VOLATILITY SCORE - ATR percentile
+volatilityScore = int(na)
+volatilityScore := int(ta.percentrank(ta.atr(14), 100))
+
+// 4. TREND STRENGTH SCORE - Distance from JMA + slope
+calcTrendStrength() =>
+    // How far price is from JMA (normalized 0-100)
+    distPercent = math.abs((close - jma) / jma) * 100
+    distScore = math.min(50, distPercent * 10)
+    
+    // JMA slope strength
+    slope = ta.change(jma, 10)
+    slopeScore = ta.percentrank(math.abs(slope), 100) * 0.5
+    
+    int(math.min(100, distScore + slopeScore))
+
+trendStrength = calcTrendStrength()
+
+// ============================================================================
+// TREND DETECTION
+// ============================================================================
+trendUp = jma > jma[1]
+
+// Use trend strength for gradient instead of confidence
+getJmaColor() =>
+    if not useGradient
+        trendUp ? color.green : color.red
+    else
+        if trendUp
+            trendStrength >= 80 ? color.new(color.lime, 0) : trendStrength >= 60 ? color.new(color.green, 30) : trendStrength >= 40 ? color.new(color.green, 50) : trendStrength >= 20 ? color.new(color.green, 70) : color.new(color.green, 90)
+        else
+            trendStrength >= 80 ? color.new(color.red, 0) : trendStrength >= 60 ? color.new(color.red, 30) : trendStrength >= 40 ? color.new(color.red, 50) : trendStrength >= 20 ? color.new(color.red, 70) : color.new(color.red, 90)
+
+plot(jma, "JMA", color=getJmaColor(), linewidth=3)
+
+// ============================================================================
+// DYNAMIC ZONES
+// ============================================================================
+atr = ta.atr(14)
+upperZone = jma + (atr * 1.5)
+lowerZone = jma - (atr * 1.5)
+
+getCloudTransparency() =>
+    if not useGradient
+        95
+    else
+        trendStrength >= 80 ? 85 : trendStrength >= 60 ? 90 : trendStrength >= 40 ? 93 : trendStrength >= 20 ? 95 : 97
+
+upperPlot = plot(showZones ? upperZone : na, "Upper Zone", color=color.new(trendUp ? color.green : color.red, 80), linewidth=1)
+lowerPlot = plot(showZones ? lowerZone : na, "Lower Zone", color=color.new(trendUp ? color.green : color.red, 80), linewidth=1)
+fill(upperPlot, lowerPlot, color=showZones ? color.new(trendUp ? color.green : color.red, getCloudTransparency()) : na)
+
+// ============================================================================
+// SIGNALS
+// ============================================================================
+volume_confirm = volumeScore > 50
+momentum_confirm = momentumScore > 40
+strength_confirm = trendStrength > 50
+
+bullCross = ta.crossover(src, jma) and trendUp and volume_confirm and strength_confirm
+bearCross = ta.crossunder(src, jma) and not trendUp and volume_confirm and strength_confirm
+
+plotshape(showSignals and bullCross ? low : na, "Long Signal", shape.triangleup, location.absolute, color.new(color.lime, 0), size=size.small)
+plotshape(showSignals and bearCross ? high : na, "Short Signal", shape.triangledown, location.absolute, color.new(color.red, 0), size=size.small)
+
+// ============================================================================
+// ALERTS
+// ============================================================================
+if enableAlerts
+    if bullCross
+        alert("🟢 JMA LONG | Strength: " + str.tostring(trendStrength) + "/100", alert.freq_once_per_bar_close)
+    if bearCross
+        alert("🔴 JMA SHORT | Strength: " + str.tostring(trendStrength) + "/100", alert.freq_once_per_bar_close)
+
+// ============================================================================
+// SIMPLIFIED TABLE
+// ============================================================================
+var table infoTable = table.new(position.top_right, 2, 5, border_width=1)
+
+if showTable and barstate.islast
+    // Trend
+    table.cell(infoTable, 0, 0, "Trend", text_color=color.white, bgcolor=color.new(color.gray, 50))
+    table.cell(infoTable, 1, 0, trendUp ? "BULLISH ↑" : "BEARISH ↓", text_color=color.white, bgcolor=trendUp ? color.green : color.red)
+    
+    // Momentum
+    momColor = momentumScore >= 70 ? color.new(color.green, 30) : momentumScore >= 40 ? color.new(color.orange, 30) : color.new(color.red, 30)
+    table.cell(infoTable, 0, 1, "Momentum", text_color=color.white, bgcolor=color.new(color.gray, 50))
+    table.cell(infoTable, 1, 1, str.tostring(momentumScore) + "/100", text_color=color.white, bgcolor=momColor)
+    
+    // Volume
+    volColor = volumeScore >= 70 ? color.new(color.green, 30) : volumeScore >= 40 ? color.new(color.orange, 30) : color.new(color.red, 30)
+    table.cell(infoTable, 0, 2, "Volume", text_color=color.white, bgcolor=color.new(color.gray, 50))
+    table.cell(infoTable, 1, 2, str.tostring(volumeScore) + "/100", text_color=color.white, bgcolor=volColor)
+    
+    // Volatility
+    voltyColor = volatilityScore >= 70 ? color.new(color.red, 30) : volatilityScore >= 40 ? color.new(color.orange, 30) : color.new(color.green, 30)
+    table.cell(infoTable, 0, 3, "Volatility", text_color=color.white, bgcolor=color.new(color.gray, 50))
+    table.cell(infoTable, 1, 3, str.tostring(volatilityScore) + "/100", text_color=color.white, bgcolor=voltyColor)
+    
+    // Trend Strength
+    trendColor = trendStrength >= 70 ? color.new(color.green, 30) : trendStrength >= 40 ? color.new(color.orange, 30) : color.new(color.red, 30)
+    table.cell(infoTable, 0, 4, "Trend Strength", text_color=color.white, bgcolor=color.new(color.gray, 50))
+    table.cell(infoTable, 1, 4, str.tostring(trendStrength) + "/100", text_color=color.white, bgcolor=trendColor)
