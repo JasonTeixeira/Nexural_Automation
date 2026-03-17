@@ -1,0 +1,601 @@
+//@version=6
+indicator("ACE Squeeze", shorttitle="ACE-SQZ", overlay=false, precision=2, max_labels_count=200, max_lines_count=10, dynamic_requests=true)
+
+// ============================================================================
+// ACE Squeeze Pro - Elite Enhanced Edition Implementation
+// ============================================================================
+// Enhanced with:
+//   1. Performance optimizations for professional use
+//   2. True Hilbert Transform implementation
+//   3. Advanced UI enhancements
+//   4. Improved visual hierarchy
+//   5. Better squeeze visualization
+//   6. Enhanced dashboard readability
+//   7. Heat map bands at extreme levels
+// ============================================================================
+
+// ------------------------------ User Settings -------------------------------
+// Core Settings
+var group1 = "🎯 Core Settings"
+length = input.int(20, "Base Cycle Length", minval=8, maxval=50, group=group1)
+sensitivity = input.float(0.65, "Sensitivity", minval=0.2, maxval=0.95, step=0.05, group=group1)
+bandsSrc = input(hlc3, "Price Source", group=group1)
+useOpacityModulation = input.bool(true, "Vary Opacity by Signal Strength", group=group1)
+
+// Enhancement Settings
+var group2 = "⚛️ Enhancement Settings"
+useVACD = input.bool(true, "Use Volatility-Adjusted Cycle Detection", group=group2)
+volInfluence = input.float(0.4, "Volatility Influence", minval=0.1, maxval=0.8, step=0.05, group=group2)
+useVolumeDelta = input.bool(true, "Use Volume Delta Confirmation", group=group2)
+volumeInfluence = input.float(0.35, "Volume Influence", minval=0.1, maxval=0.7, step=0.05, group=group2)
+useRRED = input.bool(true, "Use Relative Range Expansion Detection", group=group2)
+rredLookback = input.int(15, "RRED Lookback", minval=5, maxval=30, group=group2)
+
+// Elite Edition Enhancement Settings
+var group5 = "🚀 Elite Edition Settings"
+useMarketRegimeDetection = input.bool(true, "Use Market Regime Detection", group=group5)
+useVolumeFootprint = input.bool(true, "Use Advanced Volume Footprint", group=group5)
+useStatFiltering = input.bool(true, "Use Statistical Filtering", group=group5)
+useDynamicTimeframes = input.bool(false, "Use Dynamic Timeframe Selection", group=group5)
+useHilbertTransform = input.bool(true, "Use True Hilbert Transform", group=group5)
+regimeUpdateFreq = input.int(10, "Regime Update Frequency (bars)", minval=5, maxval=50, group=group5)
+
+// Visual Settings
+var group3 = "🎨 Visual Settings"
+showCycles = input.bool(true, "Show Cycle Phase Line", group=group3)
+useGradientColors = input.bool(true, "Use Gradient Colors for Histogram", group=group3)
+showHistogram = input.bool(true, "Show Histogram", group=group3)
+showProjection = input.bool(false, "Show Signal Projection", group=group3)
+
+// Glow Effect Settings
+showGlowEffects = input.bool(true, "Enable Histogram Glow Effects", group=group3)
+showHeatMapBands = input.bool(true, "Enable Heat Map Bands at Extremes", group=group3)
+// Tier 1 - Momentum Building (35-55)
+glow1Threshold = input.int(35, "Tier 1: Building Momentum - Start", minval=20, maxval=50, group=group3)
+glow1ThresholdHigh = input.int(55, "Tier 1: Building Momentum - End", minval=40, maxval=70, group=group3)
+glow1Opacity = input.int(50, "Tier 1: Opacity %", minval=10, maxval=80, group=group3)
+glow1WidthAdd = input.int(0, "Tier 1: Width Bonus", minval=0, maxval=3, group=group3)
+// Tier 2 - Strong Signal (55-80)
+glow2Threshold = input.int(55, "Tier 2: Strong Signal - Start", minval=40, maxval=70, group=group3)
+glow2ThresholdHigh = input.int(80, "Tier 2: Strong Signal - End", minval=60, maxval=90, group=group3)
+glow2Opacity = input.int(35, "Tier 2: Opacity %", minval=10, maxval=80, group=group3)
+glow2WidthAdd = input.int(1, "Tier 2: Width Bonus", minval=0, maxval=3, group=group3)
+// Tier 3 - Extreme Signal (80+)
+glow3Threshold = input.int(80, "Tier 3: Extreme Signal - Start", minval=60, maxval=95, group=group3)
+glow3Opacity = input.int(20, "Tier 3: Opacity %", minval=10, maxval=80, group=group3)
+glow3WidthAdd = input.int(2, "Tier 3: Width Bonus", minval=0, maxval=4, group=group3)
+
+// Plot Customization Settings
+var group4 = "Plot Customization"
+histogramWidth = input.int(4, "Histogram Width", minval=1, maxval=10, group=group4)
+bullishColor = input.color(#00ff88, "Bullish Color", group=group4)
+bullishWeakColor = input.color(#00cc66, "Bullish Weak Color", group=group4)
+bearishColor = input.color(#ff4444, "Bearish Color", group=group4)
+bearishWeakColor = input.color(#cc3333, "Bearish Weak Color", group=group4)
+squeezeColor = input.color(color.rgb(40, 40, 40), "Squeeze Color", group=group4)
+
+// Signal line customization
+signalLineWidth = input.int(2, "Signal Line Width", minval=1, maxval=6, group=group4)
+bullSignalColor = input.color(color.rgb(0, 255, 136, 70), "Bullish Signal Line Color", group=group4)
+bearSignalColor = input.color(color.rgb(255, 68, 68, 70), "Bearish Signal Line Color", group=group4)
+
+// Cycle phase line customization
+showCyclePhase = input.bool(true, "Show Cycle Phase Line", group=group4)
+cycleLineWidth = input.int(1, "Cycle Line Width", minval=1, maxval=4, group=group4)
+cycleLineColor = input.color(color.rgb(255, 255, 255, 70), "Cycle Line Color", group=group4)
+
+// Reference lines customization
+zeroLineColor = input.color(color.gray, "Zero Line Color", group=group4)
+zeroLineStyle = input.string("dotted", "Zero Line Style", options=["solid", "dotted", "dashed"], group=group4)
+extremeLineColor = input.color(color.rgb(150, 150, 150), "Extreme Level Lines Color", group=group4)
+extremeLineStyle = input.string("solid", "Extreme Level Lines Style", options=["solid", "dotted", "dashed"], group=group4)
+
+// Helper function to convert string style to hline style
+getLineStyle(styleStr) =>
+    if styleStr == "dotted"
+        hline.style_dotted
+    else if styleStr == "dashed"
+        hline.style_dashed
+    else
+        hline.style_solid
+
+// ==================== PERFORMANCE OPTIMIZATION: Caching with Arrays ====================
+// Use arrays for caching since we can modify them in functions
+var regimeCache = array.new<string>(1, "")
+var regimeBarCache = array.new<int>(1, 0)
+var sensitivityMultCache = array.new<float>(1, 1.0)
+var lookbackMultCache = array.new<float>(1, 1.0)
+var isRangeboundCache = array.new<bool>(1, false)
+var isTrendingCache = array.new<bool>(1, false)
+var isVolatileCache = array.new<bool>(1, false)
+var isChoppyCache = array.new<bool>(1, false)
+
+// Cache for statistical filtering - using array for circular buffer
+var signalBuffer = array.new_float(50, 0.0)
+var bufferIndexArray = array.new<int>(1, 0)
+
+// ----------------------------- Core Calculations ----------------------------
+
+// Volatility measures
+atr = ta.atr(length)
+normalized_atr = atr / ta.sma(atr, length * 2)
+
+// ==================== Market Regime Detection with Array-based Caching ====================
+detectMarketRegime() =>
+    // Check if we need to update cache
+    currentBar = bar_index
+    lastUpdateBar = array.get(regimeBarCache, 0)
+    cachedRegime = array.get(regimeCache, 0)
+    
+    if currentBar - lastUpdateBar < regimeUpdateFreq and cachedRegime != ""
+        // Return cached values
+        [cachedRegime, array.get(sensitivityMultCache, 0), array.get(lookbackMultCache, 0), 
+         array.get(isRangeboundCache, 0), array.get(isTrendingCache, 0), 
+         array.get(isVolatileCache, 0), array.get(isChoppyCache, 0)]
+    else
+        // Calculate regime detection metrics
+        atrShort = ta.atr(10)
+        atrLong = ta.atr(50)
+        atrRatio = atrShort / atrLong
+        regimeRsi = ta.rsi(close, 14)
+        recentVolume = ta.sma(volume, 5)
+        baseVolume = ta.sma(volume, 20)
+        volumeRatio = recentVolume / baseVolume
+        avgBarSize = ta.sma(high - low, 20) / ta.sma(close, 20) * 100
+        
+        // Clean price structure analysis
+        candleBodyRatio = math.abs(close - open) / math.max(0.001, high - low)
+        directionalBars = math.sum(close > open ? 1 : -1, 10)
+        
+        // Detect market regime
+        isRangebound = atrRatio < 0.85 and regimeRsi > 40 and regimeRsi < 60 and math.abs(directionalBars) < 3
+        isTrending = atrRatio > 1.1 and math.abs(directionalBars) > 6 and (regimeRsi > 60 or regimeRsi < 40)
+        isVolatile = atrRatio > 1.4 and volumeRatio > 1.2 and avgBarSize > 1.5
+        isChoppy = not isRangebound and not isTrending and not isVolatile and volumeRatio < 0.9
+        
+        // Create regime parameters
+        regime = isRangebound ? "RANGE" : 
+                 isTrending ? "TREND" :
+                 isVolatile ? "VOLATILE" :
+                 isChoppy ? "CHOPPY" : "NORMAL"
+        
+        // Set sensitivity multipliers based on regime
+        sensitivityMult = isRangebound ? 0.7 : 
+                          isTrending ? 1.3 : 
+                          isVolatile ? 1.2 :
+                          isChoppy ? 0.6 : 1.0
+        
+        // Set lookback period multipliers based on regime
+        lookbackMult = isRangebound ? 1.2 : 
+                       isTrending ? 0.8 : 
+                       isVolatile ? 0.7 :
+                       isChoppy ? 1.5 : 1.0
+        
+        // Update cache arrays
+        array.set(regimeCache, 0, regime)
+        array.set(sensitivityMultCache, 0, sensitivityMult)
+        array.set(lookbackMultCache, 0, lookbackMult)
+        array.set(isRangeboundCache, 0, isRangebound)
+        array.set(isTrendingCache, 0, isTrending)
+        array.set(isVolatileCache, 0, isVolatile)
+        array.set(isChoppyCache, 0, isChoppy)
+        array.set(regimeBarCache, 0, currentBar)
+        
+        [regime, sensitivityMult, lookbackMult, isRangebound, isTrending, isVolatile, isChoppy]
+
+// Get market regime
+[marketRegime, sensitivityMultiplier, lookbackMultiplier, isRangebound, isTrending, isVolatile, isChoppy] = detectMarketRegime()
+
+// Apply market regime adjustments if enabled
+adaptiveSensitivity = useMarketRegimeDetection ? sensitivity * sensitivityMultiplier : sensitivity
+adaptiveLength = useMarketRegimeDetection ? math.round(length * lookbackMultiplier) : length
+
+// ==================== TRUE HILBERT TRANSFORM IMPLEMENTATION ====================
+hilbertTransform(src) =>
+    // Smooth price with 4-bar WMA
+    smooth = (4 * src + 3 * nz(src[1]) + 2 * nz(src[2]) + nz(src[3])) / 10
+    
+    // Compute Detrender
+    detrender = (0.0962 * smooth + 0.5769 * nz(smooth[2]) - 
+                 0.5769 * nz(smooth[4]) - 0.0962 * nz(smooth[6])) * 
+                 (0.075 * nz(smooth[1]) + 0.54)
+    
+    // Compute InPhase and Quadrature components
+    Q1 = (0.0962 * detrender + 0.5769 * nz(detrender[2]) - 
+          0.5769 * nz(detrender[4]) - 0.0962 * nz(detrender[6])) * 
+          (0.075 * nz(detrender[1]) + 0.54)
+    I1 = nz(detrender[3])
+    
+    // Advance phase by 90 degrees
+    jI = (0.0962 * I1 + 0.5769 * nz(I1[2]) - 
+          0.5769 * nz(I1[4]) - 0.0962 * nz(I1[6])) * 
+          (0.075 * nz(I1[1]) + 0.54)
+    jQ = (0.0962 * Q1 + 0.5769 * nz(Q1[2]) - 
+          0.5769 * nz(Q1[4]) - 0.0962 * nz(Q1[6])) * 
+          (0.075 * nz(Q1[1]) + 0.54)
+    
+    // Phasor components
+    I2 = I1 - jQ
+    Q2 = Q1 + jI
+    
+    // Smooth I and Q components
+    I2 := 0.2 * I2 + 0.8 * nz(I2[1])
+    Q2 := 0.2 * Q2 + 0.8 * nz(Q2[1])
+    
+    // Homodyne Discriminator
+    Re = I2 * nz(I2[1]) + Q2 * nz(Q2[1])
+    Im = I2 * nz(Q2[1]) - Q2 * nz(I2[1])
+    Re := 0.2 * Re + 0.8 * nz(Re[1])
+    Im := 0.2 * Im + 0.8 * nz(Im[1])
+    
+    // Compute Dominant Cycle Period
+    period = 0.0
+    if Im != 0 and Re != 0
+        period := 2 * math.pi / math.atan(Im / Re)
+    
+    // Limit period
+    period := math.max(6, math.min(50, period))
+    period := 0.2 * period + 0.8 * nz(period[1])
+    
+    // Apply adaptive smoothing
+    smoothPeriod = 0.33 * period + 0.67 * nz(period[1])
+    smoothPeriod
+
+// Calculate dominant cycle using selected method
+calculateDominantCycle(src) =>
+    if useHilbertTransform
+        hilbertTransform(src)
+    else
+        // Original simplified implementation
+        smooth = ta.sma(src, 4)
+        real = smooth - nz(smooth[2], smooth)
+        imag = (nz(smooth[1], smooth) - nz(smooth[3], smooth)) / 2
+        phase = math.atan(imag / real)
+        deltaPhase = nz(phase[1], phase) - phase
+        deltaPhase := deltaPhase < 0 ? deltaPhase + 2 * math.pi : deltaPhase
+        
+        period = 0.0
+        if deltaPhase > 0.001
+            period := 2 * math.pi / deltaPhase
+        else
+            period := adaptiveLength
+        
+        period := math.max(8, math.min(50, period))
+        
+        if useVACD
+            volFactor = 1.0 + (normalized_atr - 0.5) * volInfluence * 2
+            period := period / volFactor
+        
+        period
+
+// Calculate the dynamic cycle period
+cyclePeriod = calculateDominantCycle(bandsSrc)
+
+// ------------------------ Enhancement 1: VACD Implementation ----------------
+calculateAdaptiveBands(src, period) =>
+    safeLength = na(period) ? 1 : math.max(1, math.round(period))
+    dev = ta.stdev(src, safeLength)
+    
+    volAdj = useVACD ? normalized_atr * volInfluence : 1.0
+    
+    basis = ta.sma(src, safeLength)
+    upperBand = basis + dev * 2 * volAdj
+    lowerBand = basis - dev * 2 * volAdj
+    
+    [basis, upperBand, lowerBand]
+
+// Get adaptive bands
+[basis, upperBand, lowerBand] = calculateAdaptiveBands(bandsSrc, cyclePeriod)
+
+// EMA-based bands for comparison
+emaBasis = ta.sma(bandsSrc, na(cyclePeriod) ? 20 : int(math.max(1, math.round(cyclePeriod))))
+emaUpperBand = emaBasis + atr * 1.5
+emaLowerBand = emaBasis - atr * 1.5
+
+// Detect squeeze condition
+squeeze = (lowerBand > emaLowerBand) and (upperBand < emaUpperBand)
+
+// Detect squeeze intensity
+squeeze_period = na(cyclePeriod) ? 30 : int(math.max(2, math.round(cyclePeriod * 1.5)))
+squeeze_pending = na(upperBand) or na(lowerBand) ? false : 
+                  (upperBand - lowerBand) < (ta.sma(upperBand - lowerBand, squeeze_period) * 0.85)
+
+// ==================== Enhanced Volume Footprint Analysis ====================
+calculateVolumeFootprint() =>
+    if not useVolumeDelta or na(volume)
+        [0.0, false, 0.0, 0.0]
+    
+    volDelta = 0.0
+    
+    if close > open
+        posInRange = (close - low) / (high - low + 0.000001)
+        volDelta := volume * posInRange
+    else
+        posInRange = (high - close) / (high - low + 0.000001)
+        volDelta := -volume * posInRange
+    
+    norm_delta = ta.ema(volDelta / ta.sma(volume, 50), 3)
+    scaled_delta = norm_delta * 100
+    
+    if useVolumeFootprint
+        upVolume = close > open ? volume : 0
+        downVolume = close <= open ? volume : 0
+        
+        upVolMA = ta.sma(upVolume, 10)
+        downVolMA = ta.sma(downVolume, 10)
+        
+        deltaSpread = ta.stdev(volDelta / math.max(volume, 1), 10) * 100
+        
+        volTrend = ta.ema(volume, 5) / ta.ema(volume, 20)
+        
+        volConfirmation = (close > close[1] and upVolMA > downVolMA) or 
+                         (close < close[1] and downVolMA > upVolMA)
+        
+        [scaled_delta, volConfirmation, volTrend, deltaSpread]
+    else
+        [scaled_delta, false, 1.0, 0.0]
+
+// Get volume footprint
+[volumeDelta, volumeConfirmation, volumeTrend, deltaSpread] = calculateVolumeFootprint()
+
+// ------------------------ Enhancement 3: RRED Implementation ---------------
+calculateRRED() =>
+    if not useRRED
+        0.0
+        
+    ranges = high - low
+    avgRange = ta.sma(ranges, rredLookback)
+    expansionRate = ranges / (avgRange + 0.000001)
+    normExpansion = 2 / (1 + math.exp(-3 * (expansionRate - 1.1))) - 1
+    normExpansion * 50
+
+rredSignal = calculateRRED()
+
+// Combined Indicator Signal ------------------------
+calculateMainSignal() =>
+    safeBasis = na(basis) ? close : basis
+    safeUpperBand = na(upperBand) ? close * 1.02 : upperBand
+    safeLowerBand = na(lowerBand) ? close * 0.98 : lowerBand
+    
+    bandDiff = (safeUpperBand - safeLowerBand) / 2
+    momentum = bandDiff > 0 ? (bandsSrc - safeBasis) / (bandDiff + 0.000001) * 50 : 0.0
+    
+    if useVolumeDelta
+        volMultiplier = useVolumeFootprint ? (volumeConfirmation ? 1.2 : 0.8) : 1.0
+        safeVolumeDelta = na(volumeDelta) ? 0.0 : volumeDelta
+        momentum := momentum + safeVolumeDelta * volumeInfluence * volMultiplier
+        
+    if useRRED
+        safeRredSignal = na(rredSignal) ? 0.0 : rredSignal
+        momentum := momentum + safeRredSignal * 0.5
+        
+    smoothed = ta.ema(momentum, 2)
+    
+    if useMarketRegimeDetection
+        if isRangebound
+            smoothed := smoothed * 0.95
+        else if isTrending
+            trendDirection = ta.ema(close, 8) > ta.ema(close, 21) ? 1 : -1
+            if math.sign(smoothed) == trendDirection
+                smoothed := smoothed * 1.2
+        else if isChoppy
+            smoothed := smoothed * 0.85
+        else if isVolatile
+            smoothed := smoothed * 1.05
+    
+    finalSignal = math.max(-100, math.min(100, smoothed))
+    na(finalSignal) ? 0.0 : finalSignal
+
+// Generate main oscillator signal
+rawMainSignal = calculateMainSignal()
+
+// ==================== Optimized Statistical Filtering ====================
+applyStatisticalFiltering(signal) =>
+    if not useStatFiltering
+        [signal, 1.0, true]
+    
+    // Get current buffer index
+    currentBufferIndex = array.get(bufferIndexArray, 0)
+    
+    // Use circular buffer for performance
+    array.set(signalBuffer, currentBufferIndex, signal)
+    
+    // Update buffer index
+    newIndex = (currentBufferIndex + 1) % 50
+    array.set(bufferIndexArray, 0, newIndex)
+    
+    // Calculate statistical properties
+    signalMean = array.avg(signalBuffer)
+    signalStdev = array.stdev(signalBuffer)
+    
+    zScore = signalStdev != 0 ? (signal - signalMean) / signalStdev : 0
+    
+    persistenceCount = 0
+    currentDirection = math.sign(signal)
+    
+    for i = 0 to math.min(10, array.size(signalBuffer) - 1)
+        idx = (currentBufferIndex - i + 50) % 50
+        if idx >= 0 and idx < array.size(signalBuffer)
+            if math.sign(array.get(signalBuffer, idx)) == currentDirection
+                persistenceCount += 1
+            else
+                break
+    
+    persistenceRatio = persistenceCount / 10
+    
+    absZScore = math.abs(zScore)
+    zScoreQuality = math.min(absZScore / 2, 1.0)
+    
+    qualityThreshold = isRangebound ? 1.3 : 
+                      isTrending ? 0.7 : 
+                      isChoppy ? 1.5 : 
+                      isVolatile ? 1.0 : 0.8
+    
+    qualityScore = zScoreQuality * 0.7 + persistenceRatio * 0.3
+    isQualitySignal = qualityScore >= qualityThreshold
+    filteredSignal = isQualitySignal ? signal : signal * qualityScore
+    
+    [filteredSignal, qualityScore, isQualitySignal]
+
+// Apply statistical filtering
+[mainSignal, signalQuality, isQualitySignal] = applyStatisticalFiltering(rawMainSignal)
+
+// ------------------------ Compression Detection ---------------------------
+isCompressing = squeeze
+wasCompressing = squeeze[1]
+justExited = wasCompressing and not isCompressing
+
+// Calculate momentum for coloring
+momUp = mainSignal > mainSignal[1]
+momDown = mainSignal < mainSignal[1]
+
+// Enhanced signal strength calculation
+rawSignalStrength = 1 - (1 / (1 + math.abs(rawMainSignal) / 50))
+signalAcceleration = math.min(math.abs(rawMainSignal - nz(rawMainSignal[1], rawMainSignal)) / 5, 1.0)
+combinedStrength = math.min(rawSignalStrength * 0.7 + signalAcceleration * 0.3, 1.0)
+signalStrength = 1 - (1 / (1 + math.abs(mainSignal) / 50))
+
+// ==================== Enhanced Opacity Function ====================
+getEnhancedOpacity(strength, squeeze) =>
+    if not useOpacityModulation
+        0
+    else if squeeze
+        80  // Squeeze bars more transparent
+    else if strength > 0.8
+        0   // Very strong: fully opaque
+    else if strength > 0.6
+        20  // Strong: 92% opacity
+    else if strength > 0.4
+        40  // Medium: 84% opacity
+    else if strength > 0.2
+        70  // Weak: 73% opacity
+    else
+        100 // Very weak: 61% opacity
+
+// Apply opacity to color
+applyOpacity(baseColor, opacity) =>
+    color.new(baseColor, opacity)
+
+// Enhanced histogram color logic
+getBarColor(signal, up, down, squeeze, strength) =>
+    opacity = getEnhancedOpacity(strength, squeeze)
+    
+    if squeeze
+        applyOpacity(squeezeColor, opacity)
+    else if useGradientColors
+        if signal > 0
+            s = math.min(strength * 1.3, 1.0)
+            baseColor = color.from_gradient(s, 0.0, 1.0, bullishWeakColor, bullishColor)
+            applyOpacity(baseColor, opacity)
+        else
+            s = math.min(strength * 1.3, 1.0)
+            baseColor = color.from_gradient(s, 0.0, 1.0, bearishWeakColor, bearishColor)
+            applyOpacity(baseColor, opacity)
+    else
+        baseColor = if signal > 0 and up
+            bullishColor
+        else if signal > 0
+            bullishWeakColor
+        else if signal < 0 and down
+            bearishColor
+        else
+            bearishWeakColor
+        
+        applyOpacity(baseColor, opacity)
+
+// ------------------------ Enhanced Visual Rendering -------------------------------
+// Threshold levels with customized appearance
+hline(0, "Zero Line", color=zeroLineColor, linestyle=getLineStyle(zeroLineStyle))
+hline(90, "Upper Extreme", color=extremeLineColor, linestyle=getLineStyle(extremeLineStyle))
+hline(-90, "Lower Extreme", color=extremeLineColor, linestyle=getLineStyle(extremeLineStyle))
+
+// Enhanced histogram with three-tier glow effect system
+barColor = getBarColor(mainSignal, momUp, momDown, squeeze, combinedStrength)
+safeMainSignal = na(mainSignal) ? 0.0 : mainSignal
+absSignal = math.abs(safeMainSignal)
+
+// Three-tier glow system
+// Calculate which tier we're in and plot appropriate glow
+tier1Active = showHistogram and showGlowEffects and absSignal >= glow1Threshold and absSignal < glow1ThresholdHigh
+tier2Active = showHistogram and showGlowEffects and absSignal >= glow2Threshold and absSignal < glow2ThresholdHigh
+tier3Active = showHistogram and showGlowEffects and absSignal >= glow3Threshold
+
+// Get base glow color
+baseGlowColor = mainSignal > 0 ? bullishColor : bearishColor
+
+// Tier 3 - Extreme Signal (widest glow)
+tier3Signal = tier3Active ? safeMainSignal : na
+tier3Opacity = 100 - glow3Opacity
+tier3Color = color.new(baseGlowColor, tier3Opacity)
+plot(tier3Signal, title="Extreme Glow", style=plot.style_histogram, color=tier3Color, linewidth=histogramWidth + glow3WidthAdd)
+
+// Tier 2 - Strong Signal (medium glow)
+tier2Signal = tier2Active ? safeMainSignal : na
+tier2Opacity = 100 - glow2Opacity
+tier2Color = color.new(baseGlowColor, tier2Opacity)
+plot(tier2Signal, title="Strong Glow", style=plot.style_histogram, color=tier2Color, linewidth=histogramWidth + glow2WidthAdd)
+
+// Tier 1 - Momentum Building (subtle glow)
+tier1Signal = tier1Active ? safeMainSignal : na
+tier1Opacity = 100 - glow1Opacity
+tier1Color = color.new(baseGlowColor, tier1Opacity)
+plot(tier1Signal, title="Building Glow", style=plot.style_histogram, color=tier1Color, linewidth=histogramWidth + glow1WidthAdd)
+
+// Main histogram (always plot last so it appears on top)
+momentumHistogram = showHistogram ? safeMainSignal : na
+plot(momentumHistogram, title="Momentum Signal", style=plot.style_histogram, color=barColor, linewidth=histogramWidth)
+
+// Main signal line WITHOUT glow effects
+oscColor = mainSignal > 0 ? bullSignalColor : bearSignalColor
+plot(mainSignal, title="Signal Line", color=oscColor, linewidth=signalLineWidth, style=plot.style_line)
+
+// Enhanced cycle phase line with dynamic opacity
+cycleSine = math.sin(bar_index * (2 * math.pi / cyclePeriod))
+scaledSine = cycleSine * 30
+cycleAlpha = squeeze ? 90 : 50
+cyclePhaseLine = showCycles and showCyclePhase ? scaledSine : na
+cycleColor = color.new(cycleLineColor, cycleAlpha)
+plot(cyclePhaseLine, "Cycle Phase", color=cycleColor, linewidth=cycleLineWidth)
+
+// ==================== HEAT MAP BANDS AT EXTREME LEVELS ====================
+// Plot invisible lines for the extreme boundaries (always plotted but hidden)
+upperExtreme100 = plot(100, color=color.new(color.white, 100), display=display.none, title="Upper Extreme 100")
+upperExtreme90 = plot(90, color=color.new(color.white, 100), display=display.none, title="Upper Extreme 90")
+lowerExtreme90 = plot(-90, color=color.new(color.white, 100), display=display.none, title="Lower Extreme -90")
+lowerExtreme100 = plot(-100, color=color.new(color.white, 100), display=display.none, title="Lower Extreme -100")
+
+// Calculate heat map colors based on signal strength and direction
+// Upper band color (90 to 100)
+upperHeatIntensity = showHeatMapBands ? (mainSignal > 0 ? math.min(mainSignal / 100, 1.0) : 0.0) : 0.0
+upperHeatColor = showHeatMapBands ? color.from_gradient(upperHeatIntensity, 0.0, 1.0, color.new(bullishColor, 95), color.new(bullishColor, 30)) : color.new(bullishColor, 100)
+
+// Lower band color (-90 to -100)
+lowerHeatIntensity = showHeatMapBands ? (mainSignal < 0 ? math.min(math.abs(mainSignal) / 100, 1.0) : 0.0) : 0.0
+lowerHeatColor = showHeatMapBands ? color.from_gradient(lowerHeatIntensity, 0.0, 1.0, color.new(bearishColor, 95), color.new(bearishColor, 30)) : color.new(bearishColor, 100)
+
+// Apply heat map fills (conditionally visible based on showHeatMapBands)
+fill(upperExtreme90, upperExtreme100, color=upperHeatColor, title="Upper Heat Map Band")
+fill(lowerExtreme90, lowerExtreme100, color=lowerHeatColor, title="Lower Heat Map Band")
+
+// Squeeze visualization
+purple_fill = color.new(#9C27B0, 95)
+bgcolor(squeeze ? purple_fill : na, title="Squeeze Background")
+
+// Signal projection
+var line projectionLine = na
+if barstate.islast
+    if showProjection and math.abs(mainSignal) > 30
+        slope = mainSignal - mainSignal[1]
+        projected = mainSignal + (slope * 3)
+        
+        if not na(projectionLine)
+            line.delete(projectionLine)
+        projectionLine := line.new(bar_index, mainSignal, bar_index + 3, projected, color=color.new(oscColor, 50), style=line.style_dotted)
+
+// Enhanced Alert conditions
+alertcondition(justExited and mainSignal > 0 and signalQuality > 0.7, "Bullish Squeeze Fired (High Quality)", "Strong squeeze fired bullish with high quality")
+alertcondition(justExited and mainSignal < 0 and signalQuality > 0.7, "Bearish Squeeze Fired (High Quality)", "Strong squeeze fired bearish with high quality")
+alertcondition(mainSignal > 90 and signalQuality > 0.8, "Extreme Overbought (High Quality)", "Signal reached extreme overbought with high quality")
+alertcondition(mainSignal < -90 and signalQuality > 0.8, "Extreme Oversold (High Quality)", "Signal reached extreme oversold with high quality")
+alertcondition(squeeze and not squeeze[1], "Squeeze Started", "Market entered squeeze condition")
+alertcondition(justExited, "Squeeze Released", "Market exited squeeze condition")
