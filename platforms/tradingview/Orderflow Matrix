@@ -1,0 +1,588 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0
+// © Nexural Trading
+
+//@version=6
+indicator("Nexural OrderFlow Matrix", "Nexural Flow", overlay=false, max_boxes_count=500, max_labels_count=500, max_bars_back=500)
+
+// ============================================================================
+// NEXURAL ORDERFLOW MATRIX V5.8 - NEXURAL FLOW EDITION
+// The Ultimate Order Flow Heatmap Matrix
+// ============================================================================
+//
+// Features:
+// • Per-candle heatmap matrix with gray→vibrant color gradient
+// • NEW: Stacked Imbalance Bars - visual buy/sell separation
+// • Nexural Flow live meter with imbalance ratio
+// • Bar VWAP, Delta, Delta %, Buy/Sell Vol, Bar Δ CVD
+// • Row labels on right edge for visibility
+// • Dual data source: ta.requestUpAndDownVolume + ta.requestVolumeDelta
+//
+// © Nexural Trading - Maximum Accuracy Edition
+// ============================================================================
+
+import TradingView/ta/10
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INPUTS - TIMEFRAME
+// ─────────────────────────────────────────────────────────────────────────────
+
+grp_ltf = "═══ Lower Timeframe ═══"
+string ltfMode = input.string("Auto", "Timeframe Mode", options=["Auto", "Aggressive", "Conservative", "Custom"], group=grp_ltf)
+string customTF = input.timeframe("1", "Custom Timeframe", group=grp_ltf)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INPUTS - DISPLAY
+// ─────────────────────────────────────────────────────────────────────────────
+
+grp_display = "═══ Display Settings ═══"
+bool showMatrix = input.bool(true, "Show Matrix Table", group=grp_display, tooltip="Show the heatmap data table")
+bool showImbalanceBars = input.bool(true, "Show Imbalance Bars", group=grp_display, tooltip="Show the stacked buy/sell bars")
+string textSizeInput = input.string("Tiny", "Text Size", options=["Auto", "Tiny", "Small"], group=grp_display)
+bool showRowLabels = input.bool(true, "Show Row Labels", group=grp_display)
+float rowHeight = input.float(1.0, "Row Height", minval=0.5, maxval=2.0, step=0.1, group=grp_display)
+float activityThreshold = input.float(25.0, "Activity Threshold %", minval=10.0, maxval=50.0, step=5.0, tooltip="Below this delta %, colors fade to gray", group=grp_display)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INPUTS - IMBALANCE BARS
+// ─────────────────────────────────────────────────────────────────────────────
+
+grp_imbalance = "═══ Imbalance Bars ═══"
+float imbalanceBarHeight = input.float(3.0, "Bar Height", minval=1.0, maxval=6.0, step=0.5, group=grp_imbalance)
+bool showImbalanceLabels = input.bool(true, "Show Volume Labels", group=grp_imbalance)
+bool showImbalancePct = input.bool(true, "Show Percentage", group=grp_imbalance)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INPUTS - METRICS
+// ─────────────────────────────────────────────────────────────────────────────
+
+grp_metrics = "═══ Metrics to Show ═══"
+bool showVolume = input.bool(true, "Volume", inline="m1", group=grp_metrics)
+bool showBarVWAP = input.bool(true, "Bar VWAP", inline="m1", group=grp_metrics)
+bool showDelta = input.bool(true, "Delta", inline="m2", group=grp_metrics)
+bool showDeltaPct = input.bool(true, "Delta %", inline="m2", group=grp_metrics)
+bool showMaxDelta = input.bool(false, "Max Δ", inline="m3", group=grp_metrics)
+bool showMinDelta = input.bool(false, "Min Δ", inline="m3", group=grp_metrics)
+bool showBarCVD = input.bool(true, "Bar Δ CVD", inline="m4", group=grp_metrics)
+bool showBuyVol = input.bool(true, "Buy Vol", inline="m4", group=grp_metrics)
+bool showSellVol = input.bool(true, "Sell Vol", inline="m5", group=grp_metrics)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INPUTS - NEXURAL FLOW METER
+// ─────────────────────────────────────────────────────────────────────────────
+
+grp_meter = "═══ Nexural Flow Meter ═══"
+bool showMeter = input.bool(true, "Show Nexural Flow Meter", group=grp_meter)
+string meterSize = input.string("Normal", "Meter Size", options=["Small", "Normal", "Large"], group=grp_meter)
+string meterPos = input.string("Top Right", "Meter Position", options=["Top Right", "Top Left", "Bottom Right", "Bottom Left"], group=grp_meter)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INPUTS - CVD
+// ─────────────────────────────────────────────────────────────────────────────
+
+grp_cvd = "═══ CVD Settings ═══"
+string cvdResetInput = input.string("Daily", "CVD Reset", options=["None", "Daily", "Weekly", "Monthly"], group=grp_cvd)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INPUTS - COLORS
+// ─────────────────────────────────────────────────────────────────────────────
+
+grp_colors = "═══ Colors ═══"
+color bullColorBright = input.color(#00e676, "Bullish (Strong)", inline="c1", group=grp_colors)
+color bearColorBright = input.color(#ff1744, "Bearish (Strong)", inline="c1", group=grp_colors)
+color lowActivityColor = input.color(#3d4450, "Low Activity", group=grp_colors)
+color nexuralAccent = input.color(#00b8d4, "Nexural Accent", group=grp_colors)
+color volumeColorHigh = input.color(#ffab00, "Volume (High)", inline="c2", group=grp_colors)
+color volumeColorLow = input.color(#4a4530, "Volume (Low)", inline="c2", group=grp_colors)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TIMEFRAME LOGIC
+// ─────────────────────────────────────────────────────────────────────────────
+
+getLowerTimeframe() =>
+    switch ltfMode
+        "Auto" =>
+            switch
+                timeframe.isseconds => "1S"
+                timeframe.isintraday => "1"
+                timeframe.isdaily => "5"
+                => "60"
+        "Aggressive" =>
+            switch
+                timeframe.isseconds => "1S"
+                timeframe.isintraday => "1S"
+                timeframe.isdaily => "1"
+                => "5"
+        "Conservative" =>
+            switch
+                timeframe.isseconds => "1S"
+                timeframe.isintraday => "5"
+                timeframe.isdaily => "15"
+                => "60"
+        "Custom" => customTF
+        => "1"
+
+string lowerTimeframe = getLowerTimeframe()
+
+string cvdPeriod = switch cvdResetInput
+    "None" => ""
+    "Daily" => "1D"
+    "Weekly" => "1W"
+    "Monthly" => "1M"
+    => "1D"
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DATA REQUESTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+[upVolume, downVolume, barDelta] = ta.requestUpAndDownVolume(lowerTimeframe)
+[cvdOpen, cvdHigh, cvdLow, cvdClose] = ta.requestVolumeDelta(lowerTimeframe, cvdPeriod)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CALCULATIONS
+// ─────────────────────────────────────────────────────────────────────────────
+
+float totalVolume = math.abs(nz(upVolume)) + math.abs(nz(downVolume))
+float buyVol = math.abs(nz(upVolume))
+float sellVol = math.abs(nz(downVolume))
+float delta = nz(barDelta)
+float deltaPct = totalVolume > 0 ? (delta / totalVolume) * 100.0 : 0.0
+float absDeltaPct = math.abs(deltaPct)
+float maxDeltaBar = nz(cvdHigh) - nz(cvdOpen)
+float minDeltaBar = nz(cvdLow) - nz(cvdOpen)
+
+// Bar Δ CVD (change this bar, not cumulative)
+float barDeltaCVD = nz(cvdClose) - nz(cvdOpen)
+
+// Cumulative CVD for meter display
+float cvdCumulative = nz(cvdClose)
+
+// Bar VWAP calculation
+float barVWAP = hl2
+
+// Imbalance Ratio
+float imbalanceRatio = sellVol > 0 ? buyVol / sellVol : (buyVol > 0 ? 99.9 : 1.0)
+float imbalanceRatioInverse = buyVol > 0 ? sellVol / buyVol : (sellVol > 0 ? 99.9 : 1.0)
+bool isBuyDominant = buyVol >= sellVol
+string imbalanceStr = isBuyDominant ? str.tostring(imbalanceRatio, "#.#") + ":1" : "1:" + str.tostring(imbalanceRatioInverse, "#.#")
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COUNT METRICS
+// ─────────────────────────────────────────────────────────────────────────────
+
+countMetrics() =>
+    int count = 0
+    if showVolume
+        count += 1
+    if showBarVWAP
+        count += 1
+    if showDelta
+        count += 1
+    if showDeltaPct
+        count += 1
+    if showMaxDelta
+        count += 1
+    if showMinDelta
+        count += 1
+    if showBarCVD
+        count += 1
+    if showBuyVol
+        count += 1
+    if showSellVol
+        count += 1
+    count
+
+int metricCount = countMetrics()
+float matrixHeight = showMatrix ? metricCount * rowHeight : 0.0
+float imbalanceHeight = showImbalanceBars ? imbalanceBarHeight : 0.0
+float gapHeight = (showImbalanceBars and showMatrix) ? 0.3 : 0.0  // Gap only when showing both
+float totalRows = matrixHeight + imbalanceHeight + gapHeight
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPER FUNCTIONS
+// ─────────────────────────────────────────────────────────────────────────────
+
+formatVol(float val) =>
+    string result = ""
+    if not na(val)
+        if math.abs(val) >= 1000000000
+            result := str.tostring(val / 1000000000, "#.##") + "B"
+        else if math.abs(val) >= 1000000
+            result := str.tostring(val / 1000000, "#.##") + "M"
+        else if math.abs(val) >= 1000
+            result := str.tostring(val / 1000, "#.#") + "K"
+        else
+            result := str.tostring(val, "#")
+    result
+
+formatPrice(float val) =>
+    na(val) ? "" : str.tostring(val, "#.##")
+
+formatPct(float val) =>
+    na(val) ? "" : str.tostring(val, "#.#") + "%"
+
+getTextSize() =>
+    switch textSizeInput
+        "Tiny" => size.tiny
+        "Small" => size.small
+        "Auto" => size.auto
+        => size.tiny
+
+getMeterTextSize() =>
+    switch meterSize
+        "Small" => size.small
+        "Normal" => size.normal
+        "Large" => size.large
+        => size.normal
+
+getMeterPosition() =>
+    switch meterPos
+        "Top Right" => position.top_right
+        "Top Left" => position.top_left
+        "Bottom Right" => position.bottom_right
+        "Bottom Left" => position.bottom_left
+        => position.top_right
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ENHANCED COLOR FUNCTION - Gray to Vibrant
+// ─────────────────────────────────────────────────────────────────────────────
+
+getActivityColor(float value, float maxValue, bool isBullish, float activityLevel) =>
+    float normalizedValue = maxValue > 0 ? math.min(math.abs(value) / maxValue, 1.0) : 0.0
+    
+    float colorBlend = 0.0
+    if activityLevel < activityThreshold
+        colorBlend := activityLevel / activityThreshold * 0.3
+    else
+        float aboveThreshold = (activityLevel - activityThreshold) / (100.0 - activityThreshold)
+        colorBlend := 0.3 + (aboveThreshold * 0.7)
+    
+    int baseTrans = math.round((1.0 - normalizedValue) * 50)
+    
+    color result = lowActivityColor
+    if colorBlend < 0.3
+        result := color.new(lowActivityColor, baseTrans + 20)
+    else if colorBlend < 0.5
+        result := color.new(isBullish ? #4a635a : #634a4a, baseTrans + 10)
+    else if colorBlend < 0.7
+        result := color.new(isBullish ? #2e7d52 : #7d2e2e, baseTrans)
+    else
+        result := color.new(isBullish ? bullColorBright : bearColorBright, math.max(0, baseTrans - 20))
+    result
+
+getVolumeColor(float value, float maxValue, float activityLevel) =>
+    float normalizedValue = maxValue > 0 ? math.min(value / maxValue, 1.0) : 0.0
+    
+    // Yellow/gold gradient based on volume intensity
+    int trans = math.round((1.0 - normalizedValue) * 60 + 10)
+    color result = color.from_gradient(normalizedValue, 0.0, 1.0, volumeColorLow, volumeColorHigh)
+    color.new(result, trans)
+
+getNeutralColor(float activityLevel) =>
+    if activityLevel < activityThreshold
+        color.new(lowActivityColor, 50)
+    else
+        color.new(#546e7a, 30)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROLLING MAX VALUES FOR SCALING
+// ─────────────────────────────────────────────────────────────────────────────
+
+var float maxVolWindow = 1.0
+var float maxDeltaWindow = 1.0
+var float maxBuyWindow = 1.0
+var float maxSellWindow = 1.0
+var float maxBarCVDWindow = 1.0
+
+maxVolWindow := math.max(maxVolWindow * 0.995, totalVolume, 1.0)
+maxDeltaWindow := math.max(maxDeltaWindow * 0.995, math.abs(delta), 1.0)
+maxBuyWindow := math.max(maxBuyWindow * 0.995, buyVol, 1.0)
+maxSellWindow := math.max(maxSellWindow * 0.995, sellVol, 1.0)
+maxBarCVDWindow := math.max(maxBarCVDWindow * 0.995, math.abs(barDeltaCVD), 1.0)
+
+// Box coordinates
+int boxLeft = bar_index
+int boxRight = bar_index + 1
+
+// Only draw if we have volume data
+bool hasData = totalVolume > 0
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DRAW IMBALANCE BARS (Stacked Buy/Sell Visual)
+// ─────────────────────────────────────────────────────────────────────────────
+
+float imbalanceTop = totalRows
+float imbalanceBottom = showImbalanceBars ? (totalRows - imbalanceHeight) : totalRows
+
+if showImbalanceBars and hasData
+    // Calculate proportional heights
+    float buyPct = totalVolume > 0 ? buyVol / totalVolume : 0.5
+    float sellPct = totalVolume > 0 ? sellVol / totalVolume : 0.5
+    
+    float buyHeight = imbalanceHeight * buyPct
+    float sellHeight = imbalanceHeight * sellPct
+    
+    // Determine colors based on activity
+    color buyBarColor = absDeltaPct >= activityThreshold ? bullColorBright : color.new(bullColorBright, 60)
+    color sellBarColor = absDeltaPct >= activityThreshold ? bearColorBright : color.new(bearColorBright, 60)
+    
+    // Draw Buy bar (top portion)
+    float buyTop = imbalanceTop
+    float buyBottom = imbalanceTop - buyHeight
+    string buyText = ""
+    if showImbalanceLabels and showImbalancePct
+        buyText := formatVol(buyVol) + "\n" + str.tostring(buyPct * 100, "#.#") + "%"
+    else if showImbalanceLabels
+        buyText := formatVol(buyVol)
+    else if showImbalancePct
+        buyText := str.tostring(buyPct * 100, "#.#") + "%"
+    
+    box.new(boxLeft, buyTop, boxRight, buyBottom, bgcolor=color.new(buyBarColor, 20), border_color=color.new(buyBarColor, 0), border_width=1, text=buyText, text_color=color.white, text_size=getTextSize(), text_halign=text.align_center, text_valign=text.align_center)
+    
+    // Draw Sell bar (bottom portion)
+    float sellTop = buyBottom
+    float sellBottom = imbalanceBottom
+    string sellText = ""
+    if showImbalanceLabels and showImbalancePct
+        sellText := formatVol(sellVol) + "\n" + str.tostring(sellPct * 100, "#.#") + "%"
+    else if showImbalanceLabels
+        sellText := formatVol(sellVol)
+    else if showImbalancePct
+        sellText := str.tostring(sellPct * 100, "#.#") + "%"
+    
+    box.new(boxLeft, sellTop, boxRight, sellBottom, bgcolor=color.new(sellBarColor, 20), border_color=color.new(sellBarColor, 0), border_width=1, text=sellText, text_color=color.white, text_size=getTextSize(), text_halign=text.align_center, text_valign=text.align_center)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DRAW MATRIX BOXES
+// ─────────────────────────────────────────────────────────────────────────────
+
+float matrixTop = showImbalanceBars ? (imbalanceBottom - gapHeight) : totalRows
+
+int rowNum = 0
+
+bool isSignificant = absDeltaPct >= activityThreshold
+color textCol = isSignificant ? color.white : color.new(color.white, 40)
+
+if showMatrix and hasData
+    // Volume Row
+    if showVolume
+        float y1 = matrixTop - (rowNum * rowHeight)
+        float y2 = y1 - rowHeight
+        color cellColor = getVolumeColor(totalVolume, maxVolWindow, absDeltaPct)
+        box.new(boxLeft, y1, boxRight, y2, bgcolor=cellColor, border_color=color.new(#2a2e39, 50), border_width=1, text=formatVol(totalVolume), text_color=textCol, text_size=getTextSize(), text_halign=text.align_center, text_valign=text.align_center)
+        rowNum += 1
+    
+    // Bar VWAP Row
+    if showBarVWAP
+        float y1 = matrixTop - (rowNum * rowHeight)
+        float y2 = y1 - rowHeight
+        color cellColor = getNeutralColor(absDeltaPct)
+        box.new(boxLeft, y1, boxRight, y2, bgcolor=cellColor, border_color=color.new(#2a2e39, 50), border_width=1, text=formatPrice(barVWAP), text_color=textCol, text_size=getTextSize(), text_halign=text.align_center, text_valign=text.align_center)
+        rowNum += 1
+    
+    // Delta Row
+    if showDelta
+        float y1 = matrixTop - (rowNum * rowHeight)
+        float y2 = y1 - rowHeight
+        color cellColor = getActivityColor(delta, maxDeltaWindow, delta > 0, absDeltaPct)
+        box.new(boxLeft, y1, boxRight, y2, bgcolor=cellColor, border_color=color.new(#2a2e39, 50), border_width=1, text=formatVol(delta), text_color=textCol, text_size=getTextSize(), text_halign=text.align_center, text_valign=text.align_center)
+        rowNum += 1
+    
+    // Delta % Row
+    if showDeltaPct
+        float y1 = matrixTop - (rowNum * rowHeight)
+        float y2 = y1 - rowHeight
+        color cellColor = getActivityColor(deltaPct, 100.0, deltaPct > 0, absDeltaPct)
+        box.new(boxLeft, y1, boxRight, y2, bgcolor=cellColor, border_color=color.new(#2a2e39, 50), border_width=1, text=formatPct(deltaPct), text_color=textCol, text_size=getTextSize(), text_halign=text.align_center, text_valign=text.align_center)
+        rowNum += 1
+    
+    // Max Delta Row
+    if showMaxDelta
+        float y1 = matrixTop - (rowNum * rowHeight)
+        float y2 = y1 - rowHeight
+        color cellColor = getActivityColor(maxDeltaBar, maxDeltaWindow, true, absDeltaPct)
+        box.new(boxLeft, y1, boxRight, y2, bgcolor=cellColor, border_color=color.new(#2a2e39, 50), border_width=1, text=formatVol(maxDeltaBar), text_color=textCol, text_size=getTextSize(), text_halign=text.align_center, text_valign=text.align_center)
+        rowNum += 1
+    
+    // Min Delta Row
+    if showMinDelta
+        float y1 = matrixTop - (rowNum * rowHeight)
+        float y2 = y1 - rowHeight
+        color cellColor = getActivityColor(minDeltaBar, maxDeltaWindow, false, absDeltaPct)
+        box.new(boxLeft, y1, boxRight, y2, bgcolor=cellColor, border_color=color.new(#2a2e39, 50), border_width=1, text=formatVol(minDeltaBar), text_color=textCol, text_size=getTextSize(), text_halign=text.align_center, text_valign=text.align_center)
+        rowNum += 1
+    
+    // Bar Δ CVD Row (per-bar change, not cumulative)
+    if showBarCVD
+        float y1 = matrixTop - (rowNum * rowHeight)
+        float y2 = y1 - rowHeight
+        color cellColor = getActivityColor(barDeltaCVD, maxBarCVDWindow, barDeltaCVD > 0, absDeltaPct)
+        box.new(boxLeft, y1, boxRight, y2, bgcolor=cellColor, border_color=color.new(#2a2e39, 50), border_width=1, text=formatVol(barDeltaCVD), text_color=textCol, text_size=getTextSize(), text_halign=text.align_center, text_valign=text.align_center)
+        rowNum += 1
+    
+    // Buy Volume Row
+    if showBuyVol
+        float y1 = matrixTop - (rowNum * rowHeight)
+        float y2 = y1 - rowHeight
+        color cellColor = getActivityColor(buyVol, maxBuyWindow, true, absDeltaPct)
+        box.new(boxLeft, y1, boxRight, y2, bgcolor=cellColor, border_color=color.new(#2a2e39, 50), border_width=1, text=formatVol(buyVol), text_color=textCol, text_size=getTextSize(), text_halign=text.align_center, text_valign=text.align_center)
+        rowNum += 1
+    
+    // Sell Volume Row
+    if showSellVol
+        float y1 = matrixTop - (rowNum * rowHeight)
+        float y2 = y1 - rowHeight
+        color cellColor = getActivityColor(sellVol, maxSellWindow, false, absDeltaPct)
+        box.new(boxLeft, y1, boxRight, y2, bgcolor=cellColor, border_color=color.new(#2a2e39, 50), border_width=1, text=formatVol(sellVol), text_color=textCol, text_size=getTextSize(), text_halign=text.align_center, text_valign=text.align_center)
+        rowNum += 1
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROW LABELS - AS BOXES AT END OF MATRIX
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Labels are now drawn inline with each row as boxes
+// We'll add them at the end of the last bar
+
+if barstate.islast and showRowLabels
+    int labelLeft = bar_index + 2
+    int labelRight = bar_index + 8
+    color labelBgDark = color.new(#1e222d, 0)
+    
+    // Imbalance label (only when showing imbalance bars)
+    if showImbalanceBars
+        float y1 = imbalanceTop
+        float y2 = imbalanceBottom
+        box.new(labelLeft, y1, labelRight, y2, bgcolor=color.new(nexuralAccent, 70), border_color=nexuralAccent, border_width=1, text="Imbalance", text_color=color.white, text_size=size.small, text_halign=text.align_center, text_valign=text.align_center)
+    
+    // Matrix labels (only when showing matrix)
+    if showMatrix
+        int labelRowNum = 0
+        
+        if showVolume
+            float y1 = matrixTop - (labelRowNum * rowHeight)
+            float y2 = y1 - rowHeight
+            box.new(labelLeft, y1, labelRight, y2, bgcolor=color.new(volumeColorHigh, 60), border_color=volumeColorHigh, border_width=1, text="Volume", text_color=color.white, text_size=size.small, text_halign=text.align_center, text_valign=text.align_center)
+            labelRowNum += 1
+        
+        if showBarVWAP
+            float y1 = matrixTop - (labelRowNum * rowHeight)
+            float y2 = y1 - rowHeight
+            box.new(labelLeft, y1, labelRight, y2, bgcolor=color.new(nexuralAccent, 70), border_color=nexuralAccent, border_width=1, text="Bar VWAP", text_color=color.white, text_size=size.small, text_halign=text.align_center, text_valign=text.align_center)
+            labelRowNum += 1
+        
+        if showDelta
+            float y1 = matrixTop - (labelRowNum * rowHeight)
+            float y2 = y1 - rowHeight
+            box.new(labelLeft, y1, labelRight, y2, bgcolor=labelBgDark, border_color=color.new(color.white, 70), border_width=1, text="Delta", text_color=color.white, text_size=size.small, text_halign=text.align_center, text_valign=text.align_center)
+            labelRowNum += 1
+        
+        if showDeltaPct
+            float y1 = matrixTop - (labelRowNum * rowHeight)
+            float y2 = y1 - rowHeight
+            box.new(labelLeft, y1, labelRight, y2, bgcolor=labelBgDark, border_color=color.new(color.white, 70), border_width=1, text="Delta %", text_color=color.white, text_size=size.small, text_halign=text.align_center, text_valign=text.align_center)
+            labelRowNum += 1
+        
+        if showMaxDelta
+            float y1 = matrixTop - (labelRowNum * rowHeight)
+            float y2 = y1 - rowHeight
+            box.new(labelLeft, y1, labelRight, y2, bgcolor=color.new(bullColorBright, 70), border_color=bullColorBright, border_width=1, text="Max Delta", text_color=color.white, text_size=size.small, text_halign=text.align_center, text_valign=text.align_center)
+            labelRowNum += 1
+        
+        if showMinDelta
+            float y1 = matrixTop - (labelRowNum * rowHeight)
+            float y2 = y1 - rowHeight
+            box.new(labelLeft, y1, labelRight, y2, bgcolor=color.new(bearColorBright, 70), border_color=bearColorBright, border_width=1, text="Min Delta", text_color=color.white, text_size=size.small, text_halign=text.align_center, text_valign=text.align_center)
+            labelRowNum += 1
+        
+        if showBarCVD
+            float y1 = matrixTop - (labelRowNum * rowHeight)
+            float y2 = y1 - rowHeight
+            box.new(labelLeft, y1, labelRight, y2, bgcolor=color.new(nexuralAccent, 70), border_color=nexuralAccent, border_width=1, text="CVD", text_color=color.white, text_size=size.small, text_halign=text.align_center, text_valign=text.align_center)
+            labelRowNum += 1
+        
+        if showBuyVol
+            float y1 = matrixTop - (labelRowNum * rowHeight)
+            float y2 = y1 - rowHeight
+            box.new(labelLeft, y1, labelRight, y2, bgcolor=color.new(bullColorBright, 70), border_color=bullColorBright, border_width=1, text="Buy Vol", text_color=color.white, text_size=size.small, text_halign=text.align_center, text_valign=text.align_center)
+            labelRowNum += 1
+        
+        if showSellVol
+            float y1 = matrixTop - (labelRowNum * rowHeight)
+            float y2 = y1 - rowHeight
+            box.new(labelLeft, y1, labelRight, y2, bgcolor=color.new(bearColorBright, 70), border_color=bearColorBright, border_width=1, text="Sell Vol", text_color=color.white, text_size=size.small, text_halign=text.align_center, text_valign=text.align_center)
+            labelRowNum += 1
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NEXURAL FLOW METER
+// ─────────────────────────────────────────────────────────────────────────────
+
+var table meterTable = table.new(getMeterPosition(), 2, 10, bgcolor=color.new(#0d1117, 5), border_width=1, border_color=color.new(nexuralAccent, 50))
+
+if showMeter
+    float buyPct = totalVolume > 0 ? buyVol / totalVolume * 100 : 50
+    float sellPct = totalVolume > 0 ? sellVol / totalVolume * 100 : 50
+    
+    string biasText = delta > 0 ? "BUYERS" : delta < 0 ? "SELLERS" : "NEUTRAL"
+    color biasColor = delta > 0 ? bullColorBright : delta < 0 ? bearColorBright : lowActivityColor
+    
+    string intensityText = switch
+        absDeltaPct >= 70 => "EXTREME"
+        absDeltaPct >= 50 => "STRONG"
+        absDeltaPct >= 30 => "MODERATE"
+        absDeltaPct >= 15 => "WEAK"
+        => "NEUTRAL"
+    
+    color meterBgColor = absDeltaPct >= activityThreshold ? color.new(biasColor, 40) : color.new(lowActivityColor, 40)
+    color headerBg = color.new(nexuralAccent, 70)
+    
+    // Header - Nexural Flow Branding
+    table.cell(meterTable, 0, 0, "⚡ NEXURAL FLOW", text_color=nexuralAccent, text_size=getMeterTextSize(), bgcolor=headerBg, text_font_family=font.family_monospace)
+    table.cell(meterTable, 1, 0, biasText, text_color=biasColor, text_size=getMeterTextSize(), bgcolor=headerBg, text_font_family=font.family_monospace)
+    
+    // Intensity Row
+    table.cell(meterTable, 0, 1, "Intensity", text_color=color.new(color.white, 40), text_size=size.small, text_halign=text.align_right)
+    table.cell(meterTable, 1, 1, intensityText, text_color=color.white, text_size=getMeterTextSize(), bgcolor=meterBgColor)
+    
+    // Imbalance Ratio Row
+    string imbalanceLabel = isBuyDominant ? "BUY " + imbalanceStr : "SELL " + imbalanceStr
+    color imbalanceColor = isBuyDominant ? bullColorBright : bearColorBright
+    table.cell(meterTable, 0, 2, "Imbalance", text_color=color.new(color.white, 40), text_size=size.small, text_halign=text.align_right)
+    table.cell(meterTable, 1, 2, imbalanceLabel, text_color=color.white, text_size=getMeterTextSize(), bgcolor=color.new(imbalanceColor, 40))
+    
+    // Delta
+    color deltaColor = absDeltaPct >= activityThreshold ? biasColor : lowActivityColor
+    table.cell(meterTable, 0, 3, "Delta", text_color=color.new(color.white, 40), text_size=size.small, text_halign=text.align_right)
+    table.cell(meterTable, 1, 3, formatVol(delta), text_color=color.white, text_size=getMeterTextSize(), bgcolor=color.new(deltaColor, 40))
+    
+    // Delta %
+    table.cell(meterTable, 0, 4, "Delta %", text_color=color.new(color.white, 40), text_size=size.small, text_halign=text.align_right)
+    table.cell(meterTable, 1, 4, formatPct(deltaPct), text_color=color.white, text_size=getMeterTextSize(), bgcolor=color.new(deltaColor, 30))
+    
+    // Buy Volume
+    table.cell(meterTable, 0, 5, "Buy Vol", text_color=bullColorBright, text_size=size.small, text_halign=text.align_right)
+    table.cell(meterTable, 1, 5, formatVol(buyVol) + " (" + str.tostring(buyPct, "#.#") + "%)", text_color=color.white, text_size=getMeterTextSize(), bgcolor=color.new(bullColorBright, 50))
+    
+    // Sell Volume
+    table.cell(meterTable, 0, 6, "Sell Vol", text_color=bearColorBright, text_size=size.small, text_halign=text.align_right)
+    table.cell(meterTable, 1, 6, formatVol(sellVol) + " (" + str.tostring(sellPct, "#.#") + "%)", text_color=color.white, text_size=getMeterTextSize(), bgcolor=color.new(bearColorBright, 50))
+    
+    // Volume
+    table.cell(meterTable, 0, 7, "Volume", text_color=color.new(color.white, 40), text_size=size.small, text_halign=text.align_right)
+    table.cell(meterTable, 1, 7, formatVol(totalVolume), text_color=color.white, text_size=getMeterTextSize(), bgcolor=color.new(#546e7a, 50))
+    
+    // Bar VWAP
+    table.cell(meterTable, 0, 8, "Bar VWAP", text_color=nexuralAccent, text_size=size.small, text_halign=text.align_right)
+    table.cell(meterTable, 1, 8, formatPrice(barVWAP), text_color=color.white, text_size=getMeterTextSize(), bgcolor=color.new(nexuralAccent, 60))
+    
+    // LTF Info
+    table.cell(meterTable, 0, 9, "LTF", text_color=color.new(color.white, 60), text_size=size.tiny, text_halign=text.align_right)
+    table.cell(meterTable, 1, 9, lowerTimeframe, text_color=color.new(color.white, 40), text_size=size.tiny, bgcolor=color.new(#363a45, 70))
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VOLUME CHECK
+// ─────────────────────────────────────────────────────────────────────────────
+
+var float cumVol = 0.0
+cumVol += nz(volume)
+
+if barstate.islast and cumVol == 0
+    runtime.error("No volume data available for this symbol.")
