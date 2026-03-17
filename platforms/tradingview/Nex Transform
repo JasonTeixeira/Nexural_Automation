@@ -1,0 +1,481 @@
+//@version=6
+indicator("Nexural Transform", overlay=false, precision=3, max_bars_back=500, scale=scale.left)
+
+// ========================================
+// SECTION 1: CORE FISHER & CVD INPUTS
+// ========================================
+inp = input.source(hl2, "Price Source", group="Core Settings", tooltip="Price source for Fisher Transform")
+length = input.int(10, "Fisher Length", minval=1, group="Core Settings")
+cvd_momentum_length = input.int(20, "CVD Momentum Length", minval=5, group="Core Settings")
+cvd_weight = input.float(0.3, "CVD Weight (0-1)", minval=0.0, maxval=1.0, step=0.1, group="Core Settings", tooltip="How much CVD affects Fisher")
+
+// ========================================
+// SECTION 2: ENHANCED FEATURES
+// ========================================
+use_adaptive_length = input.bool(true, "Use Adaptive Length", group="Enhanced Features", tooltip="Adjust length based on volatility")
+use_vw_fisher = input.bool(true, "Use Volume-Weighted Fisher", group="Enhanced Features")
+use_acceleration = input.bool(true, "Use CVD Acceleration", group="Enhanced Features", tooltip="Second derivative for faster response")
+power_factor = input.float(1.3, "Fisher Power Factor", minval=1.0, maxval=2.0, step=0.1, group="Enhanced Features")
+
+// ========================================
+// SECTION 3: ORDER FLOW DETECTION (PRO FEATURES)
+// ========================================
+// All order flow features enabled by default, no user inputs needed
+enable_order_flow = true
+show_absorption = true
+show_icebergs = true
+show_liquidity_sweeps = true
+show_failed_auctions = true
+show_exhaustion = true
+show_smart_money = true
+show_stacked_imbalances = true
+
+// ========================================
+// SECTION 4: DISPLAY & VISUALIZATION
+// ========================================
+// Fixed display settings for clean chart
+display_mode = "Combined"
+show_raw_cvd = true
+show_divergence = false
+use_dynamic_bands = input.bool(true, "Use Dynamic Sigma Bands", group="Display", tooltip="Volatility-adjusted levels vs fixed")
+show_instant_divergence = true
+
+// ========================================
+// SECTION 5: STATISTICS BOX
+// ========================================
+show_stats = input.bool(true, "Show Statistics Box", group="Statistics")
+stats_mode = input.string("Full", "Stats Detail Level", options=["Compact", "Full", "Order Flow"], group="Statistics", tooltip="Compact=8 rows, Full=12 rows, Order Flow=PRO metrics")
+show_exhaustion_stats = input.bool(true, "Show Exhaustion in Stats", group="Statistics")
+// Confidence calculated in background for alerts
+show_confidence = false
+
+// ========================================
+// SECTION 6: SESSION & FILTERS
+// ========================================
+use_time_filter = input.bool(true, "Use Session Filters", group="Session Settings")
+session_normalize = input.bool(true, "Session-Based Normalization", group="Session Settings")
+overnight_reduction = input.float(0.5, "Overnight Sensitivity", minval=0.1, maxval=1.0, step=0.1, group="Session Settings")
+
+// ========================================
+// MARKET INTERNALS
+// ========================================
+// $TICK disabled - not needed
+use_tick = false
+
+// ========================================
+// ENHANCED CVD CALCULATION
+// ========================================
+upDnIntrabarVolumes() =>
+    float upVol = 0.0
+    float dnVol = 0.0
+    
+    body_range = math.abs(close - open)
+    total_range = high - low
+    body_ratio = total_range > 0 ? body_range / total_range : 0
+    
+    upper_wick = high - math.max(open, close)
+    lower_wick = math.min(open, close) - low
+    wick_ratio = total_range > 0 ? (upper_wick + lower_wick) / total_range : 0.5
+    
+    if close > open
+        conviction = body_ratio * (1 - wick_ratio * 0.3)
+        upVol := volume * (0.5 + conviction * 0.5)
+        dnVol := volume * (0.5 - conviction * 0.5)
+    else if close < open
+        conviction = body_ratio * (1 - wick_ratio * 0.3)
+        upVol := volume * (0.5 - conviction * 0.5)
+        dnVol := volume * (0.5 + conviction * 0.5)
+    else
+        if upper_wick > lower_wick
+            upVol := volume * 0.4
+            dnVol := volume * 0.6
+        else if lower_wick > upper_wick
+            upVol := volume * 0.6
+            dnVol := volume * 0.4
+        else
+            upVol := volume * 0.5
+            dnVol := volume * 0.5
+    
+    [upVol, -dnVol]
+
+ltf = timeframe.isminutes and timeframe.multiplier >= 5 ? "1" : timeframe.isminutes and timeframe.multiplier >= 1 ? "15S" : "5S"
+
+[upVolArray, dnVolArray] = request.security_lower_tf(syminfo.tickerid, ltf, upDnIntrabarVolumes())
+
+bar_delta = array.sum(upVolArray) + array.sum(dnVolArray)
+
+var float cvd_cumulative = 0.0
+cvd_cumulative += bar_delta
+
+// Exponential CVD
+var float cvd_ema = 0.0
+cvd_alpha = 2.0 / (cvd_momentum_length + 1)
+cvd_change_abs = math.abs(bar_delta)
+surge_multiplier = cvd_change_abs > ta.sma(cvd_change_abs, 20) * 2 ? 2.0 : 1.0
+cvd_ema := cvd_ema + (bar_delta * surge_multiplier - cvd_ema) * cvd_alpha
+
+// Session management
+hour_est = hour(time, "America/New_York")
+minute_est = minute(time, "America/New_York")
+is_session_start = hour_est == 9 and minute_est == 30 and minute_est[1] != 30
+
+var float session_cvd_start = 0.0
+if is_session_start
+    session_cvd_start := cvd_cumulative[1]
+    cvd_ema := 0
+
+cvd_session = cvd_cumulative - session_cvd_start
+
+// CVD derivatives
+cvd_momentum = use_acceleration ? (cvd_ema - cvd_ema[cvd_momentum_length]) : (cvd_cumulative - cvd_cumulative[cvd_momentum_length])
+cvd_velocity = cvd_momentum / cvd_momentum_length
+cvd_acceleration = cvd_velocity - cvd_velocity[1]
+
+accel_stdev = ta.stdev(cvd_acceleration, 20)
+cvd_accel_zscore = accel_stdev != 0 ? cvd_acceleration / accel_stdev : 0
+
+cvd_momentum_stdev = ta.stdev(cvd_momentum, 50)
+cvd_momentum_zscore = cvd_momentum_stdev != 0 ? cvd_momentum / cvd_momentum_stdev : 0
+cvd_zscore_final = use_acceleration ? cvd_accel_zscore : cvd_momentum_zscore
+
+// ========================================
+// SESSION DETECTION
+// ========================================
+current_time = hour_est * 100 + minute_est
+is_RTH = current_time >= 930 and current_time <= 1600
+is_overnight = current_time < 930 or current_time > 1600
+is_london = current_time >= 300 and current_time <= 800
+is_key_time = (current_time >= 930 and current_time <= 1000) or (current_time >= 1030 and current_time <= 1100) or (current_time >= 1400 and current_time <= 1430) or (current_time >= 1500 and current_time <= 1600)
+is_lunch_chop = current_time >= 1200 and current_time <= 1330
+
+session_mult = is_overnight ? overnight_reduction : is_london ? 0.8 : is_lunch_chop ? 0.9 : 1.0
+
+// ========================================
+// ADAPTIVE LENGTH
+// ========================================
+atr_current = ta.atr(14)
+atr_avg = ta.sma(atr_current, 50)
+atr_ratio = atr_avg != 0 and not na(atr_avg) ? atr_current / atr_avg : 1.0
+adaptive_length = use_adaptive_length ? int(math.max(5, math.min(20, length * atr_ratio))) : length
+
+// ========================================
+// VOLUME-WEIGHTED FISHER
+// ========================================
+typical_price = (high + low + close) / 3
+vwma = ta.vwma(typical_price, 10)
+vw_blend = use_vw_fisher ? 0.7 : 0.0
+weighted_source = vwma * vw_blend + inp * (1 - vw_blend)
+
+// ========================================
+// FISHER CALCULATION
+// ========================================
+maxSrc = ta.highest(weighted_source, adaptive_length)
+minSrc = ta.lowest(weighted_source, adaptive_length)
+
+rsi_price = ta.rsi(weighted_source, 14)
+stoch_rsi_range = ta.highest(rsi_price, adaptive_length) - ta.lowest(rsi_price, adaptive_length)
+stoch_rsi = stoch_rsi_range != 0 ? (rsi_price - ta.lowest(rsi_price, adaptive_length)) / stoch_rsi_range : 0.5
+
+price_stoch = (maxSrc - minSrc) != 0 ? (weighted_source - minSrc) / (maxSrc - minSrc) : 0
+sto = (price_stoch + stoch_rsi) / 2
+
+fast_coef = 0.5
+v1 = 0.0
+v1 := math.max(math.min((fast_coef * 2 * (sto - 0.5)) + ((1 - fast_coef) * nz(v1[1])), 0.999), -0.999)
+
+fisher_value = 0.5 * math.log((1 + v1) / (1 - v1))
+fisher_powered = math.sign(fisher_value) * math.pow(math.abs(fisher_value), power_factor)
+
+fish_raw = 0.0
+fish_raw := (0.7 * fisher_powered) + (0.3 * nz(fish_raw[1]))
+
+// CVD integration
+cvd_agreement = math.sign(fish_raw) == math.sign(cvd_momentum) ? 1.0 : -1.0
+cvd_weight_dynamic = use_acceleration ? math.min(1.0, math.abs(cvd_accel_zscore) / 2) : math.min(1.0, math.abs(cvd_momentum_zscore) / 2)
+cvd_factor = 1.0 + (cvd_agreement * cvd_weight * cvd_weight_dynamic * math.min(math.abs(cvd_zscore_final), 3.0) / 3.0)
+
+fish = fish_raw * cvd_factor * (session_normalize ? session_mult : 1.0)
+signal = nz(fish[1])
+
+// ========================================
+// INSTANT DIVERGENCE
+// ========================================
+price_slope = ta.linreg(close, 5, 0) - ta.linreg(close, 5, 1)
+cvd_slope = ta.linreg(cvd_cumulative, 5, 0) - ta.linreg(cvd_cumulative, 5, 1)
+instant_divergence = (price_slope * cvd_slope < 0) ? math.abs(price_slope - cvd_slope) / close * 100 : 0
+divergence_multiplier = 1.0 + instant_divergence * 5
+fish := instant_divergence > 0.001 ? fish * divergence_multiplier : fish
+
+// ========================================
+// TRADITIONAL DIVERGENCE DETECTION
+// ========================================
+lookback_div = 20
+price_higher_high = high == ta.highest(high, lookback_div)
+price_lower_low = low == ta.lowest(low, lookback_div)
+cvd_higher = cvd_cumulative > cvd_cumulative[lookback_div]
+cvd_lower = cvd_cumulative < cvd_cumulative[lookback_div]
+
+// ========================================
+// DYNAMIC VS FIXED LEVELS
+// ========================================
+recent_range = ta.highest(math.abs(fish), 100) - ta.lowest(fish, 100)
+typical_range = 9.0
+volatility_adj = math.sqrt(recent_range / typical_range)
+cvd_volatility = ta.stdev(cvd_zscore_final, 20)
+cvd_vol_factor = 1.0 + (cvd_volatility - 1.0) * 0.3
+combined_factor = volatility_adj * cvd_vol_factor * (session_normalize ? session_mult : 1.0)
+
+// Dynamic levels
+level_1_sigma = use_dynamic_bands ? 1.5 * combined_factor : 1.5
+level_2_sigma = use_dynamic_bands ? 3.0 * combined_factor : 3.0
+level_3_sigma = use_dynamic_bands ? 4.5 * combined_factor : 4.5
+
+// Divergences with dynamic levels
+bull_div_cvd = price_lower_low and cvd_higher and fish < -level_2_sigma
+bear_div_cvd = price_higher_high and cvd_lower and fish > level_2_sigma
+
+// ========================================
+// ORDER FLOW DETECTION (PRO FEATURES)
+// ========================================
+vol_ma = ta.sma(volume, 20)
+price_change = math.abs(close - open)
+
+// Tape reading
+absorption_bull = enable_order_flow and show_absorption ? (volume > vol_ma * 2 and price_change < atr_current * 0.3 and bar_delta > 0) : false
+absorption_bear = enable_order_flow and show_absorption ? (volume > vol_ma * 2 and price_change < atr_current * 0.3 and bar_delta < 0) : false
+
+iceberg_bull = enable_order_flow and show_icebergs ? (math.abs(close - open) < atr_current * 0.2 and bar_delta > ta.sma(bar_delta, 5) * 3) : false
+iceberg_bear = enable_order_flow and show_icebergs ? (math.abs(close - open) < atr_current * 0.2 and bar_delta < ta.sma(bar_delta, 5) * -3) : false
+
+// Liquidity sweeps
+lookback_liquidity = 10
+prev_high = ta.highest(high, lookback_liquidity)[1]
+prev_low = ta.lowest(low, lookback_liquidity)[1]
+liquidity_sweep_bull = enable_order_flow and show_liquidity_sweeps ? (low < prev_low and close > prev_low and cvd_cumulative > cvd_cumulative[1]) : false
+liquidity_sweep_bear = enable_order_flow and show_liquidity_sweeps ? (high > prev_high and close < prev_high and cvd_cumulative < cvd_cumulative[1]) : false
+
+// Failed auctions
+new_high = high > ta.highest(high, 10)[1]
+cvd_dropping = cvd_cumulative < cvd_cumulative[3]
+bull_trap = enable_order_flow and show_failed_auctions ? (new_high and cvd_dropping and fish > level_2_sigma) : false
+
+new_low = low < ta.lowest(low, 10)[1]
+cvd_rising = cvd_cumulative > cvd_cumulative[3]
+bear_trap = enable_order_flow and show_failed_auctions ? (new_low and cvd_rising and fish < -level_2_sigma) : false
+
+// Exhaustion
+vol_spike = volume > vol_ma * 2.5
+bull_climax = vol_spike and fish > level_2_sigma and cvd_momentum > 0 and cvd_acceleration < cvd_acceleration[1]
+bear_climax = vol_spike and fish < -level_2_sigma and cvd_momentum < 0 and cvd_acceleration > cvd_acceleration[1]
+
+fisher_exhaustion = enable_order_flow and show_exhaustion ? (math.abs(fish) > 4.5 ? 25 : math.abs(fish) > 3.0 ? 15 : 0) : 0
+cvd_decel = enable_order_flow and show_exhaustion ? (math.abs(cvd_acceleration) < math.abs(cvd_acceleration[1]) ? 15 : 0) : 0
+vol_declining = enable_order_flow and show_exhaustion ? (volume < volume[1] and volume[1] > vol_ma * 2 ? 20 : 0) : 0
+current_body_ratio = (high - low) > 0 ? math.abs(close - open) / (high - low) : 0
+prev_body_ratio = (high[1] - low[1]) > 0 ? math.abs(close[1] - open[1]) / (high[1] - low[1]) : 0
+body_declining = enable_order_flow and show_exhaustion ? (current_body_ratio < prev_body_ratio * 0.7 ? 15 : 0) : 0
+exhaustion_score = fisher_exhaustion + cvd_decel + vol_declining + body_declining
+
+// Smart money
+avg_bar_vol = ta.sma(volume, 50)
+large_lot_threshold = avg_bar_vol * 3
+is_large_lot = volume > large_lot_threshold
+large_lot_bull = enable_order_flow and show_smart_money ? (is_large_lot and bar_delta > 0 and close > open) : false
+large_lot_bear = enable_order_flow and show_smart_money ? (is_large_lot and bar_delta < 0 and close < open) : false
+
+var float smart_money_cvd = 0.0
+if large_lot_bull
+    smart_money_cvd += bar_delta
+else if large_lot_bear
+    smart_money_cvd += bar_delta
+
+// Stacked imbalances
+var int consecutive_bull_bars = 0
+var int consecutive_bear_bars = 0
+
+if enable_order_flow and show_stacked_imbalances
+    if bar_delta > 0
+        consecutive_bull_bars += 1
+        consecutive_bear_bars := 0
+    else if bar_delta < 0
+        consecutive_bear_bars += 1
+        consecutive_bull_bars := 0
+    else
+        consecutive_bull_bars := 0
+        consecutive_bear_bars := 0
+
+price_range_5 = ta.highest(high, 5) - ta.lowest(low, 5)
+is_consolidating = price_range_5 < atr_current * 1.5
+stealth_accumulation = enable_order_flow and show_stacked_imbalances ? (consecutive_bull_bars >= 5 and is_consolidating) : false
+stealth_distribution = enable_order_flow and show_stacked_imbalances ? (consecutive_bear_bars >= 5 and is_consolidating) : false
+
+// Divergence strength
+price_roc = ta.roc(close, 10)
+cvd_roc = ta.roc(cvd_cumulative, 10)
+div_strength = math.abs(price_roc + cvd_roc) / (math.abs(price_roc) + 0.0001) * 100
+extreme_div_bull = price_roc < -2 and cvd_roc > 2 and div_strength > 80
+extreme_div_bear = price_roc > 2 and cvd_roc < -2 and div_strength > 80
+
+// ========================================
+// MARKET INTERNALS
+// ========================================
+tick = use_tick ? request.security("USI:TICKQ", timeframe.period, close) : 0
+tick_extreme_bull = use_tick ? tick < -600 : false
+tick_extreme_bear = use_tick ? tick > 600 : false
+
+// ========================================
+// CONFIDENCE SCORING
+// ========================================
+sig = fish > signal ? 1 : fish < signal ? -1 : 0
+turn_bullish = sig == 1 and sig[1] == -1
+turn_bearish = sig == -1 and sig[1] == 1
+
+// Always calculate confidence for alerts (not displayed)
+confidence = 0.0
+
+fisher_extremity = math.min(math.abs(fish) / level_2_sigma, 1.0) * 30
+cvd_agreement_score = cvd_agreement > 0 ? math.min(math.abs(cvd_zscore_final), 1.0) * 25 : 0
+accel_bonus = use_acceleration and math.abs(cvd_accel_zscore) > 1.5 ? 10 : 0
+time_score = is_key_time ? 15 : is_lunch_chop ? 0 : 7.5
+vol_ratio = volume / vol_ma
+volume_score = math.min(vol_ratio - 1.0, 1.0) * 10
+
+// Order flow bonuses
+tape_bonus = enable_order_flow ? ((absorption_bull or absorption_bear) ? 15 : (iceberg_bull or iceberg_bear) ? 20 : 0) : 0
+liquidity_bonus = enable_order_flow ? ((liquidity_sweep_bull or liquidity_sweep_bear) ? 25 : 0) : 0
+trap_bonus = enable_order_flow ? ((bull_trap or bear_trap) ? 30 : 0) : 0
+climax_bonus = enable_order_flow ? ((bull_climax or bear_climax) ? 20 : 0) : 0
+exhaustion_bonus = enable_order_flow ? (exhaustion_score > 50 ? 25 : 0) : 0
+sm_bonus = enable_order_flow ? ((large_lot_bull or large_lot_bear) ? 15 : 0) : 0
+extreme_div_bonus = (extreme_div_bull or extreme_div_bear) ? 30 : 0
+tick_bonus = use_tick ? ((tick_extreme_bull or tick_extreme_bear) ? 10 : 0) : 0
+
+confidence := fisher_extremity + cvd_agreement_score + accel_bonus + time_score + volume_score + tape_bonus + liquidity_bonus + trap_bonus + climax_bonus + exhaustion_bonus + sm_bonus + extreme_div_bonus + tick_bonus
+
+// High confidence signals
+high_confidence_long = turn_bullish and confidence > 70 and fish < -level_2_sigma
+high_confidence_short = turn_bearish and confidence > 70 and fish > level_2_sigma
+elite_long = turn_bullish and confidence > 100
+elite_short = turn_bearish and confidence > 100
+
+// ========================================
+// PLOTTING
+// ========================================
+cvd_display_scale = ta.stdev(fish, 100) / ta.stdev(cvd_cumulative, 100)
+cvd_scaled = cvd_cumulative * cvd_display_scale * 0.5
+
+fishColor = fish > level_3_sigma ? color.new(color.red, 0) : fish < -level_3_sigma ? color.new(color.green, 0) : fish > level_2_sigma ? color.red : fish < -level_2_sigma ? color.green : fish > level_1_sigma ? color.new(color.red, 60) : fish < -level_1_sigma ? color.new(color.green, 60) : color.gray
+
+cvdColor = cvd_cumulative > cvd_cumulative[1] ? color.new(color.green, 30) : color.new(color.red, 30)
+
+// Main plots
+plot(display_mode == "Combined" or display_mode == "Split" or display_mode == "Overlay" ? fish : na, "Fisher+CVD", color=fishColor, linewidth=3)
+plot(display_mode == "Combined" or display_mode == "Split" or display_mode == "Overlay" ? signal : na, "Signal", color=color.gray, linewidth=1)
+plot(show_raw_cvd and (display_mode == "Combined" or display_mode == "Overlay") ? cvd_scaled : na, "CVD", color=cvdColor, linewidth=2)
+
+// Levels
+plot(level_1_sigma, "1σ Upper", color=color.new(color.orange, 80), linewidth=1)
+plot(-level_1_sigma, "1σ Lower", color=color.new(color.orange, 80), linewidth=1)
+plot(level_2_sigma, "2σ Upper", color=color.new(color.red, 60), linewidth=2)
+plot(-level_2_sigma, "2σ Lower", color=color.new(color.green, 60), linewidth=2)
+plot(level_3_sigma, "3σ Upper", color=color.red, linewidth=3)
+plot(-level_3_sigma, "3σ Lower", color=color.green, linewidth=3)
+hline(0, "Zero", color=color.gray, linewidth=1)
+
+// Visual markers removed for clean chart
+// All signals still available via alerts and statistics box
+
+// Backgrounds
+bgcolor(show_instant_divergence and instant_divergence > 0.002 ? color.new(color.orange, 95) : na, title="Divergence")
+bgcolor(use_time_filter and is_overnight ? color.new(color.blue, 98) : na, title="Overnight")
+bgcolor(use_time_filter and is_lunch_chop ? color.new(color.gray, 97) : na, title="Lunch")
+
+// ========================================
+// STATISTICS BOX
+// ========================================
+var table statsTable = table.new(position.top_right, 2, 14, bgcolor=color.new(color.black, 85), border_width=1)
+
+if barstate.islast and show_stats
+    row = 0
+    
+    // Always show core metrics
+    table.cell(statsTable, 0, row, "Fisher:", text_color=color.white, text_size=size.small)
+    table.cell(statsTable, 1, row, str.tostring(fish, "#.##"), text_color=fishColor, text_size=size.small)
+    row += 1
+    
+    table.cell(statsTable, 0, row, "CVD:", text_color=color.white, text_size=size.small)
+    cvd_trend = cvd_cumulative > cvd_cumulative[5] ? "↑" : "↓"
+    table.cell(statsTable, 1, row, cvd_trend + " " + str.tostring(cvd_cumulative, "#,###"), text_color=cvd_cumulative > cvd_cumulative[5] ? color.green : color.red, text_size=size.small)
+    row += 1
+    
+    if stats_mode == "Full" or stats_mode == "Order Flow"
+        sigma_level = math.abs(fish) / level_1_sigma
+        table.cell(statsTable, 0, row, "Sigma:", text_color=color.white, text_size=size.small)
+        table.cell(statsTable, 1, row, str.tostring(sigma_level, "#.#") + "σ", text_color=sigma_level > 2 ? color.orange : color.white, text_size=size.small)
+        row += 1
+        
+        cvd_strength = math.abs(cvd_zscore_final) > 2 ? "EXTREME" : math.abs(cvd_zscore_final) > 1 ? "Strong" : "Normal"
+        table.cell(statsTable, 0, row, "CVD Mom:", text_color=color.white, text_size=size.small)
+        table.cell(statsTable, 1, row, cvd_strength, text_color=math.abs(cvd_zscore_final) > 1 ? color.orange : color.white, text_size=size.small)
+        row += 1
+        
+        if use_acceleration
+            accel_status = cvd_accel_zscore > 1 ? "🚀 +" : cvd_accel_zscore < -1 ? "🔻 -" : "→"
+            table.cell(statsTable, 0, row, "Accel:", text_color=color.white, text_size=size.small)
+            table.cell(statsTable, 1, row, accel_status, text_color=math.abs(cvd_accel_zscore) > 1 ? color.yellow : color.gray, text_size=size.small)
+            row += 1
+        
+        table.cell(statsTable, 0, row, "Div Str:", text_color=color.white, text_size=size.small)
+        table.cell(statsTable, 1, row, str.tostring(div_strength, "#") + "%", text_color=div_strength > 80 ? color.yellow : color.gray, text_size=size.small)
+        row += 1
+    
+    if stats_mode == "Order Flow" and enable_order_flow
+        if show_exhaustion_stats
+            table.cell(statsTable, 0, row, "Exhaustion:", text_color=color.white, text_size=size.small)
+            table.cell(statsTable, 1, row, str.tostring(exhaustion_score, "#"), text_color=exhaustion_score > 50 ? color.orange : color.gray, text_size=size.small)
+            row += 1
+        
+        if show_stacked_imbalances
+            streak_val = consecutive_bull_bars > 0 ? consecutive_bull_bars : -consecutive_bear_bars
+            table.cell(statsTable, 0, row, "Streak:", text_color=color.white, text_size=size.small)
+            table.cell(statsTable, 1, row, str.tostring(streak_val), text_color=consecutive_bull_bars >= 5 ? color.lime : consecutive_bear_bars >= 5 ? color.red : color.gray, text_size=size.small)
+            row += 1
+        
+        if show_smart_money
+            table.cell(statsTable, 0, row, "Smart $:", text_color=color.white, text_size=size.small)
+            sm_trend = smart_money_cvd > 0 ? "↑ LONG" : "↓ SHORT"
+            table.cell(statsTable, 1, row, sm_trend, text_color=smart_money_cvd > 0 ? color.green : color.red, text_size=size.small)
+            row += 1
+        
+        // Order flow activity summary
+        of_activity = (absorption_bull or absorption_bear ? "ABS " : "") + (iceberg_bull or iceberg_bear ? "ICE " : "") + (liquidity_sweep_bull or liquidity_sweep_bear ? "LIQ " : "") + (bull_trap or bear_trap ? "TRAP " : "")
+        if of_activity != ""
+            table.cell(statsTable, 0, row, "Activity:", text_color=color.white, text_size=size.small)
+            table.cell(statsTable, 1, row, of_activity, text_color=color.orange, text_size=size.small)
+            row += 1
+    
+    session_type = is_overnight ? "NIGHT" : is_RTH ? "RTH" : "PRE"
+    table.cell(statsTable, 0, row, "Session:", text_color=color.white, text_size=size.small)
+    table.cell(statsTable, 1, row, session_type, text_color=is_RTH ? color.green : color.gray, text_size=size.small)
+    row += 1
+    
+    // Signal row
+    signal_text = elite_long or elite_short ? "🎯 " + (sig > 0 ? "LONG" : "SHORT") : 
+                  high_confidence_long or high_confidence_short ? "↑ " + (sig > 0 ? "LONG" : "SHORT") : 
+                  sig > 0 ? "↑" : "↓"
+    table.cell(statsTable, 0, row, "Signal:", text_color=color.white, text_size=size.small)
+    table.cell(statsTable, 1, row, signal_text, text_color=elite_long or elite_short ? color.yellow : high_confidence_long or high_confidence_short ? color.orange : sig > 0 ? color.green : color.red, text_size=size.small)
+
+// ========================================
+// ALERTS
+// ========================================
+alertcondition(elite_long, "🎯 Elite Long", "Elite Long Signal - Confidence >100%")
+alertcondition(elite_short, "🎯 Elite Short", "Elite Short Signal - Confidence >100%")
+alertcondition(high_confidence_long, "High Confidence Long", "HC Long - Confidence >70%")
+alertcondition(high_confidence_short, "High Confidence Short", "HC Short - Confidence >70%")
+alertcondition(bull_div_cvd, "Bullish Divergence", "Price Low but CVD Rising")
+alertcondition(bear_div_cvd, "Bearish Divergence", "Price High but CVD Falling")
+alertcondition(instant_divergence > 0.002, "Instant Divergence", "Real-time Price/CVD Divergence")
+alertcondition(enable_order_flow and (liquidity_sweep_bull or liquidity_sweep_bear), "Liquidity Sweep", "Stop Hunt Detected")
+alertcondition(enable_order_flow and (bull_trap or bear_trap), "Failed Auction", "Bull/Bear Trap Detected")
+alertcondition(enable_order_flow and exhaustion_score > 50, "Exhaustion Alert", "High Exhaustion Score >50")
