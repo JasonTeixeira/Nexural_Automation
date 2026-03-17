@@ -1,0 +1,823 @@
+//@version=6
+// ============================================================================
+// QWAP ELITE - MAXIMUM POWER EDITION
+// Pushed to TradingView's Computational Ceiling
+// Enhanced Detection + Redesigned Dashboard
+// ============================================================================
+
+indicator("Nexural QWAP", "Nexural QWAP⚡", overlay=true, dynamic_requests=true, max_bars_back=500, max_labels_count=50, max_lines_count=50)
+
+// ============================================================================
+// CORE SETTINGS
+// ============================================================================
+group_core = "⚙️ Core Engine"
+vwap_source = input.source(hlc3, "VWAP Source", group=group_core)
+use_true_cvd = input.bool(true, "True CVD Engine", group=group_core, tooltip="Uses intrabar data for real order flow analysis")
+cvd_impact = input.float(0.2, "CVD Impact", minval=0.0, maxval=0.5, step=0.05, group=group_core)
+detection_sensitivity = input.string("Balanced", "Detection Sensitivity", options=["Conservative", "Balanced", "Aggressive"], group=group_core)
+
+// ============================================================================
+// VIX INTEGRATION
+// ============================================================================
+group_vix = "📊 Volatility Intelligence"
+use_vix = input.bool(true, "VIX Integration", group=group_vix)
+vix_symbol = input.string("VIX", "VIX Symbol", options=["VIX", "VXN", "RVX"], group=group_vix)
+vix_baseline = input.float(16.0, "VIX Baseline", minval=10.0, maxval=25.0, group=group_vix)
+
+// ============================================================================
+// ADVANCED DETECTION
+// ============================================================================
+group_detect = "🔬 Detection Systems"
+detect_absorption = input.bool(true, "Absorption Detection", group=group_detect, tooltip="Identifies large volume with minimal price movement")
+detect_liquidity = input.bool(true, "Liquidity Sweep Detection", group=group_detect, tooltip="Spots stop hunts and liquidity grabs")
+detect_divergence = input.bool(true, "CVD Divergence", group=group_detect, tooltip="Price vs Order Flow divergence")
+detect_imbalance = input.bool(true, "Stacked Imbalance", group=group_detect, tooltip="Consecutive aggressive buying/selling")
+use_mtf_confluence = input.bool(true, "MTF Confluence", group=group_detect, tooltip="Multi-timeframe bias alignment")
+
+// ============================================================================
+// ADAPTIVE SYSTEM
+// ============================================================================
+group_adaptive = "🧠 Adaptive Intelligence"
+use_adaptive = input.bool(true, "Adaptive Weighting", group=group_adaptive)
+adaptation_speed = input.float(0.15, "Adaptation Speed", minval=0.01, maxval=0.5, step=0.01, group=group_adaptive)
+
+// ============================================================================
+// DISPLAY
+// ============================================================================
+group_display = "🎨 Display"
+show_dashboard = input.bool(true, "Show Dashboard", group=group_display)
+dashboard_style = input.string("Elite", "Dashboard Style", options=["Compact", "Elite", "Full"], group=group_display)
+dashboard_position = input.string("Top Right", "Position", options=["Top Right", "Top Left", "Bottom Right", "Bottom Left"], group=group_display)
+
+// ============================================================================
+// COLORS
+// ============================================================================
+group_colors = "🎨 Colors"
+color_bull = input.color(#00ffbb, "Bullish", group=group_colors)
+color_bear = input.color(#ff3366, "Bearish", group=group_colors)
+color_neutral = input.color(#4a90d9, "Neutral", group=group_colors)
+color_warning = input.color(#ffaa00, "Warning", group=group_colors)
+color_extreme = input.color(#ff6600, "Extreme", group=group_colors)
+
+// Theme
+dark_bg = #0d1117
+panel_bg = #161b22
+header_bg = #21262d
+border_color = #30363d
+text_dim = #8b949e
+text_bright = #f0f6fc
+gold_accent = #ffd700
+cyan_accent = #00d4ff
+
+// ============================================================================
+// SENSITIVITY PRESETS
+// ============================================================================
+var float absorb_threshold = 1.5
+var float liq_threshold = 0.7
+var float div_threshold = 0.4
+var float imbalance_threshold = 0.5
+
+if barstate.isfirst
+    if detection_sensitivity == "Conservative"
+        absorb_threshold := 2.0
+        liq_threshold := 0.8
+        div_threshold := 0.5
+        imbalance_threshold := 0.6
+    else if detection_sensitivity == "Aggressive"
+        absorb_threshold := 1.2
+        liq_threshold := 0.5
+        div_threshold := 0.3
+        imbalance_threshold := 0.4
+
+// ============================================================================
+// UNICODE VISUAL ELEMENTS
+// ============================================================================
+icon_bull = "▲"
+icon_bear = "▼"
+icon_neutral = "◆"
+icon_strong = "◉"
+icon_weak = "○"
+icon_fire = "🔥"
+icon_ice = "❄"
+icon_warning = "⚠"
+icon_check = "✓"
+icon_x = "✗"
+icon_arrow_up = "↑"
+icon_arrow_dn = "↓"
+icon_dot = "●"
+icon_ring = "○"
+
+// Progress bar characters
+bar_full = "█"
+bar_three = "▓"
+bar_half = "▒"
+bar_empty = "░"
+
+// ============================================================================
+// OPTIMIZED VISUAL BARS
+// ============================================================================
+get_power_bar(pct) =>
+    int filled = math.round(math.max(0, math.min(100, nz(pct))) / 12.5)
+    string result = ""
+    for i = 0 to 7
+        result += i < filled ? bar_full : bar_empty
+    result
+
+get_momentum_bar(val, maxVal) =>
+    float pct = math.abs(val) / maxVal * 100
+    int filled = math.round(math.min(pct, 100) / 25)
+    string left = ""
+    string right = ""
+    if val >= 0
+        for i = 0 to 3
+            right += i < filled ? bar_full : bar_empty
+        left := "    "
+    else
+        for i = 0 to 3
+            left += i < (4 - filled) ? bar_empty : bar_full
+        right := "    "
+    left + right
+
+get_bias_meter_visual(score) =>
+    // score from -100 to +100
+    int pos = math.round((score + 100) / 25)
+    switch pos
+        0 => "████░░░░"
+        1 => "███░░░░░"
+        2 => "██░░░░░░"
+        3 => "█░░░░░░░"
+        4 => "░░░░░░░░"
+        5 => "░░░░░░░█"
+        6 => "░░░░░░██"
+        7 => "░░░░░███"
+        => "░░░░████"
+
+// ============================================================================
+// VIX DATA (Optimized Single Fetch)
+// ============================================================================
+var float cached_vix = na
+var float cached_vvix = na
+var float cached_vix9d = na
+var int last_vix_bar = -1
+
+if use_vix and bar_index != last_vix_bar
+    cached_vix := request.security(vix_symbol, timeframe.period, close, ignore_invalid_symbol=true)
+    cached_vvix := request.security("VVIX", timeframe.period, close, ignore_invalid_symbol=true)
+    cached_vix9d := request.security("VIX9D", timeframe.period, close, ignore_invalid_symbol=true)
+    last_vix_bar := bar_index
+
+float vix_value = cached_vix
+float vvix_value = cached_vvix
+float vix_9d = cached_vix9d
+bool vix_connected = not na(vix_value)
+
+float vix_normalized = vix_connected ? vix_value / vix_baseline : 1.0
+float vix_term_ratio = vix_connected and not na(vix_9d) and vix_value > 0 ? vix_9d / vix_value : 1.0
+float vix_band_mult = vix_connected ? (vix_value < 12 ? 0.75 : vix_value < 20 ? 1.0 : vix_value < 30 ? 1.5 : 2.0) : 1.0
+
+string vix_regime = vix_connected ? (vix_value < 12 ? "CALM" : vix_value < 20 ? "NORMAL" : vix_value < 30 ? "ELEVATED" : "FEAR") : "N/A"
+string term_structure = vix_term_ratio < 0.85 ? "BACKWRD" : vix_term_ratio > 1.15 ? "CONTANGO" : "FLAT"
+
+// ============================================================================
+// PRE-CALCULATED FUNDAMENTALS
+// ============================================================================
+float vol_sma_20 = ta.sma(volume, 20)
+float vol_sma_50 = ta.sma(volume, 50)
+float vol_safe = math.max(vol_sma_20, 1)
+float relative_volume = volume / vol_safe
+float rvol_50 = volume / math.max(vol_sma_50, 1)
+
+float atr_5 = ta.atr(5)
+float atr_14 = ta.atr(14)
+float atr_50 = ta.atr(50)
+float atr_safe = math.max(atr_14, 0.0001)
+
+float candle_range = high - low
+float candle_body = math.abs(close - open)
+float body_ratio = candle_range > 0 ? candle_body / candle_range : 0
+float upper_wick = high - math.max(open, close)
+float lower_wick = math.min(open, close) - low
+float wick_ratio = candle_range > 0 ? (upper_wick + lower_wick) / candle_range : 0
+
+float volatility_ratio = use_vix and vix_connected ? vix_normalized : (atr_5 / atr_safe)
+bool vol_expansion = use_vix and vix_connected ? vix_value > vix_baseline * 1.5 : atr_14 > atr_50 * 1.3
+bool vol_compression = use_vix and vix_connected ? vix_value < vix_baseline * 0.7 : atr_14 < atr_50 * 0.7
+
+// ============================================================================
+// SESSION AWARENESS
+// ============================================================================
+int hour_ny = hour(time, "America/New_York")
+int minute_ny = minute(time, "America/New_York")
+
+bool is_premarket = hour_ny >= 4 and hour_ny < 9
+bool is_open_drive = hour_ny == 9 and minute_ny >= 30 or (hour_ny == 10 and minute_ny <= 30)
+bool is_midday = hour_ny >= 11 and hour_ny < 14
+bool is_power_hour = hour_ny >= 15 and hour_ny < 16
+bool is_after_hours = hour_ny >= 16 or hour_ny < 4
+
+float session_weight = is_open_drive ? 1.4 : is_power_hour ? 1.3 : is_premarket ? 0.7 : is_after_hours ? 0.5 : is_midday ? 0.9 : 1.0
+string session_name = is_open_drive ? "OPEN" : is_power_hour ? "POWER" : is_premarket ? "PRE" : is_after_hours ? "AH" : is_midday ? "LUNCH" : "RTH"
+
+// ============================================================================
+// TRUE CVD ENGINE (Maximum Precision)
+// ============================================================================
+var float cached_deltaRatio = 0.0
+var float cached_trueDelta = 0.0
+var float cached_buyVol = 0.0
+var float cached_sellVol = 0.0
+var int cached_intrabars = 0
+var int last_cvd_bar = -1
+
+bool is_significant = relative_volume > 1.3 or math.abs((close - nz(close[1], close)) / close * 100) > 0.3 or barstate.isrealtime
+bool should_update_cvd = use_true_cvd and (ta.change(time("D")) != 0 or is_significant or bar_index - last_cvd_bar >= 3)
+
+upDnIntrabar() =>
+    float up = 0.0
+    float dn = 0.0
+    if close > open
+        up := volume
+    else if close < open
+        dn := volume
+    else if close > nz(close[1])
+        up := volume
+    else if close < nz(close[1])
+        dn := volume
+    else
+        up := volume / 2
+        dn := volume / 2
+    [up, dn]
+
+getLTF() =>
+    int mult = timeframe.multiplier
+    mult <= 1 ? "5S" : mult <= 5 ? "15S" : mult <= 15 ? "1" : mult <= 60 ? "5" : "15"
+
+float deltaRatio = 0.0
+float trueDelta = 0.0
+float buyVolume = 0.0
+float sellVolume = 0.0
+int intrabars = 0
+
+if should_update_cvd
+    string ltf = getLTF()
+    [upVols, dnVols] = request.security_lower_tf(syminfo.tickerid, ltf, upDnIntrabar())
+    
+    buyVolume := nz(upVols.sum())
+    sellVolume := nz(dnVols.sum())
+    float totalVol = buyVolume + sellVolume
+    
+    trueDelta := buyVolume - sellVolume
+    deltaRatio := totalVol > 0 ? trueDelta / totalVol : 0
+    intrabars := array.size(upVols)
+    
+    cached_deltaRatio := deltaRatio
+    cached_trueDelta := trueDelta
+    cached_buyVol := buyVolume
+    cached_sellVol := sellVolume
+    cached_intrabars := intrabars
+    last_cvd_bar := bar_index
+else if use_true_cvd
+    deltaRatio := cached_deltaRatio
+    trueDelta := cached_trueDelta
+    buyVolume := cached_buyVol
+    sellVolume := cached_sellVol
+    intrabars := cached_intrabars
+else
+    deltaRatio := close > open ? 0.3 : close < open ? -0.3 : 0
+    buyVolume := close > open ? volume : volume * 0.5
+    sellVolume := close < open ? volume : volume * 0.5
+
+// CVD Momentum (rate of change)
+float delta_ema_fast = ta.ema(deltaRatio, 5)
+float delta_ema_slow = ta.ema(deltaRatio, 20)
+float delta_momentum = delta_ema_fast - delta_ema_slow
+bool delta_accelerating = math.abs(delta_momentum) > math.abs(nz(delta_momentum[1])) * 1.1
+
+// ============================================================================
+// CUMULATIVE DELTA TRACKING
+// ============================================================================
+var float session_cum_delta = 0.0
+var float prev_session_delta = 0.0
+
+if ta.change(time("D")) != 0
+    prev_session_delta := session_cum_delta
+    session_cum_delta := trueDelta
+else
+    session_cum_delta += trueDelta
+
+float cum_delta_trend = session_cum_delta > prev_session_delta * 0.5 ? 1 : session_cum_delta < prev_session_delta * -0.5 ? -1 : 0
+
+// ============================================================================
+// ABSORPTION DETECTION
+// ============================================================================
+bool absorption_detected = false
+string absorption_type = "NONE"
+float absorption_score = 0.0
+
+if detect_absorption
+    float range_percentile = ta.percentile_nearest_rank(candle_range, 20, 20)
+    float vol_percentile = ta.percentile_nearest_rank(volume, 20, 80)
+    
+    bool small_range = candle_range < range_percentile
+    bool high_volume = volume > vol_percentile
+    bool high_wick = wick_ratio > 0.6
+    
+    if small_range and high_volume and relative_volume > absorb_threshold
+        absorption_detected := true
+        absorption_score := relative_volume * (1 - body_ratio) * session_weight
+        absorption_type := deltaRatio > 0.2 ? "BUY ABS" : deltaRatio < -0.2 ? "SELL ABS" : "NEUTRAL"
+
+// ============================================================================
+// LIQUIDITY SWEEP DETECTION
+// ============================================================================
+bool liquidity_sweep = false
+string sweep_type = "NONE"
+float sweep_score = 0.0
+
+if detect_liquidity
+    float prev_high_5 = ta.highest(high[1], 5)
+    float prev_low_5 = ta.lowest(low[1], 5)
+    float prev_high_20 = ta.highest(high[1], 20)
+    float prev_low_20 = ta.lowest(low[1], 20)
+    
+    bool swept_highs = high > prev_high_5 and close < prev_high_5
+    bool swept_lows = low < prev_low_5 and close > prev_low_5
+    bool swept_range_high = high > prev_high_20 and close < open
+    bool swept_range_low = low < prev_low_20 and close > open
+    
+    if swept_highs or swept_range_high
+        liquidity_sweep := true
+        sweep_type := "BULL TRAP"
+        sweep_score := relative_volume * math.abs(deltaRatio) * (swept_range_high ? 1.5 : 1.0)
+    
+    if swept_lows or swept_range_low
+        liquidity_sweep := true
+        sweep_type := "BEAR TRAP"
+        sweep_score := relative_volume * math.abs(deltaRatio) * (swept_range_low ? 1.5 : 1.0)
+
+// ============================================================================
+// DIVERGENCE DETECTION (Price vs CVD)
+// ============================================================================
+bool divergence_detected = false
+string divergence_type = "NONE"
+float divergence_score = 0.0
+
+if detect_divergence
+    float price_change = (close - close[5]) / close[5] * 100
+    float delta_cum_5 = math.sum(trueDelta, 5)
+    float vol_cum_5 = math.sum(volume, 5)
+    float delta_ratio_5 = vol_cum_5 > 0 ? delta_cum_5 / vol_cum_5 : 0
+    
+    bool price_up_delta_dn = price_change > div_threshold and delta_ratio_5 < -0.1
+    bool price_dn_delta_up = price_change < -div_threshold and delta_ratio_5 > 0.1
+    
+    if price_up_delta_dn
+        divergence_detected := true
+        divergence_type := "BEAR DIV"
+        divergence_score := math.abs(price_change) * math.abs(delta_ratio_5) * 10
+    
+    if price_dn_delta_up
+        divergence_detected := true
+        divergence_type := "BULL DIV"
+        divergence_score := math.abs(price_change) * math.abs(delta_ratio_5) * 10
+
+// ============================================================================
+// STACKED IMBALANCE DETECTION
+// ============================================================================
+bool imbalance_stacked = false
+string imbalance_type = "NONE"
+int imbalance_count = 0
+
+if detect_imbalance
+    int consecutive_buy = 0
+    int consecutive_sell = 0
+    
+    for i = 0 to 4
+        if nz(deltaRatio[i]) > imbalance_threshold
+            consecutive_buy += 1
+        else
+            break
+    
+    for i = 0 to 4
+        if nz(deltaRatio[i]) < -imbalance_threshold
+            consecutive_sell += 1
+        else
+            break
+    
+    if consecutive_buy >= 3
+        imbalance_stacked := true
+        imbalance_type := "BUY STACK"
+        imbalance_count := consecutive_buy
+    
+    if consecutive_sell >= 3
+        imbalance_stacked := true
+        imbalance_type := "SELL STACK"
+        imbalance_count := consecutive_sell
+
+// ============================================================================
+// INSTITUTIONAL FLOW DETECTION (Enhanced)
+// ============================================================================
+bool vol_persistent = relative_volume > 1.2 and nz(relative_volume[1]) > 1.1 and nz(relative_volume[2]) > 1.0
+bool delta_persistent = math.sign(deltaRatio) == math.sign(nz(deltaRatio[1])) and math.sign(deltaRatio) == math.sign(nz(deltaRatio[2]))
+
+bool institutional_buy = deltaRatio > 0.5 and vol_persistent and delta_persistent
+bool institutional_sell = deltaRatio < -0.5 and vol_persistent and delta_persistent
+bool institutional_activity = institutional_buy or institutional_sell
+
+float institutional_score = institutional_activity ? math.abs(deltaRatio) * relative_volume * (delta_persistent ? 1.5 : 1.0) : 0
+
+// ============================================================================
+// MULTI-TIMEFRAME CONFLUENCE
+// ============================================================================
+var float htf_bias = 0.0
+var int last_mtf_bar = -1
+
+if use_mtf_confluence and bar_index != last_mtf_bar and bar_index % 5 == 0
+    float htf_close = request.security(syminfo.tickerid, "60", close, ignore_invalid_symbol=true)
+    float htf_vwap = request.security(syminfo.tickerid, "60", ta.vwap(hlc3), ignore_invalid_symbol=true)
+    float htf_ema = request.security(syminfo.tickerid, "60", ta.ema(close, 20), ignore_invalid_symbol=true)
+    
+    htf_bias := 0.0
+    if not na(htf_close) and not na(htf_vwap)
+        htf_bias += htf_close > htf_vwap ? 1 : -1
+    if not na(htf_close) and not na(htf_ema)
+        htf_bias += htf_close > htf_ema ? 1 : -1
+    htf_bias := htf_bias / 2
+    last_mtf_bar := bar_index
+
+bool mtf_aligned_bull = htf_bias > 0.5 and deltaRatio > 0.2 and close > ta.vwap(hlc3)
+bool mtf_aligned_bear = htf_bias < -0.5 and deltaRatio < -0.2 and close < ta.vwap(hlc3)
+bool mtf_confluence = mtf_aligned_bull or mtf_aligned_bear
+
+// ============================================================================
+// ADAPTIVE WEIGHT SYSTEM
+// ============================================================================
+var float adaptive_weight = cvd_impact
+var array<float> weight_history = array.new_float(30, cvd_impact)
+var int w_idx = 0
+
+if use_adaptive and bar_index % 5 == 0
+    float regime_factor = vix_connected ? (vix_normalized < 0.8 ? 0.7 : vix_normalized > 1.5 ? 1.4 : 1.0) : (volatility_ratio < 0.8 ? 0.7 : volatility_ratio > 1.3 ? 1.3 : 1.0)
+    float clarity_factor = math.abs(deltaRatio) > 0.4 and vol_persistent ? 1.3 : 0.8
+    float session_factor = session_weight
+    
+    float target_weight = cvd_impact * regime_factor * clarity_factor * session_factor
+    target_weight := math.max(0.05, math.min(0.5, target_weight))
+    
+    adaptive_weight := adaptive_weight + (target_weight - adaptive_weight) * adaptation_speed
+    
+    array.set(weight_history, w_idx % 30, adaptive_weight)
+    w_idx += 1
+
+float final_cvd_weight = use_adaptive ? adaptive_weight : cvd_impact
+
+// ============================================================================
+// VWAP CALCULATION
+// ============================================================================
+float cvd_multiplier = use_true_cvd ? 1 + (deltaRatio * final_cvd_weight) : 1.0
+float vol_adjust = math.sqrt(volatility_ratio)
+
+float weighted_price = vwap_source * volume * cvd_multiplier * session_weight * vol_adjust
+float weighted_volume = volume * cvd_multiplier * session_weight * vol_adjust
+
+float standard_vwap = ta.vwap(vwap_source)
+
+var float vwap_sum_pv = 0.0
+var float vwap_sum_v = 0.0
+
+if ta.change(time("D")) != 0
+    vwap_sum_pv := weighted_price
+    vwap_sum_v := weighted_volume
+else
+    vwap_sum_pv += weighted_price
+    vwap_sum_v += weighted_volume
+
+float qwap_value = vwap_sum_v > 0 ? vwap_sum_pv / vwap_sum_v : standard_vwap
+
+// Session VWAP (RTH only)
+var float rth_sum_pv = 0.0
+var float rth_sum_v = 0.0
+
+if hour_ny == 9 and minute_ny == 30
+    rth_sum_pv := weighted_price
+    rth_sum_v := weighted_volume
+else if not is_premarket and not is_after_hours
+    rth_sum_pv += weighted_price
+    rth_sum_v += weighted_volume
+
+float rth_vwap = rth_sum_v > 0 ? rth_sum_pv / rth_sum_v : qwap_value
+float vwap_final = timeframe.isintraday and not is_premarket and not is_after_hours ? rth_vwap : qwap_value
+
+// VWAP dynamics
+float vwap_velocity = ta.ema(vwap_final - nz(vwap_final[1]), 5)
+float vwap_accel = vwap_velocity - nz(vwap_velocity[1])
+
+// ============================================================================
+// BANDS & STATISTICS
+// ============================================================================
+float dev = ta.stdev(close - vwap_final, 20)
+float band_mult = vix_band_mult
+
+float upper_1 = vwap_final + dev * 1 * band_mult
+float upper_2 = vwap_final + dev * 2 * band_mult
+float upper_3 = vwap_final + dev * 3 * band_mult
+float lower_1 = vwap_final - dev * 1 * band_mult
+float lower_2 = vwap_final - dev * 2 * band_mult
+float lower_3 = vwap_final - dev * 3 * band_mult
+
+float distance = close - vwap_final
+float sigmas = dev > 0 ? distance / dev : 0
+float pct_from_vwap = vwap_final > 0 ? distance / vwap_final * 100 : 0
+
+// ============================================================================
+// COMPOSITE SCORES
+// ============================================================================
+// Heat Score (market activity intensity)
+float vol_heat = math.min(100, relative_volume * 25)
+float volatility_heat = math.min(100, volatility_ratio * 50)
+float delta_heat = math.min(100, math.abs(deltaRatio) * 100)
+float deviation_heat = math.min(100, math.abs(sigmas) * 33)
+
+float heat_score = (vol_heat * 0.3 + volatility_heat * 0.2 + delta_heat * 0.3 + deviation_heat * 0.2) * session_weight
+heat_score := math.min(100, heat_score)
+
+// Bias Score (-100 to +100)
+float delta_bias = deltaRatio * 40
+float position_bias = -sigmas * 15  // mean reversion bias
+float momentum_bias = vwap_velocity > 0 ? 15 : vwap_velocity < 0 ? -15 : 0
+float mtf_bias_contrib = htf_bias * 20
+
+float bias_score = delta_bias + momentum_bias + mtf_bias_contrib
+bias_score := math.max(-100, math.min(100, bias_score))
+
+// Setup Quality (0-100)
+float setup_quality = 0.0
+setup_quality += math.abs(deltaRatio) > 0.4 ? 20 : math.abs(deltaRatio) > 0.2 ? 10 : 0
+setup_quality += vol_persistent ? 20 : relative_volume > 1.2 ? 10 : 0
+setup_quality += mtf_confluence ? 25 : 0
+setup_quality += absorption_detected ? 15 : 0
+setup_quality += divergence_detected ? 15 : 0
+setup_quality += liquidity_sweep ? 10 : 0
+setup_quality += session_weight > 1.2 ? 10 : session_weight < 0.7 ? -10 : 0
+setup_quality := math.max(0, math.min(100, setup_quality))
+
+// Regime Classification
+string regime = heat_score > 75 ? "EXTREME" : heat_score > 50 ? "ACTIVE" : heat_score > 25 ? "NORMAL" : "QUIET"
+
+// ============================================================================
+// SIGNAL SYNTHESIS
+// ============================================================================
+bool strong_bull_signal = bias_score > 40 and setup_quality > 50 and deltaRatio > 0.3 and (mtf_confluence or institutional_buy)
+bool strong_bear_signal = bias_score < -40 and setup_quality > 50 and deltaRatio < -0.3 and (mtf_confluence or institutional_sell)
+bool reversal_setup = (divergence_detected or absorption_detected) and math.abs(sigmas) > 1.5 and setup_quality > 40
+
+string primary_signal = strong_bull_signal ? "LONG" : strong_bear_signal ? "SHORT" : reversal_setup ? "REVERSAL" : "WAIT"
+color signal_color = strong_bull_signal ? color_bull : strong_bear_signal ? color_bear : reversal_setup ? color_warning : text_dim
+
+// ============================================================================
+// PLOTTING
+// ============================================================================
+color vwap_color = close > vwap_final ? color_bull : close < vwap_final ? color_bear : color_neutral
+plot(vwap_final, "QWAP", color=vwap_color, linewidth=3)
+
+p_vwap = plot(vwap_final, display=display.none)
+p_u1 = plot(upper_1, "Upper 1σ", color=color.new(color_bull, 70), linewidth=1)
+p_u2 = plot(upper_2, "Upper 2σ", color=color.new(color_bull, 80), linewidth=1)
+p_u3 = plot(upper_3, "Upper 3σ", color=color.new(color_bull, 90), linewidth=1)
+p_l1 = plot(lower_1, "Lower 1σ", color=color.new(color_bear, 70), linewidth=1)
+p_l2 = plot(lower_2, "Lower 2σ", color=color.new(color_bear, 80), linewidth=1)
+p_l3 = plot(lower_3, "Lower 3σ", color=color.new(color_bear, 90), linewidth=1)
+
+fill(p_vwap, p_u1, color=color.new(color_bull, 92))
+fill(p_u1, p_u2, color=color.new(color_bull, 94))
+fill(p_u2, p_u3, color=color.new(color_bull, 96))
+fill(p_vwap, p_l1, color=color.new(color_bear, 92))
+fill(p_l1, p_l2, color=color.new(color_bear, 94))
+fill(p_l2, p_l3, color=color.new(color_bear, 96))
+
+
+
+// ============================================================================
+// ELITE DASHBOARD
+// ============================================================================
+var table_pos = position.top_right
+if dashboard_position == "Top Left"
+    table_pos := position.top_left
+else if dashboard_position == "Bottom Right"
+    table_pos := position.bottom_right
+else if dashboard_position == "Bottom Left"
+    table_pos := position.bottom_left
+
+var table dash = table.new(table_pos, 5, 20, bgcolor=color.new(dark_bg, 5), frame_color=color.new(border_color, 50), border_width=1)
+
+if show_dashboard and barstate.islast
+    table.clear(dash, 0, 0, 4, 19)
+    
+    int row = 0
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // HEADER ROW - Brand + Status
+    // ═══════════════════════════════════════════════════════════════════════
+    string vix_status = vix_connected ? str.tostring(vix_value, "#.#") : "OFF"
+    color vix_dot = vix_connected ? (vix_value > 25 ? color_bear : vix_value > 18 ? color_warning : color_bull) : text_dim
+    
+    table.cell(dash, 0, row, "QWAP", text_color=cyan_accent, text_size=size.normal, bgcolor=color.new(header_bg, 0))
+    table.cell(dash, 1, row, "⚡", text_color=gold_accent, text_size=size.normal, bgcolor=color.new(header_bg, 0))
+    table.cell(dash, 2, row, session_name, text_color=session_weight > 1.2 ? color_bull : session_weight < 0.7 ? text_dim : text_bright, text_size=size.small, bgcolor=color.new(header_bg, 0))
+    table.cell(dash, 3, row, regime, text_color=regime == "EXTREME" ? color_extreme : regime == "ACTIVE" ? color_warning : text_dim, text_size=size.small, bgcolor=color.new(header_bg, 0))
+    table.cell(dash, 4, row, icon_dot + vix_status, text_color=vix_dot, text_size=size.small, bgcolor=color.new(header_bg, 0))
+    row += 1
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // SIGNAL ROW - The Money Shot
+    // ═══════════════════════════════════════════════════════════════════════
+    string signal_icon = primary_signal == "LONG" ? icon_bull : primary_signal == "SHORT" ? icon_bear : primary_signal == "REVERSAL" ? icon_warning : icon_neutral
+    
+    table.merge_cells(dash, 0, row, 2, row)
+    table.cell(dash, 0, row, signal_icon + " " + primary_signal, text_color=signal_color, text_size=size.large, bgcolor=color.new(panel_bg, 0))
+    table.merge_cells(dash, 3, row, 4, row)
+    table.cell(dash, 3, row, "Q:" + str.tostring(setup_quality, "#") + "/100", text_color=setup_quality > 60 ? color_bull : setup_quality > 40 ? color_warning : text_dim, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+    row += 1
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // BIAS METER - Visual Center
+    // ═══════════════════════════════════════════════════════════════════════
+    color bias_col = bias_score > 30 ? color_bull : bias_score < -30 ? color_bear : text_dim
+    string bias_label = bias_score > 50 ? "STRONG BULL" : bias_score > 20 ? "BULL" : bias_score < -50 ? "STRONG BEAR" : bias_score < -20 ? "BEAR" : "NEUTRAL"
+    
+    table.cell(dash, 0, row, "BIAS", text_color=text_dim, text_size=size.tiny, bgcolor=color.new(panel_bg, 0))
+    table.merge_cells(dash, 1, row, 3, row)
+    table.cell(dash, 1, row, get_bias_meter_visual(bias_score), text_color=bias_col, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+    table.cell(dash, 4, row, bias_label, text_color=bias_col, text_size=size.tiny, bgcolor=color.new(panel_bg, 0))
+    row += 1
+    
+    if dashboard_style != "Compact"
+        // ═══════════════════════════════════════════════════════════════════════
+        // DELTA SECTION
+        // ═══════════════════════════════════════════════════════════════════════
+        table.merge_cells(dash, 0, row, 4, row)
+        table.cell(dash, 0, row, "── ORDER FLOW ──", text_color=text_dim, text_size=size.tiny, bgcolor=color.new(header_bg, 20))
+        row += 1
+        
+        string delta_dir = deltaRatio > 0 ? "BUY" : "SELL"
+        string delta_strength = math.abs(deltaRatio) > 0.6 ? icon_strong : math.abs(deltaRatio) > 0.3 ? icon_dot : icon_weak
+        color delta_col = deltaRatio > 0 ? color_bull : color_bear
+        
+        table.cell(dash, 0, row, "Δ", text_color=text_dim, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+        table.cell(dash, 1, row, delta_dir, text_color=delta_col, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+        table.cell(dash, 2, row, str.tostring(math.abs(deltaRatio) * 100, "#") + "%", text_color=delta_col, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+        table.cell(dash, 3, row, delta_strength, text_color=delta_col, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+        table.cell(dash, 4, row, delta_accelerating ? icon_arrow_up : icon_arrow_dn, text_color=delta_accelerating ? color_bull : text_dim, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+        row += 1
+        
+        // Institutional Detection
+        string inst_text = institutional_buy ? "INST BUY" : institutional_sell ? "INST SELL" : "RETAIL"
+        color inst_col = institutional_buy ? color_bull : institutional_sell ? color_bear : text_dim
+        
+        table.cell(dash, 0, row, "Flow", text_color=text_dim, text_size=size.tiny, bgcolor=color.new(panel_bg, 0))
+        table.merge_cells(dash, 1, row, 2, row)
+        table.cell(dash, 1, row, inst_text, text_color=inst_col, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+        table.cell(dash, 3, row, "Bars", text_color=text_dim, text_size=size.tiny, bgcolor=color.new(panel_bg, 0))
+        table.cell(dash, 4, row, str.tostring(intrabars), text_color=intrabars > 15 ? color_bull : intrabars > 5 ? color_warning : text_dim, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+        row += 1
+        
+        // ═══════════════════════════════════════════════════════════════════════
+        // MARKET CONDITIONS
+        // ═══════════════════════════════════════════════════════════════════════
+        table.merge_cells(dash, 0, row, 4, row)
+        table.cell(dash, 0, row, "── MARKET ──", text_color=text_dim, text_size=size.tiny, bgcolor=color.new(header_bg, 20))
+        row += 1
+        
+        color heat_col = heat_score > 70 ? color_extreme : heat_score > 45 ? color_warning : text_dim
+        table.cell(dash, 0, row, "Heat", text_color=text_dim, text_size=size.tiny, bgcolor=color.new(panel_bg, 0))
+        table.merge_cells(dash, 1, row, 3, row)
+        table.cell(dash, 1, row, get_power_bar(heat_score), text_color=heat_col, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+        table.cell(dash, 4, row, str.tostring(heat_score, "#"), text_color=heat_col, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+        row += 1
+        
+        string vol_state = vol_expansion ? "EXPAND" : vol_compression ? "COMPRESS" : "NORMAL"
+        color vol_col = vol_expansion ? color_bear : vol_compression ? color_bull : text_dim
+        
+        table.cell(dash, 0, row, "Vol", text_color=text_dim, text_size=size.tiny, bgcolor=color.new(panel_bg, 0))
+        table.cell(dash, 1, row, vol_state, text_color=vol_col, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+        table.cell(dash, 2, row, "RVol", text_color=text_dim, text_size=size.tiny, bgcolor=color.new(panel_bg, 0))
+        table.merge_cells(dash, 3, row, 4, row)
+        table.cell(dash, 3, row, str.tostring(relative_volume, "#.#") + "x", text_color=relative_volume > 1.5 ? color_bull : text_dim, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+        row += 1
+        
+        // Position relative to VWAP
+        color dist_col = math.abs(sigmas) > 2 ? color_extreme : math.abs(sigmas) > 1 ? color_warning : text_dim
+        string dist_icon = sigmas > 1 ? icon_arrow_up : sigmas < -1 ? icon_arrow_dn : icon_neutral
+        
+        table.cell(dash, 0, row, "Dist", text_color=text_dim, text_size=size.tiny, bgcolor=color.new(panel_bg, 0))
+        table.cell(dash, 1, row, str.tostring(sigmas, "#.#") + "σ", text_color=dist_col, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+        table.cell(dash, 2, row, dist_icon, text_color=dist_col, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+        table.cell(dash, 3, row, str.tostring(pct_from_vwap, "#.##") + "%", text_color=dist_col, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+        table.cell(dash, 4, row, vwap_velocity > 0 ? "↑" : "↓", text_color=vwap_velocity > 0 ? color_bull : color_bear, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+        row += 1
+    
+    if dashboard_style == "Full"
+        // ═══════════════════════════════════════════════════════════════════════
+        // VIX INTELLIGENCE
+        // ═══════════════════════════════════════════════════════════════════════
+        if vix_connected
+            table.merge_cells(dash, 0, row, 4, row)
+            table.cell(dash, 0, row, "── VIX ──", text_color=text_dim, text_size=size.tiny, bgcolor=color.new(header_bg, 20))
+            row += 1
+            
+            color vix_color = vix_value > 30 ? color_bear : vix_value > 20 ? color_extreme : vix_value > 15 ? color_warning : color_bull
+            
+            table.cell(dash, 0, row, "VIX", text_color=text_dim, text_size=size.tiny, bgcolor=color.new(panel_bg, 0))
+            table.cell(dash, 1, row, str.tostring(vix_value, "#.#"), text_color=vix_color, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+            table.cell(dash, 2, row, vix_regime, text_color=vix_color, text_size=size.tiny, bgcolor=color.new(panel_bg, 0))
+            table.cell(dash, 3, row, "Term", text_color=text_dim, text_size=size.tiny, bgcolor=color.new(panel_bg, 0))
+            table.cell(dash, 4, row, term_structure, text_color=term_structure == "BACKWRD" ? color_bear : term_structure == "CONTANGO" ? color_bull : text_dim, text_size=size.tiny, bgcolor=color.new(panel_bg, 0))
+            row += 1
+            
+            if not na(vvix_value)
+                table.cell(dash, 0, row, "VVIX", text_color=text_dim, text_size=size.tiny, bgcolor=color.new(panel_bg, 0))
+                table.cell(dash, 1, row, str.tostring(vvix_value, "#.#"), text_color=vvix_value > 100 ? color_warning : text_dim, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+                table.cell(dash, 2, row, "Band", text_color=text_dim, text_size=size.tiny, bgcolor=color.new(panel_bg, 0))
+                table.merge_cells(dash, 3, row, 4, row)
+                table.cell(dash, 3, row, str.tostring(vix_band_mult, "#.#") + "x", text_color=vix_band_mult > 1.2 ? color_warning : text_dim, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+                row += 1
+        
+        // ═══════════════════════════════════════════════════════════════════════
+        // DETECTION ALERTS
+        // ═══════════════════════════════════════════════════════════════════════
+        bool any_detection = absorption_detected or liquidity_sweep or divergence_detected or imbalance_stacked
+        
+        if any_detection
+            table.merge_cells(dash, 0, row, 4, row)
+            table.cell(dash, 0, row, "── DETECTIONS ──", text_color=color_warning, text_size=size.tiny, bgcolor=color.new(header_bg, 20))
+            row += 1
+            
+            if absorption_detected
+                table.cell(dash, 0, row, icon_warning, text_color=color_warning, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+                table.merge_cells(dash, 1, row, 3, row)
+                table.cell(dash, 1, row, absorption_type, text_color=absorption_type == "BUY ABS" ? color_bull : color_bear, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+                table.cell(dash, 4, row, str.tostring(absorption_score, "#.#"), text_color=color_warning, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+                row += 1
+            
+            if liquidity_sweep
+                table.cell(dash, 0, row, icon_warning, text_color=color_extreme, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+                table.merge_cells(dash, 1, row, 3, row)
+                table.cell(dash, 1, row, sweep_type, text_color=sweep_type == "BEAR TRAP" ? color_bull : color_bear, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+                table.cell(dash, 4, row, str.tostring(sweep_score, "#.#"), text_color=color_extreme, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+                row += 1
+            
+            if divergence_detected
+                table.cell(dash, 0, row, icon_warning, text_color=gold_accent, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+                table.merge_cells(dash, 1, row, 3, row)
+                table.cell(dash, 1, row, divergence_type, text_color=divergence_type == "BULL DIV" ? color_bull : color_bear, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+                table.cell(dash, 4, row, str.tostring(divergence_score, "#.#"), text_color=gold_accent, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+                row += 1
+            
+            if imbalance_stacked
+                table.cell(dash, 0, row, icon_strong, text_color=imbalance_type == "BUY STACK" ? color_bull : color_bear, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+                table.merge_cells(dash, 1, row, 3, row)
+                table.cell(dash, 1, row, imbalance_type, text_color=imbalance_type == "BUY STACK" ? color_bull : color_bear, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+                table.cell(dash, 4, row, "x" + str.tostring(imbalance_count), text_color=imbalance_count >= 4 ? color_bull : text_dim, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+                row += 1
+        
+        // ═══════════════════════════════════════════════════════════════════════
+        // ADAPTIVE SYSTEM
+        // ═══════════════════════════════════════════════════════════════════════
+        if use_adaptive
+            table.merge_cells(dash, 0, row, 4, row)
+            table.cell(dash, 0, row, "── ADAPTIVE ──", text_color=text_dim, text_size=size.tiny, bgcolor=color.new(header_bg, 20))
+            row += 1
+            
+            float weight_change = adaptive_weight - nz(array.get(weight_history, (w_idx - 2) % 30), adaptive_weight)
+            string w_trend = weight_change > 0.01 ? icon_arrow_up : weight_change < -0.01 ? icon_arrow_dn : "→"
+            
+            table.cell(dash, 0, row, "Wgt", text_color=text_dim, text_size=size.tiny, bgcolor=color.new(panel_bg, 0))
+            table.cell(dash, 1, row, str.tostring(adaptive_weight, "#.###"), text_color=gold_accent, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+            table.cell(dash, 2, row, w_trend, text_color=weight_change > 0 ? color_bull : weight_change < 0 ? color_bear : text_dim, text_size=size.small, bgcolor=color.new(panel_bg, 0))
+            table.cell(dash, 3, row, "MTF", text_color=text_dim, text_size=size.tiny, bgcolor=color.new(panel_bg, 0))
+            table.cell(dash, 4, row, htf_bias > 0.3 ? "BULL" : htf_bias < -0.3 ? "BEAR" : "FLAT", text_color=htf_bias > 0.3 ? color_bull : htf_bias < -0.3 ? color_bear : text_dim, text_size=size.tiny, bgcolor=color.new(panel_bg, 0))
+
+// ============================================================================
+// ALERTS
+// ============================================================================
+alertcondition(strong_bull_signal and not strong_bull_signal[1], "Strong Bull Signal", "QWAP Elite: Strong bullish setup on {{ticker}}")
+alertcondition(strong_bear_signal and not strong_bear_signal[1], "Strong Bear Signal", "QWAP Elite: Strong bearish setup on {{ticker}}")
+alertcondition(absorption_detected and absorption_score > 2, "Absorption Detected", "QWAP Elite: Absorption detected on {{ticker}}")
+alertcondition(liquidity_sweep and sweep_score > 1.5 and sweep_type == "BULL TRAP", "Bull Trap Detected", "QWAP Elite: Bull trap liquidity sweep on {{ticker}}")
+alertcondition(liquidity_sweep and sweep_score > 1.5 and sweep_type == "BEAR TRAP", "Bear Trap Detected", "QWAP Elite: Bear trap liquidity sweep on {{ticker}}")
+alertcondition(divergence_detected and divergence_type == "BULL DIV", "Bullish Divergence", "QWAP Elite: Bullish CVD divergence on {{ticker}}")
+alertcondition(divergence_detected and divergence_type == "BEAR DIV", "Bearish Divergence", "QWAP Elite: Bearish CVD divergence on {{ticker}}")
+alertcondition(institutional_activity, "Institutional Flow", "QWAP Elite: Institutional activity on {{ticker}}")
+
+// ============================================================================
+// DATA WINDOW
+// ============================================================================
+plot(vwap_final, "QWAP Value", display=display.data_window)
+plot(bias_score, "Bias Score", display=display.data_window)
+plot(setup_quality, "Setup Quality", display=display.data_window)
+plot(heat_score, "Heat Score", display=display.data_window)
+plot(deltaRatio * 100, "Delta %", display=display.data_window)
+plot(sigmas, "Sigmas from VWAP", display=display.data_window)
+plot(relative_volume, "Relative Volume", display=display.data_window)
+plot(vix_connected ? vix_value : na, "VIX", display=display.data_window)
+plot(adaptive_weight, "Adaptive Weight", display=display.data_window)
+plot(institutional_score, "Institutional Score", display=display.data_window)
