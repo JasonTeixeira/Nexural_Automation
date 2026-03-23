@@ -1,7 +1,6 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
 
@@ -62,3 +61,4 @@ def load_nt_executions_csv(path: str | Path) -> pd.DataFrame:
 def is_likely_executions_export(df: pd.DataFrame) -> bool:
     cols = set(_normalize_cols(list(df.columns)))
     return {"time", "action", "fill_price"}.issubset(cols)
+

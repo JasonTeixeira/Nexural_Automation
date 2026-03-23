@@ -1,4 +1,4 @@
-# Python
+﻿# Python
 __pycache__/
 *.py[cod]
 *.pyd
@@ -35,3 +35,7 @@ experiments/runs/*
 
 # Environment
 .env
+
+# build artifacts
+src/*.egg-info/
+
