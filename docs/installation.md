@@ -8,8 +8,8 @@
 
 ## Clone
 ```bash
-git clone https://github.com/JasonTeixeira/Nexural_Automation_NinjaTrader.git
-cd Nexural_Automation_NinjaTrader
+git clone https://github.com/JasonTeixeira/Nexural_Automation.git
+cd Nexural_Automation
 ```
 
 ## Using templates
