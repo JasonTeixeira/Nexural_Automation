@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  nexural-research:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./reports:/app/reports
+      - ./experiments:/app/experiments
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Development mode: frontend with hot reload + backend with auto-reload
+  # Usage: docker compose --profile dev up
+  nexural-backend-dev:
+    build:
+      context: .
+      target: production
+    profiles: ["dev"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+    command: ["python", "-m", "uvicorn", "nexural_research.api.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  nexural-frontend-dev:
+    image: node:20-alpine
+    profiles: ["dev"]
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    command: ["sh", "-c", "npm install && npm run dev -- --host 0.0.0.0"]
+    depends_on:
+      - nexural-backend-dev

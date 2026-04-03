@@ -28,3 +28,11 @@ node_modules/
 # Trading platform exports / workspace state (keep source only)
 *.zip
 *.ninjatrader
+
+# Nexural Research build artifacts
+frontend/dist/
+dist-electron/
+*.duckdb
+*.parquet
+experiments/
+reports/

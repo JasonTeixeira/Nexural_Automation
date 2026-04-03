@@ -1,0 +1,69 @@
+{
+  "name": "nexural-research",
+  "version": "1.0.0",
+  "description": "Institutional-grade strategy analysis for NinjaTrader",
+  "main": "main.js",
+  "author": "Nexural",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build-win": "electron-builder --win",
+    "build-mac": "electron-builder --mac",
+    "build-linux": "electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.nexural.research",
+    "productName": "Nexural Research",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "icon.png",
+      "splash.html"
+    ],
+    "extraResources": [
+      {
+        "from": "../",
+        "to": "app",
+        "filter": [
+          "src/**/*",
+          "frontend/dist/**/*",
+          "data/exports/**/*",
+          "pyproject.toml",
+          "requirements.txt"
+        ]
+      }
+    ],
+    "win": {
+      "target": ["nsis"],
+      "icon": "icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "installerIcon": "icon.png",
+      "uninstallerIcon": "icon.png"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "icon": "icon.png",
+      "category": "public.app-category.finance"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "icon": "icon.png",
+      "category": "Finance"
+    }
+  },
+  "dependencies": {
+    "electron-store": "^8.2.0"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  }
+}

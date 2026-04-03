@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #060a13;
+      color: #f3f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .container { text-align: center; }
+    .logo {
+      width: 80px; height: 80px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 32px;
+      box-shadow: 0 20px 60px rgba(59,130,246,0.3);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .logo span { color: white; font-size: 36px; font-weight: 700; }
+    h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 8px; }
+    h1 span { color: #3b82f6; }
+    p { color: #6b7280; font-size: 13px; margin-bottom: 32px; }
+    .loader {
+      width: 200px; height: 3px; background: rgba(255,255,255,0.05);
+      border-radius: 3px; margin: 0 auto; overflow: hidden;
+    }
+    .loader-bar {
+      width: 40%; height: 100%; background: #3b82f6;
+      border-radius: 3px;
+      animation: loading 1.5s ease-in-out infinite;
+    }
+    .status { color: #4b5563; font-size: 11px; margin-top: 16px; }
+    @keyframes loading {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(350%); }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo"><span>N</span></div>
+    <h1><span>Nexural</span> Research</h1>
+    <p>Institutional-Grade Strategy Analysis Engine</p>
+    <div class="loader"><div class="loader-bar"></div></div>
+    <div class="status">Starting analysis engine...</div>
+  </div>
+</body>
+</html>

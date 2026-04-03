@@ -4,28 +4,46 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'nexural-research'
-version = '0.3.0'
-description = 'Local research + analysis environment for NinjaTrader trade exports and order flow strategy iteration.'
+version = '1.0.0'
+description = 'Institutional-grade strategy analysis engine for NinjaTrader trade exports. Monte Carlo, walk-forward, overfitting detection, and full quant analytics.'
 readme = 'README.md'
 requires-python = '>=3.11'
 dependencies = [
-  # Core
+  # Core data processing
   'numpy>=2.0',
   'pandas>=2.2',
   'pydantic>=2.7',
   'pyyaml>=6.0',
   'rich>=13.7',
 
+  # Statistical analysis
+  'scipy>=1.13',
+  'statsmodels>=0.14',
+  'scikit-learn>=1.5',
+
   # Storage + registry
   'pyarrow>=16.0',
   'duckdb>=1.0',
 
-  # Reporting
+  # Reporting & visualization
   'plotly>=5.22',
+
+  # API server
+  'fastapi>=0.111',
+  'uvicorn[standard]>=0.30',
+  'python-multipart>=0.0.9',
+]
+
+[project.optional-dependencies]
+dev = [
+  'pytest>=8.0',
+  'ruff>=0.4',
+  'httpx>=0.27',
 ]
 
 [project.scripts]
 nexural-research = 'nexural_research.cli:main'
+nexural-server = 'nexural_research.api.app:run_server'
 
 [tool.setuptools]
 package-dir = {'' = 'src'}

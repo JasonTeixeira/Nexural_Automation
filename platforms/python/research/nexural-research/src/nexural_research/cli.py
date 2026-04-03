@@ -1,11 +1,29 @@
 from __future__ import annotations
 
 import argparse
+import json
+from dataclasses import asdict
 from pathlib import Path
 
 from nexural_research.analyze.metrics import metrics_from_trades
 from nexural_research.analyze.execution_quality import execution_quality_from_executions
 from nexural_research.analyze.robustness import monte_carlo_max_drawdown, walk_forward_split
+from nexural_research.analyze.advanced_metrics import (
+    comprehensive_analysis,
+    risk_return_metrics,
+    expectancy_metrics,
+    trade_dependency_analysis,
+    distribution_metrics,
+    time_decay_analysis,
+)
+from nexural_research.analyze.advanced_robustness import (
+    parametric_monte_carlo,
+    block_bootstrap_monte_carlo,
+    rolling_walk_forward,
+    deflated_sharpe_ratio,
+    regime_analysis,
+)
+from nexural_research.analyze.portfolio import portfolio_analysis, benchmark_comparison
 from nexural_research.cli_helpers import default_run_id, ensure_parent_dir
 from nexural_research.ingest.detect import ExportKind, detect_export_kind
 from nexural_research.ingest.nt_csv import load_nt_trades_csv, save_processed
@@ -165,6 +183,88 @@ def _cmd_robust(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_analyze(args: argparse.Namespace) -> int:
+    """Run the full institutional analysis suite."""
+    project = paths()
+    in_path = Path(args.input) if args.input else (project.root / "data" / "exports" / "sample_trades.csv")
+    detected = detect_export_kind(in_path)
+    if detected.kind != ExportKind.TRADES:
+        raise SystemExit(f"analyze requires Trades export; got {detected.kind.value}")
+
+    df = load_nt_trades_csv(in_path)
+    result = comprehensive_analysis(df, risk_free_rate=float(args.risk_free_rate))
+
+    print("=" * 70)
+    print("NEXURAL RESEARCH — COMPREHENSIVE STRATEGY ANALYSIS")
+    print("=" * 70)
+
+    sections = {
+        "Risk/Return Metrics": asdict(result.risk_return),
+        "Expectancy & Position Sizing": asdict(result.expectancy),
+        "Trade Dependency": asdict(result.dependency),
+        "Return Distribution": asdict(result.distribution),
+        "Time-Decay / Edge Stability": asdict(result.time_decay),
+    }
+
+    for title, data in sections.items():
+        print(f"\n--- {title} ---")
+        for k, v in data.items():
+            print(f"  {k:30s} : {v}")
+
+    # Additional analyses
+    print(f"\n--- Deflated Sharpe Ratio (overfitting test, {args.n_trials} trials) ---")
+    dsr = deflated_sharpe_ratio(df, n_trials=int(args.n_trials))
+    for k, v in asdict(dsr).items():
+        print(f"  {k:30s} : {v}")
+
+    print(f"\n--- Parametric Monte Carlo ({args.mc_n} sims, {args.mc_dist}) ---")
+    pmc = parametric_monte_carlo(df, n_simulations=int(args.mc_n), distribution=args.mc_dist)
+    for k, v in asdict(pmc).items():
+        print(f"  {k:30s} : {v}")
+
+    print(f"\n--- Rolling Walk-Forward ({args.wf_windows} windows) ---")
+    rwf = rolling_walk_forward(df, n_windows=int(args.wf_windows), anchored=args.anchored)
+    print(f"  {'n_windows':30s} : {rwf.n_windows}")
+    print(f"  {'aggregate_oos_net':30s} : {rwf.aggregate_oos_net}")
+    print(f"  {'aggregate_oos_sharpe':30s} : {rwf.aggregate_oos_sharpe}")
+    print(f"  {'avg_efficiency':30s} : {rwf.avg_efficiency}")
+    print(f"  {'walk_forward_efficiency':30s} : {rwf.walk_forward_efficiency}")
+    print(f"  {'pct_profitable_oos':30s} : {rwf.pct_profitable_oos}%")
+    for w in rwf.windows:
+        print(f"    Window {w.window_id}: IS={w.in_sample_net:>10.2f} (Sharpe {w.in_sample_sharpe:.2f})  OOS={w.out_sample_net:>10.2f} (Sharpe {w.out_sample_sharpe:.2f})  Eff={w.efficiency:.2f}")
+
+    print(f"\n--- Regime Analysis ---")
+    ra = regime_analysis(df)
+    for k, v in asdict(ra).items():
+        if k != "interpretation":
+            print(f"  {k:30s} : {v}")
+    print(f"  {'interpretation':30s} : {ra.interpretation}")
+
+    print(f"\n--- Benchmark Comparison ---")
+    bm = benchmark_comparison(df)
+    for k, v in asdict(bm).items():
+        print(f"  {k:30s} : {v}")
+
+    if "strategy" in df.columns and df["strategy"].nunique() > 1:
+        print(f"\n--- Portfolio Analysis ({df['strategy'].nunique()} strategies) ---")
+        pa = portfolio_analysis(df)
+        for k, v in asdict(pa).items():
+            if k not in ("correlations", "windows"):
+                print(f"  {k:30s} : {v}")
+
+    print("\n" + "=" * 70)
+    return 0
+
+
+def _cmd_serve(args: argparse.Namespace) -> int:
+    """Start the API server with web dashboard."""
+    from nexural_research.api.app import run_server
+    print(f"Starting Nexural Research server on http://{args.host}:{args.port}")
+    print("API docs available at http://localhost:{}/api/docs".format(args.port))
+    run_server(host=args.host, port=int(args.port), reload=args.reload)
+    return 0
+
+
 def _cmd_list_runs(args: argparse.Namespace) -> int:
     project = paths()
     reg = RunRegistry(project.experiments / "runs.duckdb")
@@ -218,6 +318,24 @@ def build_parser() -> argparse.ArgumentParser:
     robust.add_argument("--seed", default=42, help="Random seed")
     robust.add_argument("--split", default=0.7, help="Walk-forward split fraction")
     robust.set_defaults(func=_cmd_robust)
+
+    # --- New: Full institutional analysis ---
+    analyze = sub.add_parser("analyze", help="Full institutional-grade analysis suite")
+    analyze.add_argument("--input", "-i", help="Path to NinjaTrader Trades CSV export")
+    analyze.add_argument("--risk-free-rate", default=0.0, help="Annual risk-free rate (e.g. 0.05 for 5%%)")
+    analyze.add_argument("--mc-n", default=5000, help="Monte Carlo simulations")
+    analyze.add_argument("--mc-dist", default="empirical", choices=["empirical", "normal", "t"], help="MC distribution")
+    analyze.add_argument("--n-trials", default=100, help="Number of trials for Deflated Sharpe Ratio")
+    analyze.add_argument("--wf-windows", default=5, help="Walk-forward windows")
+    analyze.add_argument("--anchored", action="store_true", help="Use anchored walk-forward")
+    analyze.set_defaults(func=_cmd_analyze)
+
+    # --- New: API server ---
+    serve = sub.add_parser("serve", help="Start the web API server & dashboard")
+    serve.add_argument("--host", default="0.0.0.0", help="Server host")
+    serve.add_argument("--port", default=8000, help="Server port")
+    serve.add_argument("--reload", action="store_true", help="Enable auto-reload for development")
+    serve.set_defaults(func=_cmd_serve)
 
     return p
 

@@ -8,6 +8,9 @@ import plotly.graph_objects as go
 from nexural_research.analyze.equity import equity_curve_from_trades, drawdown_from_equity
 from nexural_research.analyze.heatmap import time_heatmap
 from nexural_research.analyze.metrics import metrics_by, metrics_from_trades
+from nexural_research.analyze.advanced_metrics import risk_return_metrics, expectancy_metrics, distribution_metrics
+from nexural_research.analyze.advanced_robustness import deflated_sharpe_ratio
+from nexural_research.analyze.portfolio import benchmark_comparison
 
 
 def _fmt_money(x: float) -> str:
@@ -55,6 +58,20 @@ def build_trades_report_html(df_trades: pd.DataFrame, *, title: str = "Nexural R
     strat = metrics_by(df_trades, "strategy") if "strategy" in df_trades.columns else pd.DataFrame()
     inst = metrics_by(df_trades, "instrument") if "instrument" in df_trades.columns else pd.DataFrame()
 
+    # Advanced metrics
+    rr = risk_return_metrics(df_trades)
+    exp = expectancy_metrics(df_trades)
+    dist = distribution_metrics(df_trades)
+    dsr = deflated_sharpe_ratio(df_trades)
+    bm = benchmark_comparison(df_trades, n_random_sims=500)
+
+    def _section_table(title: str, data: dict) -> str:
+        rows = "".join(
+            f"<tr><td>{k.replace('_', ' ')}</td><td>{_fmt_money(v) if isinstance(v, (int, float)) and ('profit' in k or 'drawdown' in k or 'net' in k or 'equity' in k or k in ('expectancy', 'var_95', 'cvar_95', 'mean', 'median', 'std')) else v}</td></tr>"
+            for k, v in data.items()
+        )
+        return f"<h2>{title}</h2><table><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>{rows}</tbody></table>"
+
     metrics_html = "".join(
         f"<tr><td>{k}</td><td>{_fmt_money(v) if 'profit' in k or 'drawdown' in k else v}</td></tr>"
         for k, v in asdict(m).items()
@@ -67,16 +84,19 @@ def build_trades_report_html(df_trades: pd.DataFrame, *, title: str = "Nexural R
         "<meta charset='utf-8' />",
         f"<title>{title}</title>",
         "<style>",
-        "body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:20px;}",
+        "body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:20px;background:#0a0e17;color:#f3f4f6;}",
         ".grid{display:grid;grid-template-columns:1fr;gap:18px;}",
-        "table{border-collapse:collapse;}",
-        "td,th{border:1px solid #ddd;padding:6px 8px;font-size:13px;}",
-        "th{background:#f6f6f6;text-align:left;}",
+        ".grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}",
+        "table{border-collapse:collapse;width:100%;margin-bottom:20px;}",
+        "td,th{border:1px solid #1f2937;padding:6px 8px;font-size:13px;}",
+        "th{background:#111827;text-align:left;}",
+        "h1{color:#3b82f6;}",
+        "h2{color:#9ca3af;font-size:16px;border-bottom:1px solid #1f2937;padding-bottom:8px;}",
         "</style>",
         "</head>",
         "<body>",
         f"<h1>{title}</h1>",
-        "<h2>Summary</h2>",
+        "<h2>Core Metrics</h2>",
         "<table>",
         "<thead><tr><th>Metric</th><th>Value</th></tr></thead>",
         f"<tbody>{metrics_html}</tbody>",
@@ -85,6 +105,13 @@ def build_trades_report_html(df_trades: pd.DataFrame, *, title: str = "Nexural R
         fig_equity.to_html(full_html=False, include_plotlyjs="cdn"),
         fig_dd.to_html(full_html=False, include_plotlyjs=False),
         fig_heat.to_html(full_html=False, include_plotlyjs=False),
+        "</div>",
+        "<div class='grid2'>",
+        _section_table("Risk-Adjusted Returns", asdict(rr)),
+        _section_table("Expectancy & Position Sizing", asdict(exp)),
+        _section_table("Return Distribution", asdict(dist)),
+        _section_table("Overfitting Detection (Deflated Sharpe)", asdict(dsr)),
+        _section_table("Benchmark Comparison", asdict(bm)),
         "</div>",
         "<h2>By Strategy</h2>",
         _df_to_html_table(strat, max_rows=200),
