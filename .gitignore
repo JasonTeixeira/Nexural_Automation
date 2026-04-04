@@ -30,7 +30,7 @@ node_modules/
 *.ninjatrader
 
 # Nexural Research build artifacts
-frontend/dist/
+# NOTE: frontend/dist/ is COMMITTED so users don't need Node.js
 dist-electron/
 *.duckdb
 *.parquet

@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-python:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    defaults:
+      run:
+        working-directory: platforms/python/research/nexural-research
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pandas scipy scikit-learn statsmodels
+          pip install fastapi "uvicorn[standard]" python-multipart httpx
+          pip install plotly duckdb pyarrow pydantic pyyaml rich
+          pip install pytest ruff
+          pip install --no-deps -e .
+
+      - name: Lint with ruff
+        run: ruff check src/ tests/ --select E,F,W --ignore E501
+
+      - name: Run tests
+        run: pytest tests/ -v --tb=short
+
+  test-frontend:
+    name: Frontend TypeScript
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: platforms/python/research/nexural-research/frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npx vite build

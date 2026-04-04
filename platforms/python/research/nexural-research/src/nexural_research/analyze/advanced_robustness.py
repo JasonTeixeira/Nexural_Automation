@@ -429,7 +429,8 @@ def deflated_sharpe_ratio(
 
     # Standard error of Sharpe ratio with non-normality adjustment
     sr = observed_sharpe / np.sqrt(252)  # per-trade Sharpe
-    se_sr = np.sqrt((1.0 - skew * sr + (kurt - 1) / 4.0 * sr ** 2) / (n - 1.0))
+    se_var = (1.0 - skew * sr + (kurt - 1) / 4.0 * sr ** 2) / (n - 1.0)
+    se_sr = np.sqrt(max(se_var, 1e-10))
 
     if se_sr < 1e-10:
         se_sr = 1e-10
