@@ -1,0 +1,3 @@
+Strategy,Instrument,Total net profit,Profit factor,Max drawdown,Sharpe,Trades,Parameter_JmaLength,Parameter_StopLoss
+NEXAbsorptionFramework,NQ SEP25,1234.50,1.45,-350.25,0.82,210,7,12
+NEXAbsorptionFramework,NQ SEP25,980.25,1.31,-280.00,0.74,190,9,14

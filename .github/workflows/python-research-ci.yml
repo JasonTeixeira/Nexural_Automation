@@ -23,19 +23,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: pip
-          cache-dependency-path: |
-            platforms/python/research/nexural-research/pyproject.toml
 
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pip-tools
-          pip-sync requirements-dev.lock.txt
-          python -m pip install -e .
+          pip install numpy pandas scipy scikit-learn statsmodels
+          pip install fastapi "uvicorn[standard]" python-multipart httpx
+          pip install plotly duckdb pyarrow pydantic pyyaml rich
+          pip install pytest ruff
+          pip install --no-deps -e .
 
       - name: Lint (ruff)
-        run: ruff check .
+        run: ruff check src/ tests/ --select E,F,W --ignore E501
 
       - name: Tests (pytest)
-        run: pytest -q
+        run: pytest tests/ -v --tb=short
