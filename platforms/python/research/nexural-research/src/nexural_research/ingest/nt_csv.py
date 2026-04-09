@@ -151,7 +151,10 @@ def load_nt_trades_csv(path: str | Path) -> pd.DataFrame:
     p = Path(path)
     info(f"Loading NinjaTrader CSV: {p}")
 
-    df = pd.read_csv(p)
+    try:
+        df = pd.read_csv(p, encoding="utf-8")
+    except UnicodeDecodeError:
+        df = pd.read_csv(p, encoding="latin-1")
     df.columns = _normalize_cols(list(df.columns))
 
     # NinjaTrader uses market pos. => normalized market_pos, but punctuation can become market_pos_

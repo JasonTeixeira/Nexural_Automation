@@ -50,7 +50,9 @@ class TestUpload:
     def test_upload_creates_session(self, client, uploaded_session):
         resp = client.get("/api/sessions")
         assert resp.status_code == 200
-        assert uploaded_session in resp.json()
+        data = resp.json()
+        session_ids = [s["session_id"] for s in data.get("sessions", [])]
+        assert uploaded_session in session_ids
 
 
 class TestAnalysisEndpoints:

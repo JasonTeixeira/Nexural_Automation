@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexural-research
+  labels:
+    app: nexural-research
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nexural-research
+  template:
+    metadata:
+      labels:
+        app: nexural-research
+    spec:
+      containers:
+        - name: nexural-research
+          image: nexural-research:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: NEXURAL_AUTH_ENABLED
+              value: "true"
+            - name: NEXURAL_API_KEYS
+              valueFrom:
+                secretKeyRef:
+                  name: nexural-secrets
+                  key: api-keys
+            - name: NEXURAL_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: nexural-secrets
+                  key: database-url
+            - name: NEXURAL_RATE_LIMIT
+              value: "120"
+            - name: NEXURAL_HSTS_ENABLED
+              value: "true"
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "2000m"
+              memory: "4Gi"
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /api/health/ready
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: nexural-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexural-research
+spec:
+  selector:
+    app: nexural-research
+  ports:
+    - port: 80
+      targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nexural-research
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nexural-research
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nexural-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi

@@ -1,12 +1,40 @@
 const BASE = "/api";
+const REQUEST_TIMEOUT_MS = 30_000;
+
+const USER_MESSAGES: Record<number, string> = {
+  400: "Invalid request. Please check your input.",
+  404: "Data not found. Please upload a CSV first.",
+  413: "File is too large. Maximum upload size is 100MB.",
+  422: "Invalid parameters. Please check your input values.",
+  429: "Too many sessions. Please delete old sessions first.",
+  500: "Server error. Please try again later.",
+  502: "AI provider error. Please check your API key.",
+};
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, init);
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`API error ${res.status}: ${body}`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      ...init,
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      const userMsg = USER_MESSAGES[res.status] || `Request failed (${res.status})`;
+      console.error(`[API] ${res.status} ${path}: ${body}`);
+      throw new Error(userMsg);
+    }
+    return res.json();
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new Error("Request timed out. The server may be busy.");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
   }
-  return res.json();
 }
 
 export async function uploadCsv(

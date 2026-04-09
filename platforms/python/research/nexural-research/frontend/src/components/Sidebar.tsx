@@ -33,7 +33,7 @@ export function Sidebar({ view, onNavigate, session, onReset }: Props) {
   let lastSection = "";
 
   return (
-    <nav className="sidebar">
+    <nav className="sidebar" aria-label="Main navigation">
       {/* Brand */}
       <div className="px-6 py-6 border-b border-white/[0.04]">
         <div className="flex items-center gap-3">
@@ -59,16 +59,19 @@ export function Sidebar({ view, onNavigate, session, onReset }: Props) {
                   {item.section}
                 </div>
               )}
-              <div
+              <button
+                type="button"
                 onClick={() => onNavigate(item.id)}
-                className={`sidebar-item ${view === item.id ? "active" : ""}`}
+                aria-label={`Navigate to ${item.label}`}
+                aria-current={view === item.id ? "page" : undefined}
+                className={`sidebar-item w-full text-left ${view === item.id ? "active" : ""}`}
               >
                 <NavIcon d={item.icon} />
                 <span>{item.label}</span>
                 {item.id === "ai" && (
                   <span className="ml-auto badge-blue">AI</span>
                 )}
-              </div>
+              </button>
             </div>
           );
         })}

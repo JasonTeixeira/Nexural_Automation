@@ -5,6 +5,8 @@ from datetime import datetime, UTC
 from pathlib import Path
 from typing import Any
 
+import threading
+
 import duckdb
 import pandas as pd
 
@@ -30,10 +32,23 @@ class RunRegistry:
     def __init__(self, db_path: str | Path):
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self._local = threading.local()
         self._init_schema()
 
     def _conn(self) -> duckdb.DuckDBPyConnection:
-        return duckdb.connect(str(self.db_path))
+        """Return a thread-local connection (reused within the same thread)."""
+        if not hasattr(self._local, "conn") or self._local.conn is None:
+            self._local.conn = duckdb.connect(str(self.db_path))
+        return self._local.conn
+
+    def close(self) -> None:
+        """Close the thread-local connection if open."""
+        if hasattr(self._local, "conn") and self._local.conn is not None:
+            try:
+                self._local.conn.close()
+            except Exception:
+                pass
+            self._local.conn = None
 
     def _init_schema(self) -> None:
         con = self._conn()
@@ -90,28 +105,29 @@ class RunRegistry:
             con.execute(
                 """
                 CREATE TABLE IF NOT EXISTS trades (
-                  run_id TEXT,
+                  run_id TEXT NOT NULL,
                   ts TIMESTAMP,
                   instrument TEXT,
                   strategy TEXT,
-                  profit DOUBLE,
+                  profit DOUBLE NOT NULL DEFAULT 0.0,
                   mae DOUBLE,
                   mfe DOUBLE,
                   etd DOUBLE
                 );
                 """
             )
+            con.execute("CREATE INDEX IF NOT EXISTS idx_trades_run ON trades(run_id);")
             con.execute(
                 """
                 CREATE TABLE IF NOT EXISTS executions (
-                  run_id TEXT,
+                  run_id TEXT NOT NULL,
                   ts TIMESTAMP,
                   instrument TEXT,
                   strategy TEXT,
                   action TEXT,
                   type TEXT,
                   quantity DOUBLE,
-                  fill_price DOUBLE,
+                  fill_price DOUBLE NOT NULL,
                   limit_price DOUBLE,
                   stop_price DOUBLE,
                   commission DOUBLE,
@@ -119,10 +135,11 @@ class RunRegistry:
                 );
                 """
             )
+            con.execute("CREATE INDEX IF NOT EXISTS idx_exec_run ON executions(run_id);")
             con.execute(
                 """
                 CREATE TABLE IF NOT EXISTS optimizations (
-                  run_id TEXT,
+                  run_id TEXT NOT NULL,
                   strategy TEXT,
                   instrument TEXT,
                   total_net_profit DOUBLE,
@@ -133,6 +150,7 @@ class RunRegistry:
                 );
                 """
             )
+            con.execute("CREATE INDEX IF NOT EXISTS idx_opt_run ON optimizations(run_id);")
         finally:
             con.close()
 

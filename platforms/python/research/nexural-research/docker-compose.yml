@@ -11,15 +11,65 @@ services:
       - ./experiments:/app/experiments
     environment:
       - PYTHONUNBUFFERED=1
+      - NEXURAL_DATABASE_URL=postgresql+psycopg2://nexural:${POSTGRES_PASSWORD:-nexural_dev}@postgres:5432/nexural
+      - NEXURAL_AUTH_ENABLED=${NEXURAL_AUTH_ENABLED:-false}
+      - NEXURAL_RATE_LIMIT=${NEXURAL_RATE_LIMIT:-120}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '1'
+          memory: 2G
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
       interval: 30s
       timeout: 5s
       retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
 
-  # Development mode: frontend with hot reload + backend with auto-reload
-  # Usage: docker compose --profile dev up
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: nexural
+      POSTGRES_USER: nexural
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nexural_dev}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexural"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Development mode
   nexural-backend-dev:
     build:
       context: .
@@ -43,3 +93,7 @@ services:
     command: ["sh", "-c", "npm install && npm run dev -- --host 0.0.0.0"]
     depends_on:
       - nexural-backend-dev
+
+volumes:
+  pgdata:
+  redisdata:

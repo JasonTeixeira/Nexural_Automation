@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: platforms/python/research/nexural-research
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install and test
+        run: |
+          pip install -e ".[dev]"
+          pytest tests/ --tb=short -q
+
+      - name: Build Docker image
+        run: |
+          docker build -t nexural-research:${{ github.ref_name }} .
+          docker tag nexural-research:${{ github.ref_name }} nexural-research:latest
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          draft: false

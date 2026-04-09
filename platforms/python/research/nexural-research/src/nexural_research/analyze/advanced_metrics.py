@@ -69,6 +69,10 @@ def risk_return_metrics(
     if n == 0:
         return RiskReturnMetrics(**{f.name: 0.0 for f in fields(RiskReturnMetrics)})
 
+    # Single trade: metrics are undefined (avoid exploding Sharpe)
+    if n == 1:
+        return RiskReturnMetrics(**{f.name: 0.0 for f in fields(RiskReturnMetrics)})
+
     ann_factor = _annualize_factor(df_trades)
     mean_ret = float(np.mean(pnl))
     std_ret = float(np.std(pnl, ddof=1)) if n > 1 else 1e-10
@@ -77,10 +81,10 @@ def risk_return_metrics(
     excess = mean_ret - risk_free_rate / ann_factor
     sharpe = float(excess / std_ret * np.sqrt(ann_factor)) if std_ret > 1e-10 else 0.0
 
-    # Sortino Ratio (downside deviation only)
-    downside = pnl[pnl < mar_threshold] - mar_threshold
-    downside_std = float(np.sqrt(np.mean(downside ** 2))) if len(downside) > 0 else 1e-10
-    sortino = float(excess / downside_std * np.sqrt(ann_factor)) if downside_std > 1e-10 else 0.0
+    # Sortino Ratio — industry standard: use ALL returns with np.minimum
+    downside_diff = np.minimum(pnl - mar_threshold, 0.0)
+    downside_std = float(np.sqrt(np.mean(downside_diff ** 2))) if n > 0 else 1e-10
+    sortino = float((mean_ret - mar_threshold) / downside_std * np.sqrt(ann_factor)) if downside_std > 1e-10 else 0.0
 
     # Calmar Ratio
     eq = pd.Series(pnl).cumsum()
@@ -112,7 +116,9 @@ def risk_return_metrics(
     # Common Sense Ratio: tail ratio * profit factor
     wins = pnl[pnl > 0]
     losses = pnl[pnl < 0]
-    profit_factor = float(np.sum(wins) / abs(np.sum(losses))) if abs(np.sum(losses)) > 1e-10 else float("inf")
+    loss_sum = abs(float(np.sum(losses)))
+    win_sum = float(np.sum(wins))
+    profit_factor = float(win_sum / loss_sum) if loss_sum > 1e-10 else (float("inf") if win_sum > 0 else 0.0)
     common_sense = tail * profit_factor if np.isfinite(tail) and np.isfinite(profit_factor) else 0.0
 
     # CPC Ratio
@@ -194,18 +200,15 @@ def expectancy_metrics(df_trades: pd.DataFrame) -> ExpectancyMetrics:
     kelly = max(0.0, kelly)  # never recommend negative sizing
 
     # Optimal f (Ralph Vince): f that maximizes geometric growth
-    # Approximate: f* = win_rate - (loss_rate / payoff_ratio)
     max_loss = abs(float(np.min(pnl))) if len(pnl) > 0 else 1e-10
     if max_loss > 1e-10:
-        # TWR optimization (simplified)
         best_f = 0.0
         best_twr = 1.0
         for f_test in np.arange(0.01, 1.0, 0.01):
             hpr = 1.0 + f_test * (pnl / max_loss)
-            hpr = hpr[hpr > 0]
-            if len(hpr) < n * 0.5:
-                break
-            twr = float(np.prod(hpr ** (1.0 / n)))
+            if np.any(hpr <= 0):
+                break  # f too large — would have gone bankrupt
+            twr = float(np.prod(hpr) ** (1.0 / n))  # geometric mean of HPR
             if twr > best_twr:
                 best_twr = twr
                 best_f = f_test
@@ -475,6 +478,124 @@ def time_decay_analysis(
 
 
 # ---------------------------------------------------------------------------
+# Missing institutional metrics
+# ---------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class InstitutionalMetrics:
+    """Additional metrics expected by institutional quant desks."""
+
+    recovery_factor: float  # net profit / abs(max drawdown)
+    time_under_water_pct: float  # % of trades spent in drawdown
+    max_consecutive_wins: int
+    max_consecutive_losses: int
+    max_consecutive_loss_amount: float  # total $ lost in worst losing streak
+    avg_trade_duration_seconds: float
+    median_trade_duration_seconds: float
+    profit_per_day: float
+    trade_frequency_per_day: float
+    max_drawdown_duration_trades: int  # longest drawdown in trade count
+
+
+def institutional_metrics(df_trades: pd.DataFrame) -> InstitutionalMetrics:
+    """Compute additional institutional-grade metrics."""
+
+    pnl = pd.to_numeric(df_trades["profit"], errors="coerce").fillna(0.0).to_numpy()
+    n = len(pnl)
+    if n == 0:
+        return InstitutionalMetrics(
+            recovery_factor=0.0, time_under_water_pct=0.0,
+            max_consecutive_wins=0, max_consecutive_losses=0,
+            max_consecutive_loss_amount=0.0, avg_trade_duration_seconds=0.0,
+            median_trade_duration_seconds=0.0, profit_per_day=0.0,
+            trade_frequency_per_day=0.0, max_drawdown_duration_trades=0,
+        )
+
+    eq = np.cumsum(pnl)
+    peak = np.maximum.accumulate(eq)
+    dd = eq - peak
+
+    # Recovery Factor
+    net_profit = float(eq[-1])
+    mdd = abs(float(np.min(dd))) if len(dd) > 0 else 1e-10
+    recovery_factor = float(net_profit / mdd) if mdd > 1e-10 else 0.0
+
+    # Time Under Water (% of trades in drawdown)
+    in_dd = dd < -1e-10
+    time_under_water_pct = float(np.mean(in_dd) * 100)
+
+    # Consecutive wins/losses
+    wl = (pnl > 0).astype(int)
+    max_con_wins = 0
+    max_con_losses = 0
+    worst_streak_loss = 0.0
+    cur_streak = 1
+    cur_streak_pnl = float(pnl[0])
+
+    for i in range(1, n):
+        if wl[i] == wl[i - 1]:
+            cur_streak += 1
+            cur_streak_pnl += float(pnl[i])
+        else:
+            if wl[i - 1] == 1:
+                max_con_wins = max(max_con_wins, cur_streak)
+            else:
+                max_con_losses = max(max_con_losses, cur_streak)
+                worst_streak_loss = min(worst_streak_loss, cur_streak_pnl)
+            cur_streak = 1
+            cur_streak_pnl = float(pnl[i])
+    # Final streak
+    if wl[-1] == 1:
+        max_con_wins = max(max_con_wins, cur_streak)
+    else:
+        max_con_losses = max(max_con_losses, cur_streak)
+        worst_streak_loss = min(worst_streak_loss, cur_streak_pnl)
+
+    # Trade duration
+    avg_dur = 0.0
+    med_dur = 0.0
+    if "duration_seconds" in df_trades.columns:
+        durations = pd.to_numeric(df_trades["duration_seconds"], errors="coerce").dropna()
+        if len(durations) > 0:
+            avg_dur = float(durations.mean())
+            med_dur = float(durations.median())
+
+    # Profit per day and trade frequency
+    profit_per_day = 0.0
+    trades_per_day = 0.0
+    ts_col = "exit_time" if "exit_time" in df_trades.columns else ("entry_time" if "entry_time" in df_trades.columns else None)
+    if ts_col and n >= 2:
+        ts = pd.to_datetime(df_trades[ts_col], errors="coerce").dropna().sort_values()
+        if len(ts) >= 2:
+            span_days = max((ts.iloc[-1] - ts.iloc[0]).total_seconds() / 86400.0, 1.0)
+            profit_per_day = net_profit / span_days
+            trades_per_day = n / span_days
+
+    # Max drawdown duration (in trades)
+    max_dd_dur = 0
+    cur_dd_dur = 0
+    for i in range(n):
+        if dd[i] < -1e-10:
+            cur_dd_dur += 1
+            max_dd_dur = max(max_dd_dur, cur_dd_dur)
+        else:
+            cur_dd_dur = 0
+
+    return InstitutionalMetrics(
+        recovery_factor=round(recovery_factor, 4),
+        time_under_water_pct=round(time_under_water_pct, 1),
+        max_consecutive_wins=max_con_wins,
+        max_consecutive_losses=max_con_losses,
+        max_consecutive_loss_amount=round(worst_streak_loss, 2),
+        avg_trade_duration_seconds=round(avg_dur, 1),
+        median_trade_duration_seconds=round(med_dur, 1),
+        profit_per_day=round(profit_per_day, 2),
+        trade_frequency_per_day=round(trades_per_day, 2),
+        max_drawdown_duration_trades=max_dd_dur,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Comprehensive analysis (all-in-one)
 # ---------------------------------------------------------------------------
 
@@ -487,6 +608,7 @@ class ComprehensiveMetrics:
     dependency: TradeDependencyMetrics
     distribution: DistributionMetrics
     time_decay: TimeDecayMetrics
+    institutional: InstitutionalMetrics
 
 
 def comprehensive_analysis(
@@ -503,4 +625,5 @@ def comprehensive_analysis(
         dependency=trade_dependency_analysis(df_trades),
         distribution=distribution_metrics(df_trades),
         time_decay=time_decay_analysis(df_trades, window_size=window_size),
+        institutional=institutional_metrics(df_trades),
     )

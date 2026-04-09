@@ -284,7 +284,6 @@ def rolling_walk_forward(
             is_end = int(n * in_sample_pct) + w * oos_per_window
         else:
             is_start = w * oos_per_window
-            is_end = is_start + int(n * in_sample_pct / n_windows * (n_windows - 0))
             is_end = min(is_start + int(n * in_sample_pct), n)
 
         oos_start = is_end
