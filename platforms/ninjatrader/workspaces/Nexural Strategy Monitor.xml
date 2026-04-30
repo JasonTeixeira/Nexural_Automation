@@ -1,0 +1,1560 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NinjaTrader>
+  <NTWindows>
+    <Chart-4fb1d15a73b341669466bd8b775e97df>
+      <Class Assembly="NinjaTrader.Gui">NinjaTrader.Gui.Chart.Chart</Class>
+      <WindowState>Normal</WindowState>
+      <Location>0;0</Location>
+      <Size>1280;960</Size>
+      <ZOrder>0</ZOrder>
+      <Topmost>False</Topmost>
+      <TraderWidth>200</TraderWidth>
+      <TabControl>
+        <SelectedIndex>0</SelectedIndex>
+        <Tab-25763542ebff4e10a374e653bdb3b3d3>
+          <InstrumentLink>0</InstrumentLink>
+          <IntervalLink>0</IntervalLink>
+          <DataSeries>
+            <BarsProperties>
+              <BarsProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <BarsPeriod>
+                  <BarsPeriodTypeSerialize>1</BarsPeriodTypeSerialize>
+                  <BaseBarsPeriodType>Minute</BaseBarsPeriodType>
+                  <BaseBarsPeriodValue>1</BaseBarsPeriodValue>
+                  <VolumetricDeltaType>BidAsk</VolumetricDeltaType>
+                  <MarketDataType>Last</MarketDataType>
+                  <PointAndFigurePriceType>Close</PointAndFigurePriceType>
+                  <ReversalType>Tick</ReversalType>
+                  <Value>5</Value>
+                  <Value2>1</Value2>
+                </BarsPeriod>
+                <RangeType>Days</RangeType>
+                <BarsBack>50</BarsBack>
+                <DaysBack>90</DaysBack>
+                <From>2026-01-01T00:00:00</From>
+                <IsStableSession>true</IsStableSession>
+                <IsTickReplay>false</IsTickReplay>
+                <To>2099-12-01T00:00:00</To>
+                <TradingHoursSerializable />
+                <AutoScale>true</AutoScale>
+                <CenterPriceOnScale>false</CenterPriceOnScale>
+                <DisplayInDataBox>true</DisplayInDataBox>
+                <Label>ES SEP26</Label>
+                <MaxSerialized>0</MaxSerialized>
+                <MinSerialized>0</MinSerialized>
+                <MonthsBack>0</MonthsBack>
+                <Panel>0</Panel>
+                <PriceMarker>
+                  <BackgroundSerialize>DEFAULT</BackgroundSerialize>
+                  <IsVisible>true</IsVisible>
+                </PriceMarker>
+                <ShowGlobalDrawObjects>true</ShowGlobalDrawObjects>
+                <ScaleJustification>Right</ScaleJustification>
+                <TradingHoursVisibility>AllSessions</TradingHoursVisibility>
+                <TradingHoursBreakPenSerialize>&lt;Pen Brush="#FF2D2D2F" Thickness="1" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;
+  &lt;Pen.DashStyle&gt;
+    &lt;DashStyle /&gt;
+  &lt;/Pen.DashStyle&gt;
+&lt;/Pen&gt;</TradingHoursBreakPenSerialize>
+                <LongExecutionBrushSerialize>DEFAULT</LongExecutionBrushSerialize>
+                <PlotExecutions>TextAndMarker</PlotExecutions>
+                <MarkerSize>5</MarkerSize>
+                <PositionPenLoserSerialize>DEFAULT</PositionPenLoserSerialize>
+                <PositionPenWinnerSerialize>DEFAULT</PositionPenWinnerSerialize>
+                <ShortExecutionBrushSerialize>DEFAULT</ShortExecutionBrushSerialize>
+                <BarsSeriesId>5f144b116b20496f8086ceb97d116812</BarsSeriesId>
+                <Id>79e01b02d63148e39c455ecb04ce25c1</Id>
+                <Instrument>ES SEP26</Instrument>
+                <IsLinked>true</IsLinked>
+                <IsPrimarySeries>true</IsPrimarySeries>
+                <ZOrder>1</ZOrder>
+                <WeeksBack>1</WeeksBack>
+                <YearsBack>0</YearsBack>
+              </BarsProperties>
+              <ChartStyles>
+                <ChartStyle>
+                  <CandleStyle>
+                    <CandleStyle xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                      <IsVisible>true</IsVisible>
+                      <BarWidth>3</BarWidth>
+                      <ChartStyleTypeSerialize>1</ChartStyleTypeSerialize>
+                      <DownBrushSerialize>DEFAULT</DownBrushSerialize>
+                      <UpBrushSerialize>DEFAULT</UpBrushSerialize>
+                      <StrokeSerialize>DEFAULT</StrokeSerialize>
+                      <Stroke2Serialize>DEFAULT</Stroke2Serialize>
+                      <WickMatchesBody>true</WickMatchesBody>
+                      <DojiBrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FFCCCCCC&lt;/SolidColorBrush&gt;</DojiBrushSerialize>
+                      <WickStyle>Solid</WickStyle>
+                      <WickWidth>1</WickWidth>
+                    </CandleStyle>
+                  </CandleStyle>
+                </ChartStyle>
+              </ChartStyles>
+            </BarsProperties>
+          </DataSeries>
+          <Strategies />
+          <Indicators />
+          <CrosshairType>Global</CrosshairType>
+          <StayInDrawMode>False</StayInDrawMode>
+          <Properties>
+            <ChartControlProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+              <AlwaysOnTop>false</AlwaysOnTop>
+              <AreTabsVisible>true</AreTabsVisible>
+              <AllowSelectionDragging>true</AllowSelectionDragging>
+              <AreDrawingToolsHidden>false</AreDrawingToolsHidden>
+              <EquidistantBarSpacing>true</EquidistantBarSpacing>
+              <LabelFont>
+                <Bold>false</Bold>
+                <FamilySerialize>Arial</FamilySerialize>
+                <Italic>false</Italic>
+                <Size>11</Size>
+              </LabelFont>
+              <BarDistance>10</BarDistance>
+              <BarMarginRightUser>8</BarMarginRightUser>
+              <ChartTimeFormat>TwelveHour</ChartTimeFormat>
+              <ChartTraderVisibility>Collapsed</ChartTraderVisibility>
+              <ShowDateRange>false</ShowDateRange>
+              <ShowScrollBar>true</ShowScrollBar>
+              <ShowSelectedDrawingMarkers>true</ShowSelectedDrawingMarkers>
+              <SnapMode>BarAndTick</SnapMode>
+              <HideIndicators>false</HideIndicators>
+              <TabName>@INSTRUMENT_FULL</TabName>
+              <LoadBackgroundImage>false</LoadBackgroundImage>
+              <BackgroundImageStretch>Fill</BackgroundImageStretch>
+              <ChartBackgroundSerialize>DEFAULT</ChartBackgroundSerialize>
+              <ChartTextSerialize>DEFAULT</ChartTextSerialize>
+              <CrosshairLabelBackgroundSerialize>DEFAULT</CrosshairLabelBackgroundSerialize>
+              <InactivePriceMarkersBrushSerialize>DEFAULT</InactivePriceMarkersBrushSerialize>
+              <SelectedMarkerBrushSerialize>DEFAULT</SelectedMarkerBrushSerialize>
+              <AreHGridLinesVisible>true</AreHGridLinesVisible>
+              <AreVGridLinesVisible>true</AreVGridLinesVisible>
+              <AxisPenSerialize>DEFAULT</AxisPenSerialize>
+              <CrosshairPen>DEFAULT</CrosshairPen>
+              <CrosshairIsLocked>false</CrosshairIsLocked>
+              <CrosshairCrosshairType>Global</CrosshairCrosshairType>
+              <CrosshairDrawCursorOnly>false</CrosshairDrawCursorOnly>
+              <GridLineHPenSerialize>DEFAULT</GridLineHPenSerialize>
+              <GridLineVPenSerialize>DEFAULT</GridLineVPenSerialize>
+              <PanelSplitterPenSerialize>DEFAULT</PanelSplitterPenSerialize>
+              <TimeHighlighters>0</TimeHighlighters>
+              <TimeHighlighter0>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter0>
+              <TimeHighlighter1>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter1>
+              <TimeHighlighter2>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter2>
+              <TimeHighlighter3>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter3>
+              <TimeHighlighter4>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter4>
+              <TimeHighlighter5>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter5>
+              <TimeHighlighter6>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter6>
+              <TimeHighlighter7>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter7>
+              <TimeHighlighter8>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter8>
+              <TimeHighlighter9>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter9>
+
+            </ChartControlProperties>
+          </Properties>
+          <ChartPanels>
+            <ChartPanel>
+              <Height>852</Height>
+              <HoldChartTraderOrders>false</HoldChartTraderOrders>
+              <IsMaximized>false</IsMaximized>
+              <Right>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Right>
+              <Left>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Left>
+              <Overlay>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Overlay>
+            </ChartPanel>
+          </ChartPanels>
+          <ChartAlerts />
+          <TabName>@INSTRUMENT_FULL</TabName>
+          <Type>ChartTab</Type>
+        </Tab-25763542ebff4e10a374e653bdb3b3d3>
+      </TabControl>
+    </Chart-4fb1d15a73b341669466bd8b775e97df>    <Chart-b95398e9ab08484a88de5351647e5040>
+      <Class Assembly="NinjaTrader.Gui">NinjaTrader.Gui.Chart.Chart</Class>
+      <WindowState>Normal</WindowState>
+      <Location>1280;0</Location>
+      <Size>1280;480</Size>
+      <ZOrder>0</ZOrder>
+      <Topmost>False</Topmost>
+      <TraderWidth>200</TraderWidth>
+      <TabControl>
+        <SelectedIndex>0</SelectedIndex>
+        <Tab-c8329366f0434ca0a7ddda12a24bca71>
+          <InstrumentLink>0</InstrumentLink>
+          <IntervalLink>0</IntervalLink>
+          <DataSeries>
+            <BarsProperties>
+              <BarsProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <BarsPeriod>
+                  <BarsPeriodTypeSerialize>1</BarsPeriodTypeSerialize>
+                  <BaseBarsPeriodType>Minute</BaseBarsPeriodType>
+                  <BaseBarsPeriodValue>1</BaseBarsPeriodValue>
+                  <VolumetricDeltaType>BidAsk</VolumetricDeltaType>
+                  <MarketDataType>Last</MarketDataType>
+                  <PointAndFigurePriceType>Close</PointAndFigurePriceType>
+                  <ReversalType>Tick</ReversalType>
+                  <Value>5</Value>
+                  <Value2>1</Value2>
+                </BarsPeriod>
+                <RangeType>Days</RangeType>
+                <BarsBack>50</BarsBack>
+                <DaysBack>90</DaysBack>
+                <From>2026-01-01T00:00:00</From>
+                <IsStableSession>true</IsStableSession>
+                <IsTickReplay>false</IsTickReplay>
+                <To>2099-12-01T00:00:00</To>
+                <TradingHoursSerializable />
+                <AutoScale>true</AutoScale>
+                <CenterPriceOnScale>false</CenterPriceOnScale>
+                <DisplayInDataBox>true</DisplayInDataBox>
+                <Label>NQ SEP26</Label>
+                <MaxSerialized>0</MaxSerialized>
+                <MinSerialized>0</MinSerialized>
+                <MonthsBack>0</MonthsBack>
+                <Panel>0</Panel>
+                <PriceMarker>
+                  <BackgroundSerialize>DEFAULT</BackgroundSerialize>
+                  <IsVisible>true</IsVisible>
+                </PriceMarker>
+                <ShowGlobalDrawObjects>true</ShowGlobalDrawObjects>
+                <ScaleJustification>Right</ScaleJustification>
+                <TradingHoursVisibility>AllSessions</TradingHoursVisibility>
+                <TradingHoursBreakPenSerialize>&lt;Pen Brush="#FF2D2D2F" Thickness="1" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;
+  &lt;Pen.DashStyle&gt;
+    &lt;DashStyle /&gt;
+  &lt;/Pen.DashStyle&gt;
+&lt;/Pen&gt;</TradingHoursBreakPenSerialize>
+                <LongExecutionBrushSerialize>DEFAULT</LongExecutionBrushSerialize>
+                <PlotExecutions>TextAndMarker</PlotExecutions>
+                <MarkerSize>5</MarkerSize>
+                <PositionPenLoserSerialize>DEFAULT</PositionPenLoserSerialize>
+                <PositionPenWinnerSerialize>DEFAULT</PositionPenWinnerSerialize>
+                <ShortExecutionBrushSerialize>DEFAULT</ShortExecutionBrushSerialize>
+                <BarsSeriesId>0e0a9cddf27b4571b205c6e4fe6ec7b6</BarsSeriesId>
+                <Id>c58a49f1dd574fa9b3bb69ebf992bfd1</Id>
+                <Instrument>NQ SEP26</Instrument>
+                <IsLinked>true</IsLinked>
+                <IsPrimarySeries>true</IsPrimarySeries>
+                <ZOrder>1</ZOrder>
+                <WeeksBack>1</WeeksBack>
+                <YearsBack>0</YearsBack>
+              </BarsProperties>
+              <ChartStyles>
+                <ChartStyle>
+                  <CandleStyle>
+                    <CandleStyle xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                      <IsVisible>true</IsVisible>
+                      <BarWidth>3</BarWidth>
+                      <ChartStyleTypeSerialize>1</ChartStyleTypeSerialize>
+                      <DownBrushSerialize>DEFAULT</DownBrushSerialize>
+                      <UpBrushSerialize>DEFAULT</UpBrushSerialize>
+                      <StrokeSerialize>DEFAULT</StrokeSerialize>
+                      <Stroke2Serialize>DEFAULT</Stroke2Serialize>
+                      <WickMatchesBody>true</WickMatchesBody>
+                      <DojiBrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FFCCCCCC&lt;/SolidColorBrush&gt;</DojiBrushSerialize>
+                      <WickStyle>Solid</WickStyle>
+                      <WickWidth>1</WickWidth>
+                    </CandleStyle>
+                  </CandleStyle>
+                </ChartStyle>
+              </ChartStyles>
+            </BarsProperties>
+          </DataSeries>
+          <Strategies />
+          <Indicators />
+          <CrosshairType>Global</CrosshairType>
+          <StayInDrawMode>False</StayInDrawMode>
+          <Properties>
+            <ChartControlProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+              <AlwaysOnTop>false</AlwaysOnTop>
+              <AreTabsVisible>true</AreTabsVisible>
+              <AllowSelectionDragging>true</AllowSelectionDragging>
+              <AreDrawingToolsHidden>false</AreDrawingToolsHidden>
+              <EquidistantBarSpacing>true</EquidistantBarSpacing>
+              <LabelFont>
+                <Bold>false</Bold>
+                <FamilySerialize>Arial</FamilySerialize>
+                <Italic>false</Italic>
+                <Size>11</Size>
+              </LabelFont>
+              <BarDistance>10</BarDistance>
+              <BarMarginRightUser>8</BarMarginRightUser>
+              <ChartTimeFormat>TwelveHour</ChartTimeFormat>
+              <ChartTraderVisibility>Collapsed</ChartTraderVisibility>
+              <ShowDateRange>false</ShowDateRange>
+              <ShowScrollBar>true</ShowScrollBar>
+              <ShowSelectedDrawingMarkers>true</ShowSelectedDrawingMarkers>
+              <SnapMode>BarAndTick</SnapMode>
+              <HideIndicators>false</HideIndicators>
+              <TabName>@INSTRUMENT_FULL</TabName>
+              <LoadBackgroundImage>false</LoadBackgroundImage>
+              <BackgroundImageStretch>Fill</BackgroundImageStretch>
+              <ChartBackgroundSerialize>DEFAULT</ChartBackgroundSerialize>
+              <ChartTextSerialize>DEFAULT</ChartTextSerialize>
+              <CrosshairLabelBackgroundSerialize>DEFAULT</CrosshairLabelBackgroundSerialize>
+              <InactivePriceMarkersBrushSerialize>DEFAULT</InactivePriceMarkersBrushSerialize>
+              <SelectedMarkerBrushSerialize>DEFAULT</SelectedMarkerBrushSerialize>
+              <AreHGridLinesVisible>true</AreHGridLinesVisible>
+              <AreVGridLinesVisible>true</AreVGridLinesVisible>
+              <AxisPenSerialize>DEFAULT</AxisPenSerialize>
+              <CrosshairPen>DEFAULT</CrosshairPen>
+              <CrosshairIsLocked>false</CrosshairIsLocked>
+              <CrosshairCrosshairType>Global</CrosshairCrosshairType>
+              <CrosshairDrawCursorOnly>false</CrosshairDrawCursorOnly>
+              <GridLineHPenSerialize>DEFAULT</GridLineHPenSerialize>
+              <GridLineVPenSerialize>DEFAULT</GridLineVPenSerialize>
+              <PanelSplitterPenSerialize>DEFAULT</PanelSplitterPenSerialize>
+              <TimeHighlighters>0</TimeHighlighters>
+              <TimeHighlighter0>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter0>
+              <TimeHighlighter1>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter1>
+              <TimeHighlighter2>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter2>
+              <TimeHighlighter3>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter3>
+              <TimeHighlighter4>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter4>
+              <TimeHighlighter5>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter5>
+              <TimeHighlighter6>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter6>
+              <TimeHighlighter7>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter7>
+              <TimeHighlighter8>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter8>
+              <TimeHighlighter9>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter9>
+
+            </ChartControlProperties>
+          </Properties>
+          <ChartPanels>
+            <ChartPanel>
+              <Height>372</Height>
+              <HoldChartTraderOrders>false</HoldChartTraderOrders>
+              <IsMaximized>false</IsMaximized>
+              <Right>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Right>
+              <Left>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Left>
+              <Overlay>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Overlay>
+            </ChartPanel>
+          </ChartPanels>
+          <ChartAlerts />
+          <TabName>@INSTRUMENT_FULL</TabName>
+          <Type>ChartTab</Type>
+        </Tab-c8329366f0434ca0a7ddda12a24bca71>
+      </TabControl>
+    </Chart-b95398e9ab08484a88de5351647e5040>    <Chart-492a79d001a649abbc554147d6de1214>
+      <Class Assembly="NinjaTrader.Gui">NinjaTrader.Gui.Chart.Chart</Class>
+      <WindowState>Normal</WindowState>
+      <Location>1280;480</Location>
+      <Size>1280;480</Size>
+      <ZOrder>0</ZOrder>
+      <Topmost>False</Topmost>
+      <TraderWidth>200</TraderWidth>
+      <TabControl>
+        <SelectedIndex>0</SelectedIndex>
+        <Tab-3ce83842dbb44f5ca5b6255c9714e1fb>
+          <InstrumentLink>0</InstrumentLink>
+          <IntervalLink>0</IntervalLink>
+          <DataSeries>
+            <BarsProperties>
+              <BarsProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <BarsPeriod>
+                  <BarsPeriodTypeSerialize>1</BarsPeriodTypeSerialize>
+                  <BaseBarsPeriodType>Minute</BaseBarsPeriodType>
+                  <BaseBarsPeriodValue>1</BaseBarsPeriodValue>
+                  <VolumetricDeltaType>BidAsk</VolumetricDeltaType>
+                  <MarketDataType>Last</MarketDataType>
+                  <PointAndFigurePriceType>Close</PointAndFigurePriceType>
+                  <ReversalType>Tick</ReversalType>
+                  <Value>5</Value>
+                  <Value2>1</Value2>
+                </BarsPeriod>
+                <RangeType>Days</RangeType>
+                <BarsBack>50</BarsBack>
+                <DaysBack>90</DaysBack>
+                <From>2026-01-01T00:00:00</From>
+                <IsStableSession>true</IsStableSession>
+                <IsTickReplay>false</IsTickReplay>
+                <To>2099-12-01T00:00:00</To>
+                <TradingHoursSerializable />
+                <AutoScale>true</AutoScale>
+                <CenterPriceOnScale>false</CenterPriceOnScale>
+                <DisplayInDataBox>true</DisplayInDataBox>
+                <Label>RTY SEP26</Label>
+                <MaxSerialized>0</MaxSerialized>
+                <MinSerialized>0</MinSerialized>
+                <MonthsBack>0</MonthsBack>
+                <Panel>0</Panel>
+                <PriceMarker>
+                  <BackgroundSerialize>DEFAULT</BackgroundSerialize>
+                  <IsVisible>true</IsVisible>
+                </PriceMarker>
+                <ShowGlobalDrawObjects>true</ShowGlobalDrawObjects>
+                <ScaleJustification>Right</ScaleJustification>
+                <TradingHoursVisibility>AllSessions</TradingHoursVisibility>
+                <TradingHoursBreakPenSerialize>&lt;Pen Brush="#FF2D2D2F" Thickness="1" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;
+  &lt;Pen.DashStyle&gt;
+    &lt;DashStyle /&gt;
+  &lt;/Pen.DashStyle&gt;
+&lt;/Pen&gt;</TradingHoursBreakPenSerialize>
+                <LongExecutionBrushSerialize>DEFAULT</LongExecutionBrushSerialize>
+                <PlotExecutions>TextAndMarker</PlotExecutions>
+                <MarkerSize>5</MarkerSize>
+                <PositionPenLoserSerialize>DEFAULT</PositionPenLoserSerialize>
+                <PositionPenWinnerSerialize>DEFAULT</PositionPenWinnerSerialize>
+                <ShortExecutionBrushSerialize>DEFAULT</ShortExecutionBrushSerialize>
+                <BarsSeriesId>18c2a5e49b834413b88257f9b2cafa4f</BarsSeriesId>
+                <Id>95a4cd1da9c64df9a34683600779ae54</Id>
+                <Instrument>RTY SEP26</Instrument>
+                <IsLinked>true</IsLinked>
+                <IsPrimarySeries>true</IsPrimarySeries>
+                <ZOrder>1</ZOrder>
+                <WeeksBack>1</WeeksBack>
+                <YearsBack>0</YearsBack>
+              </BarsProperties>
+              <ChartStyles>
+                <ChartStyle>
+                  <CandleStyle>
+                    <CandleStyle xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                      <IsVisible>true</IsVisible>
+                      <BarWidth>3</BarWidth>
+                      <ChartStyleTypeSerialize>1</ChartStyleTypeSerialize>
+                      <DownBrushSerialize>DEFAULT</DownBrushSerialize>
+                      <UpBrushSerialize>DEFAULT</UpBrushSerialize>
+                      <StrokeSerialize>DEFAULT</StrokeSerialize>
+                      <Stroke2Serialize>DEFAULT</Stroke2Serialize>
+                      <WickMatchesBody>true</WickMatchesBody>
+                      <DojiBrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FFCCCCCC&lt;/SolidColorBrush&gt;</DojiBrushSerialize>
+                      <WickStyle>Solid</WickStyle>
+                      <WickWidth>1</WickWidth>
+                    </CandleStyle>
+                  </CandleStyle>
+                </ChartStyle>
+              </ChartStyles>
+            </BarsProperties>
+          </DataSeries>
+          <Strategies />
+          <Indicators />
+          <CrosshairType>Global</CrosshairType>
+          <StayInDrawMode>False</StayInDrawMode>
+          <Properties>
+            <ChartControlProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+              <AlwaysOnTop>false</AlwaysOnTop>
+              <AreTabsVisible>true</AreTabsVisible>
+              <AllowSelectionDragging>true</AllowSelectionDragging>
+              <AreDrawingToolsHidden>false</AreDrawingToolsHidden>
+              <EquidistantBarSpacing>true</EquidistantBarSpacing>
+              <LabelFont>
+                <Bold>false</Bold>
+                <FamilySerialize>Arial</FamilySerialize>
+                <Italic>false</Italic>
+                <Size>11</Size>
+              </LabelFont>
+              <BarDistance>10</BarDistance>
+              <BarMarginRightUser>8</BarMarginRightUser>
+              <ChartTimeFormat>TwelveHour</ChartTimeFormat>
+              <ChartTraderVisibility>Collapsed</ChartTraderVisibility>
+              <ShowDateRange>false</ShowDateRange>
+              <ShowScrollBar>true</ShowScrollBar>
+              <ShowSelectedDrawingMarkers>true</ShowSelectedDrawingMarkers>
+              <SnapMode>BarAndTick</SnapMode>
+              <HideIndicators>false</HideIndicators>
+              <TabName>@INSTRUMENT_FULL</TabName>
+              <LoadBackgroundImage>false</LoadBackgroundImage>
+              <BackgroundImageStretch>Fill</BackgroundImageStretch>
+              <ChartBackgroundSerialize>DEFAULT</ChartBackgroundSerialize>
+              <ChartTextSerialize>DEFAULT</ChartTextSerialize>
+              <CrosshairLabelBackgroundSerialize>DEFAULT</CrosshairLabelBackgroundSerialize>
+              <InactivePriceMarkersBrushSerialize>DEFAULT</InactivePriceMarkersBrushSerialize>
+              <SelectedMarkerBrushSerialize>DEFAULT</SelectedMarkerBrushSerialize>
+              <AreHGridLinesVisible>true</AreHGridLinesVisible>
+              <AreVGridLinesVisible>true</AreVGridLinesVisible>
+              <AxisPenSerialize>DEFAULT</AxisPenSerialize>
+              <CrosshairPen>DEFAULT</CrosshairPen>
+              <CrosshairIsLocked>false</CrosshairIsLocked>
+              <CrosshairCrosshairType>Global</CrosshairCrosshairType>
+              <CrosshairDrawCursorOnly>false</CrosshairDrawCursorOnly>
+              <GridLineHPenSerialize>DEFAULT</GridLineHPenSerialize>
+              <GridLineVPenSerialize>DEFAULT</GridLineVPenSerialize>
+              <PanelSplitterPenSerialize>DEFAULT</PanelSplitterPenSerialize>
+              <TimeHighlighters>0</TimeHighlighters>
+              <TimeHighlighter0>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter0>
+              <TimeHighlighter1>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter1>
+              <TimeHighlighter2>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter2>
+              <TimeHighlighter3>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter3>
+              <TimeHighlighter4>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter4>
+              <TimeHighlighter5>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter5>
+              <TimeHighlighter6>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter6>
+              <TimeHighlighter7>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter7>
+              <TimeHighlighter8>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter8>
+              <TimeHighlighter9>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter9>
+
+            </ChartControlProperties>
+          </Properties>
+          <ChartPanels>
+            <ChartPanel>
+              <Height>372</Height>
+              <HoldChartTraderOrders>false</HoldChartTraderOrders>
+              <IsMaximized>false</IsMaximized>
+              <Right>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Right>
+              <Left>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Left>
+              <Overlay>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Overlay>
+            </ChartPanel>
+          </ChartPanels>
+          <ChartAlerts />
+          <TabName>@INSTRUMENT_FULL</TabName>
+          <Type>ChartTab</Type>
+        </Tab-3ce83842dbb44f5ca5b6255c9714e1fb>
+      </TabControl>
+    </Chart-492a79d001a649abbc554147d6de1214>    <Chart-0ccf589a817048458f9b39948ee96a04>
+      <Class Assembly="NinjaTrader.Gui">NinjaTrader.Gui.Chart.Chart</Class>
+      <WindowState>Normal</WindowState>
+      <Location>0;960</Location>
+      <Size>854;480</Size>
+      <ZOrder>0</ZOrder>
+      <Topmost>False</Topmost>
+      <TraderWidth>200</TraderWidth>
+      <TabControl>
+        <SelectedIndex>0</SelectedIndex>
+        <Tab-630b41a4ca344e0d9f1694743144961d>
+          <InstrumentLink>0</InstrumentLink>
+          <IntervalLink>0</IntervalLink>
+          <DataSeries>
+            <BarsProperties>
+              <BarsProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <BarsPeriod>
+                  <BarsPeriodTypeSerialize>1</BarsPeriodTypeSerialize>
+                  <BaseBarsPeriodType>Minute</BaseBarsPeriodType>
+                  <BaseBarsPeriodValue>1</BaseBarsPeriodValue>
+                  <VolumetricDeltaType>BidAsk</VolumetricDeltaType>
+                  <MarketDataType>Last</MarketDataType>
+                  <PointAndFigurePriceType>Close</PointAndFigurePriceType>
+                  <ReversalType>Tick</ReversalType>
+                  <Value>5</Value>
+                  <Value2>1</Value2>
+                </BarsPeriod>
+                <RangeType>Days</RangeType>
+                <BarsBack>50</BarsBack>
+                <DaysBack>90</DaysBack>
+                <From>2026-01-01T00:00:00</From>
+                <IsStableSession>true</IsStableSession>
+                <IsTickReplay>false</IsTickReplay>
+                <To>2099-12-01T00:00:00</To>
+                <TradingHoursSerializable />
+                <AutoScale>true</AutoScale>
+                <CenterPriceOnScale>false</CenterPriceOnScale>
+                <DisplayInDataBox>true</DisplayInDataBox>
+                <Label>CL AUG26</Label>
+                <MaxSerialized>0</MaxSerialized>
+                <MinSerialized>0</MinSerialized>
+                <MonthsBack>0</MonthsBack>
+                <Panel>0</Panel>
+                <PriceMarker>
+                  <BackgroundSerialize>DEFAULT</BackgroundSerialize>
+                  <IsVisible>true</IsVisible>
+                </PriceMarker>
+                <ShowGlobalDrawObjects>true</ShowGlobalDrawObjects>
+                <ScaleJustification>Right</ScaleJustification>
+                <TradingHoursVisibility>AllSessions</TradingHoursVisibility>
+                <TradingHoursBreakPenSerialize>&lt;Pen Brush="#FF2D2D2F" Thickness="1" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;
+  &lt;Pen.DashStyle&gt;
+    &lt;DashStyle /&gt;
+  &lt;/Pen.DashStyle&gt;
+&lt;/Pen&gt;</TradingHoursBreakPenSerialize>
+                <LongExecutionBrushSerialize>DEFAULT</LongExecutionBrushSerialize>
+                <PlotExecutions>TextAndMarker</PlotExecutions>
+                <MarkerSize>5</MarkerSize>
+                <PositionPenLoserSerialize>DEFAULT</PositionPenLoserSerialize>
+                <PositionPenWinnerSerialize>DEFAULT</PositionPenWinnerSerialize>
+                <ShortExecutionBrushSerialize>DEFAULT</ShortExecutionBrushSerialize>
+                <BarsSeriesId>458687de7214476aa7ad03596928d494</BarsSeriesId>
+                <Id>87a7f9c974424869ae3726d6a6f8f49c</Id>
+                <Instrument>CL AUG26</Instrument>
+                <IsLinked>true</IsLinked>
+                <IsPrimarySeries>true</IsPrimarySeries>
+                <ZOrder>1</ZOrder>
+                <WeeksBack>1</WeeksBack>
+                <YearsBack>0</YearsBack>
+              </BarsProperties>
+              <ChartStyles>
+                <ChartStyle>
+                  <CandleStyle>
+                    <CandleStyle xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                      <IsVisible>true</IsVisible>
+                      <BarWidth>3</BarWidth>
+                      <ChartStyleTypeSerialize>1</ChartStyleTypeSerialize>
+                      <DownBrushSerialize>DEFAULT</DownBrushSerialize>
+                      <UpBrushSerialize>DEFAULT</UpBrushSerialize>
+                      <StrokeSerialize>DEFAULT</StrokeSerialize>
+                      <Stroke2Serialize>DEFAULT</Stroke2Serialize>
+                      <WickMatchesBody>true</WickMatchesBody>
+                      <DojiBrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FFCCCCCC&lt;/SolidColorBrush&gt;</DojiBrushSerialize>
+                      <WickStyle>Solid</WickStyle>
+                      <WickWidth>1</WickWidth>
+                    </CandleStyle>
+                  </CandleStyle>
+                </ChartStyle>
+              </ChartStyles>
+            </BarsProperties>
+          </DataSeries>
+          <Strategies />
+          <Indicators />
+          <CrosshairType>Global</CrosshairType>
+          <StayInDrawMode>False</StayInDrawMode>
+          <Properties>
+            <ChartControlProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+              <AlwaysOnTop>false</AlwaysOnTop>
+              <AreTabsVisible>true</AreTabsVisible>
+              <AllowSelectionDragging>true</AllowSelectionDragging>
+              <AreDrawingToolsHidden>false</AreDrawingToolsHidden>
+              <EquidistantBarSpacing>true</EquidistantBarSpacing>
+              <LabelFont>
+                <Bold>false</Bold>
+                <FamilySerialize>Arial</FamilySerialize>
+                <Italic>false</Italic>
+                <Size>11</Size>
+              </LabelFont>
+              <BarDistance>10</BarDistance>
+              <BarMarginRightUser>8</BarMarginRightUser>
+              <ChartTimeFormat>TwelveHour</ChartTimeFormat>
+              <ChartTraderVisibility>Collapsed</ChartTraderVisibility>
+              <ShowDateRange>false</ShowDateRange>
+              <ShowScrollBar>true</ShowScrollBar>
+              <ShowSelectedDrawingMarkers>true</ShowSelectedDrawingMarkers>
+              <SnapMode>BarAndTick</SnapMode>
+              <HideIndicators>false</HideIndicators>
+              <TabName>@INSTRUMENT_FULL</TabName>
+              <LoadBackgroundImage>false</LoadBackgroundImage>
+              <BackgroundImageStretch>Fill</BackgroundImageStretch>
+              <ChartBackgroundSerialize>DEFAULT</ChartBackgroundSerialize>
+              <ChartTextSerialize>DEFAULT</ChartTextSerialize>
+              <CrosshairLabelBackgroundSerialize>DEFAULT</CrosshairLabelBackgroundSerialize>
+              <InactivePriceMarkersBrushSerialize>DEFAULT</InactivePriceMarkersBrushSerialize>
+              <SelectedMarkerBrushSerialize>DEFAULT</SelectedMarkerBrushSerialize>
+              <AreHGridLinesVisible>true</AreHGridLinesVisible>
+              <AreVGridLinesVisible>true</AreVGridLinesVisible>
+              <AxisPenSerialize>DEFAULT</AxisPenSerialize>
+              <CrosshairPen>DEFAULT</CrosshairPen>
+              <CrosshairIsLocked>false</CrosshairIsLocked>
+              <CrosshairCrosshairType>Global</CrosshairCrosshairType>
+              <CrosshairDrawCursorOnly>false</CrosshairDrawCursorOnly>
+              <GridLineHPenSerialize>DEFAULT</GridLineHPenSerialize>
+              <GridLineVPenSerialize>DEFAULT</GridLineVPenSerialize>
+              <PanelSplitterPenSerialize>DEFAULT</PanelSplitterPenSerialize>
+              <TimeHighlighters>0</TimeHighlighters>
+              <TimeHighlighter0>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter0>
+              <TimeHighlighter1>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter1>
+              <TimeHighlighter2>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter2>
+              <TimeHighlighter3>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter3>
+              <TimeHighlighter4>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter4>
+              <TimeHighlighter5>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter5>
+              <TimeHighlighter6>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter6>
+              <TimeHighlighter7>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter7>
+              <TimeHighlighter8>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter8>
+              <TimeHighlighter9>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter9>
+
+            </ChartControlProperties>
+          </Properties>
+          <ChartPanels>
+            <ChartPanel>
+              <Height>372</Height>
+              <HoldChartTraderOrders>false</HoldChartTraderOrders>
+              <IsMaximized>false</IsMaximized>
+              <Right>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Right>
+              <Left>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Left>
+              <Overlay>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Overlay>
+            </ChartPanel>
+          </ChartPanels>
+          <ChartAlerts />
+          <TabName>@INSTRUMENT_FULL</TabName>
+          <Type>ChartTab</Type>
+        </Tab-630b41a4ca344e0d9f1694743144961d>
+      </TabControl>
+    </Chart-0ccf589a817048458f9b39948ee96a04>    <Chart-d5f3aede8fa9482b9f8b1d9bd0459aa3>
+      <Class Assembly="NinjaTrader.Gui">NinjaTrader.Gui.Chart.Chart</Class>
+      <WindowState>Normal</WindowState>
+      <Location>854;960</Location>
+      <Size>853;480</Size>
+      <ZOrder>0</ZOrder>
+      <Topmost>False</Topmost>
+      <TraderWidth>200</TraderWidth>
+      <TabControl>
+        <SelectedIndex>0</SelectedIndex>
+        <Tab-7eaa09879c2c46b0949c5a1c4957ddac>
+          <InstrumentLink>0</InstrumentLink>
+          <IntervalLink>0</IntervalLink>
+          <DataSeries>
+            <BarsProperties>
+              <BarsProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <BarsPeriod>
+                  <BarsPeriodTypeSerialize>1</BarsPeriodTypeSerialize>
+                  <BaseBarsPeriodType>Minute</BaseBarsPeriodType>
+                  <BaseBarsPeriodValue>1</BaseBarsPeriodValue>
+                  <VolumetricDeltaType>BidAsk</VolumetricDeltaType>
+                  <MarketDataType>Last</MarketDataType>
+                  <PointAndFigurePriceType>Close</PointAndFigurePriceType>
+                  <ReversalType>Tick</ReversalType>
+                  <Value>5</Value>
+                  <Value2>1</Value2>
+                </BarsPeriod>
+                <RangeType>Days</RangeType>
+                <BarsBack>50</BarsBack>
+                <DaysBack>90</DaysBack>
+                <From>2026-01-01T00:00:00</From>
+                <IsStableSession>true</IsStableSession>
+                <IsTickReplay>false</IsTickReplay>
+                <To>2099-12-01T00:00:00</To>
+                <TradingHoursSerializable />
+                <AutoScale>true</AutoScale>
+                <CenterPriceOnScale>false</CenterPriceOnScale>
+                <DisplayInDataBox>true</DisplayInDataBox>
+                <Label>GC AUG26</Label>
+                <MaxSerialized>0</MaxSerialized>
+                <MinSerialized>0</MinSerialized>
+                <MonthsBack>0</MonthsBack>
+                <Panel>0</Panel>
+                <PriceMarker>
+                  <BackgroundSerialize>DEFAULT</BackgroundSerialize>
+                  <IsVisible>true</IsVisible>
+                </PriceMarker>
+                <ShowGlobalDrawObjects>true</ShowGlobalDrawObjects>
+                <ScaleJustification>Right</ScaleJustification>
+                <TradingHoursVisibility>AllSessions</TradingHoursVisibility>
+                <TradingHoursBreakPenSerialize>&lt;Pen Brush="#FF2D2D2F" Thickness="1" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;
+  &lt;Pen.DashStyle&gt;
+    &lt;DashStyle /&gt;
+  &lt;/Pen.DashStyle&gt;
+&lt;/Pen&gt;</TradingHoursBreakPenSerialize>
+                <LongExecutionBrushSerialize>DEFAULT</LongExecutionBrushSerialize>
+                <PlotExecutions>TextAndMarker</PlotExecutions>
+                <MarkerSize>5</MarkerSize>
+                <PositionPenLoserSerialize>DEFAULT</PositionPenLoserSerialize>
+                <PositionPenWinnerSerialize>DEFAULT</PositionPenWinnerSerialize>
+                <ShortExecutionBrushSerialize>DEFAULT</ShortExecutionBrushSerialize>
+                <BarsSeriesId>aedf7207597d43cbbd9c9abcb6087ce9</BarsSeriesId>
+                <Id>f3b672e55a62495ea357a3cce7d83cfd</Id>
+                <Instrument>GC AUG26</Instrument>
+                <IsLinked>true</IsLinked>
+                <IsPrimarySeries>true</IsPrimarySeries>
+                <ZOrder>1</ZOrder>
+                <WeeksBack>1</WeeksBack>
+                <YearsBack>0</YearsBack>
+              </BarsProperties>
+              <ChartStyles>
+                <ChartStyle>
+                  <CandleStyle>
+                    <CandleStyle xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                      <IsVisible>true</IsVisible>
+                      <BarWidth>3</BarWidth>
+                      <ChartStyleTypeSerialize>1</ChartStyleTypeSerialize>
+                      <DownBrushSerialize>DEFAULT</DownBrushSerialize>
+                      <UpBrushSerialize>DEFAULT</UpBrushSerialize>
+                      <StrokeSerialize>DEFAULT</StrokeSerialize>
+                      <Stroke2Serialize>DEFAULT</Stroke2Serialize>
+                      <WickMatchesBody>true</WickMatchesBody>
+                      <DojiBrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FFCCCCCC&lt;/SolidColorBrush&gt;</DojiBrushSerialize>
+                      <WickStyle>Solid</WickStyle>
+                      <WickWidth>1</WickWidth>
+                    </CandleStyle>
+                  </CandleStyle>
+                </ChartStyle>
+              </ChartStyles>
+            </BarsProperties>
+          </DataSeries>
+          <Strategies />
+          <Indicators />
+          <CrosshairType>Global</CrosshairType>
+          <StayInDrawMode>False</StayInDrawMode>
+          <Properties>
+            <ChartControlProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+              <AlwaysOnTop>false</AlwaysOnTop>
+              <AreTabsVisible>true</AreTabsVisible>
+              <AllowSelectionDragging>true</AllowSelectionDragging>
+              <AreDrawingToolsHidden>false</AreDrawingToolsHidden>
+              <EquidistantBarSpacing>true</EquidistantBarSpacing>
+              <LabelFont>
+                <Bold>false</Bold>
+                <FamilySerialize>Arial</FamilySerialize>
+                <Italic>false</Italic>
+                <Size>11</Size>
+              </LabelFont>
+              <BarDistance>10</BarDistance>
+              <BarMarginRightUser>8</BarMarginRightUser>
+              <ChartTimeFormat>TwelveHour</ChartTimeFormat>
+              <ChartTraderVisibility>Collapsed</ChartTraderVisibility>
+              <ShowDateRange>false</ShowDateRange>
+              <ShowScrollBar>true</ShowScrollBar>
+              <ShowSelectedDrawingMarkers>true</ShowSelectedDrawingMarkers>
+              <SnapMode>BarAndTick</SnapMode>
+              <HideIndicators>false</HideIndicators>
+              <TabName>@INSTRUMENT_FULL</TabName>
+              <LoadBackgroundImage>false</LoadBackgroundImage>
+              <BackgroundImageStretch>Fill</BackgroundImageStretch>
+              <ChartBackgroundSerialize>DEFAULT</ChartBackgroundSerialize>
+              <ChartTextSerialize>DEFAULT</ChartTextSerialize>
+              <CrosshairLabelBackgroundSerialize>DEFAULT</CrosshairLabelBackgroundSerialize>
+              <InactivePriceMarkersBrushSerialize>DEFAULT</InactivePriceMarkersBrushSerialize>
+              <SelectedMarkerBrushSerialize>DEFAULT</SelectedMarkerBrushSerialize>
+              <AreHGridLinesVisible>true</AreHGridLinesVisible>
+              <AreVGridLinesVisible>true</AreVGridLinesVisible>
+              <AxisPenSerialize>DEFAULT</AxisPenSerialize>
+              <CrosshairPen>DEFAULT</CrosshairPen>
+              <CrosshairIsLocked>false</CrosshairIsLocked>
+              <CrosshairCrosshairType>Global</CrosshairCrosshairType>
+              <CrosshairDrawCursorOnly>false</CrosshairDrawCursorOnly>
+              <GridLineHPenSerialize>DEFAULT</GridLineHPenSerialize>
+              <GridLineVPenSerialize>DEFAULT</GridLineVPenSerialize>
+              <PanelSplitterPenSerialize>DEFAULT</PanelSplitterPenSerialize>
+              <TimeHighlighters>0</TimeHighlighters>
+              <TimeHighlighter0>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter0>
+              <TimeHighlighter1>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter1>
+              <TimeHighlighter2>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter2>
+              <TimeHighlighter3>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter3>
+              <TimeHighlighter4>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter4>
+              <TimeHighlighter5>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter5>
+              <TimeHighlighter6>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter6>
+              <TimeHighlighter7>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter7>
+              <TimeHighlighter8>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter8>
+              <TimeHighlighter9>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter9>
+
+            </ChartControlProperties>
+          </Properties>
+          <ChartPanels>
+            <ChartPanel>
+              <Height>372</Height>
+              <HoldChartTraderOrders>false</HoldChartTraderOrders>
+              <IsMaximized>false</IsMaximized>
+              <Right>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Right>
+              <Left>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Left>
+              <Overlay>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Overlay>
+            </ChartPanel>
+          </ChartPanels>
+          <ChartAlerts />
+          <TabName>@INSTRUMENT_FULL</TabName>
+          <Type>ChartTab</Type>
+        </Tab-7eaa09879c2c46b0949c5a1c4957ddac>
+      </TabControl>
+    </Chart-d5f3aede8fa9482b9f8b1d9bd0459aa3>    <Chart-6b4c1b68377f4cb4bd0675f36f0088d7>
+      <Class Assembly="NinjaTrader.Gui">NinjaTrader.Gui.Chart.Chart</Class>
+      <WindowState>Normal</WindowState>
+      <Location>1707;960</Location>
+      <Size>853;480</Size>
+      <ZOrder>0</ZOrder>
+      <Topmost>False</Topmost>
+      <TraderWidth>200</TraderWidth>
+      <TabControl>
+        <SelectedIndex>0</SelectedIndex>
+        <Tab-58875ebefb6d414aa1745f7006bb3993>
+          <InstrumentLink>0</InstrumentLink>
+          <IntervalLink>0</IntervalLink>
+          <DataSeries>
+            <BarsProperties>
+              <BarsProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <BarsPeriod>
+                  <BarsPeriodTypeSerialize>1</BarsPeriodTypeSerialize>
+                  <BaseBarsPeriodType>Minute</BaseBarsPeriodType>
+                  <BaseBarsPeriodValue>1</BaseBarsPeriodValue>
+                  <VolumetricDeltaType>BidAsk</VolumetricDeltaType>
+                  <MarketDataType>Last</MarketDataType>
+                  <PointAndFigurePriceType>Close</PointAndFigurePriceType>
+                  <ReversalType>Tick</ReversalType>
+                  <Value>5</Value>
+                  <Value2>1</Value2>
+                </BarsPeriod>
+                <RangeType>Days</RangeType>
+                <BarsBack>50</BarsBack>
+                <DaysBack>90</DaysBack>
+                <From>2026-01-01T00:00:00</From>
+                <IsStableSession>true</IsStableSession>
+                <IsTickReplay>false</IsTickReplay>
+                <To>2099-12-01T00:00:00</To>
+                <TradingHoursSerializable />
+                <AutoScale>true</AutoScale>
+                <CenterPriceOnScale>false</CenterPriceOnScale>
+                <DisplayInDataBox>true</DisplayInDataBox>
+                <Label>BTC SEP26</Label>
+                <MaxSerialized>0</MaxSerialized>
+                <MinSerialized>0</MinSerialized>
+                <MonthsBack>0</MonthsBack>
+                <Panel>0</Panel>
+                <PriceMarker>
+                  <BackgroundSerialize>DEFAULT</BackgroundSerialize>
+                  <IsVisible>true</IsVisible>
+                </PriceMarker>
+                <ShowGlobalDrawObjects>true</ShowGlobalDrawObjects>
+                <ScaleJustification>Right</ScaleJustification>
+                <TradingHoursVisibility>AllSessions</TradingHoursVisibility>
+                <TradingHoursBreakPenSerialize>&lt;Pen Brush="#FF2D2D2F" Thickness="1" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;
+  &lt;Pen.DashStyle&gt;
+    &lt;DashStyle /&gt;
+  &lt;/Pen.DashStyle&gt;
+&lt;/Pen&gt;</TradingHoursBreakPenSerialize>
+                <LongExecutionBrushSerialize>DEFAULT</LongExecutionBrushSerialize>
+                <PlotExecutions>TextAndMarker</PlotExecutions>
+                <MarkerSize>5</MarkerSize>
+                <PositionPenLoserSerialize>DEFAULT</PositionPenLoserSerialize>
+                <PositionPenWinnerSerialize>DEFAULT</PositionPenWinnerSerialize>
+                <ShortExecutionBrushSerialize>DEFAULT</ShortExecutionBrushSerialize>
+                <BarsSeriesId>7a0e7a6c5e2e4ed5a18f0769b2f3c6df</BarsSeriesId>
+                <Id>d56187d8378c4c38b4bb299ec9c63960</Id>
+                <Instrument>BTC SEP26</Instrument>
+                <IsLinked>true</IsLinked>
+                <IsPrimarySeries>true</IsPrimarySeries>
+                <ZOrder>1</ZOrder>
+                <WeeksBack>1</WeeksBack>
+                <YearsBack>0</YearsBack>
+              </BarsProperties>
+              <ChartStyles>
+                <ChartStyle>
+                  <CandleStyle>
+                    <CandleStyle xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                      <IsVisible>true</IsVisible>
+                      <BarWidth>3</BarWidth>
+                      <ChartStyleTypeSerialize>1</ChartStyleTypeSerialize>
+                      <DownBrushSerialize>DEFAULT</DownBrushSerialize>
+                      <UpBrushSerialize>DEFAULT</UpBrushSerialize>
+                      <StrokeSerialize>DEFAULT</StrokeSerialize>
+                      <Stroke2Serialize>DEFAULT</Stroke2Serialize>
+                      <WickMatchesBody>true</WickMatchesBody>
+                      <DojiBrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FFCCCCCC&lt;/SolidColorBrush&gt;</DojiBrushSerialize>
+                      <WickStyle>Solid</WickStyle>
+                      <WickWidth>1</WickWidth>
+                    </CandleStyle>
+                  </CandleStyle>
+                </ChartStyle>
+              </ChartStyles>
+            </BarsProperties>
+          </DataSeries>
+          <Strategies />
+          <Indicators />
+          <CrosshairType>Global</CrosshairType>
+          <StayInDrawMode>False</StayInDrawMode>
+          <Properties>
+            <ChartControlProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+              <AlwaysOnTop>false</AlwaysOnTop>
+              <AreTabsVisible>true</AreTabsVisible>
+              <AllowSelectionDragging>true</AllowSelectionDragging>
+              <AreDrawingToolsHidden>false</AreDrawingToolsHidden>
+              <EquidistantBarSpacing>true</EquidistantBarSpacing>
+              <LabelFont>
+                <Bold>false</Bold>
+                <FamilySerialize>Arial</FamilySerialize>
+                <Italic>false</Italic>
+                <Size>11</Size>
+              </LabelFont>
+              <BarDistance>10</BarDistance>
+              <BarMarginRightUser>8</BarMarginRightUser>
+              <ChartTimeFormat>TwelveHour</ChartTimeFormat>
+              <ChartTraderVisibility>Collapsed</ChartTraderVisibility>
+              <ShowDateRange>false</ShowDateRange>
+              <ShowScrollBar>true</ShowScrollBar>
+              <ShowSelectedDrawingMarkers>true</ShowSelectedDrawingMarkers>
+              <SnapMode>BarAndTick</SnapMode>
+              <HideIndicators>false</HideIndicators>
+              <TabName>@INSTRUMENT_FULL</TabName>
+              <LoadBackgroundImage>false</LoadBackgroundImage>
+              <BackgroundImageStretch>Fill</BackgroundImageStretch>
+              <ChartBackgroundSerialize>DEFAULT</ChartBackgroundSerialize>
+              <ChartTextSerialize>DEFAULT</ChartTextSerialize>
+              <CrosshairLabelBackgroundSerialize>DEFAULT</CrosshairLabelBackgroundSerialize>
+              <InactivePriceMarkersBrushSerialize>DEFAULT</InactivePriceMarkersBrushSerialize>
+              <SelectedMarkerBrushSerialize>DEFAULT</SelectedMarkerBrushSerialize>
+              <AreHGridLinesVisible>true</AreHGridLinesVisible>
+              <AreVGridLinesVisible>true</AreVGridLinesVisible>
+              <AxisPenSerialize>DEFAULT</AxisPenSerialize>
+              <CrosshairPen>DEFAULT</CrosshairPen>
+              <CrosshairIsLocked>false</CrosshairIsLocked>
+              <CrosshairCrosshairType>Global</CrosshairCrosshairType>
+              <CrosshairDrawCursorOnly>false</CrosshairDrawCursorOnly>
+              <GridLineHPenSerialize>DEFAULT</GridLineHPenSerialize>
+              <GridLineVPenSerialize>DEFAULT</GridLineVPenSerialize>
+              <PanelSplitterPenSerialize>DEFAULT</PanelSplitterPenSerialize>
+              <TimeHighlighters>0</TimeHighlighters>
+              <TimeHighlighter0>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter0>
+              <TimeHighlighter1>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter1>
+              <TimeHighlighter2>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter2>
+              <TimeHighlighter3>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter3>
+              <TimeHighlighter4>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter4>
+              <TimeHighlighter5>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter5>
+              <TimeHighlighter6>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter6>
+              <TimeHighlighter7>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter7>
+              <TimeHighlighter8>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter8>
+              <TimeHighlighter9>
+                <StartTime>2025-01-01T09:00:00</StartTime>
+                <EndTime>2025-01-01T17:00:00</EndTime>
+                <Opacity>25</Opacity>
+                <BrushSerialize>&lt;SolidColorBrush xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;#FF6495ED&lt;/SolidColorBrush&gt;</BrushSerialize>
+              </TimeHighlighter9>
+
+            </ChartControlProperties>
+          </Properties>
+          <ChartPanels>
+            <ChartPanel>
+              <Height>372</Height>
+              <HoldChartTraderOrders>false</HoldChartTraderOrders>
+              <IsMaximized>false</IsMaximized>
+              <Right>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Right>
+              <Left>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Left>
+              <Overlay>
+                <ChartScaleProperties xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <YAxisRangeType>Automatic</YAxisRangeType>
+                  <AutoScaleDateRangeType>ScreenDateRange</AutoScaleDateRangeType>
+                  <HorizontalGridlinesCalculation>Automatic</HorizontalGridlinesCalculation>
+                  <HorizontalGridlinesIntervalType>Points</HorizontalGridlinesIntervalType>
+                  <HorizontalGridlinesInterval>0</HorizontalGridlinesInterval>
+                  <AutoScaleMarginType>Percent</AutoScaleMarginType>
+                  <AutoScaleMarginLower>6</AutoScaleMarginLower>
+                  <AutoScaleMarginUpper>6</AutoScaleMarginUpper>
+                  <YAxisScalingType>Linear</YAxisScalingType>
+                  <FixedScaleMaxSerialize>0</FixedScaleMaxSerialize>
+                  <FixedScaleMinSerialize>0</FixedScaleMinSerialize>
+                  <IsInverted>false</IsInverted>
+                </ChartScaleProperties>
+              </Overlay>
+            </ChartPanel>
+          </ChartPanels>
+          <ChartAlerts />
+          <TabName>@INSTRUMENT_FULL</TabName>
+          <Type>ChartTab</Type>
+        </Tab-58875ebefb6d414aa1745f7006bb3993>
+      </TabControl>
+    </Chart-6b4c1b68377f4cb4bd0675f36f0088d7>
+  </NTWindows>
+</NinjaTrader>
