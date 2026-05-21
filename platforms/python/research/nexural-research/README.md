@@ -22,12 +22,12 @@ pip install -e "."
 python -m uvicorn nexural_research.api.app:app --port 8000
 
 # Run frontend (separate terminal)
-cd frontend-v0
-npm install
+cd frontend
+npm ci
 npm run dev
 ```
 
-Open **http://localhost:3000** — upload a NinjaTrader CSV and start analyzing.
+Open **http://localhost:5173** and upload a NinjaTrader CSV to start analyzing.
 
 **API docs:** http://localhost:8000/api/docs
 
@@ -172,7 +172,7 @@ nexural-research/
 │   ├── db/                SQLAlchemy models (SQLite/PostgreSQL)
 │   ├── export/            Excel + PDF report generators
 │   └── ingest/            NinjaTrader CSV parser (50+ column aliases)
-├── frontend-v0/           Next.js 16 dashboard (20+ pages)
+├── frontend/              Vite React dashboard
 ├── tests/                 470 tests at 93% coverage
 ├── k8s/                   Kubernetes manifests
 ├── OPERATIONS.md          Operations runbook
@@ -213,7 +213,8 @@ All endpoints also available at `/api/v1/` prefix.
 | `NEXURAL_SESSION_TTL_HOURS` | `24` | Auto-expire sessions after N hours |
 | `NEXURAL_DATABASE_URL` | `sqlite:///data/nexural.db` | Database (SQLite or PostgreSQL) |
 | `NEXURAL_REDIS_URL` | (empty) | Redis for shared sessions |
-| `NEXURAL_CORS_ORIGINS` | `localhost:*` | Allowed CORS origins |
+| `NEXURAL_CORS_ORIGINS` | local app origins | Allowed CORS origins |
+| `NEXURAL_ALLOWED_DATA_DIRS` | (empty) | Restrict MCP/API file reads to approved local directories |
 
 ---
 
@@ -277,12 +278,14 @@ See [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
 - **[OPERATIONS.md](OPERATIONS.md)** — Deployment, monitoring, alerting, incident response
 - **[DATA_DICTIONARY.md](DATA_DICTIONARY.md)** — Every metric explained with formulas
 - **[V0_FRONTEND_BLUEPRINT.md](V0_FRONTEND_BLUEPRINT.md)** — Frontend specification
+- **[../../../docs/security-hardening.md](../../../docs/security-hardening.md)** - Public security hardening model
+- **[../../../docs/automation-academy.md](../../../docs/automation-academy.md)** - Contributor learning path
 
 ---
 
 ## License
 
-MIT — see [LICENSE](../../LICENSE)
+Apache-2.0 - see [LICENSE](../../LICENSE)
 
 ---
 

@@ -1,17 +1,17 @@
 from __future__ import annotations
 
+import threading
+from contextlib import suppress
 from dataclasses import asdict, dataclass
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-
-import threading
 
 import duckdb
 import pandas as pd
 
-from nexural_research.analyze.metrics import TradeMetrics
 from nexural_research.analyze.execution_quality import ExecutionQualityMetrics
+from nexural_research.analyze.metrics import TradeMetrics
 from nexural_research.utils.hashing import sha256_file
 
 
@@ -44,10 +44,8 @@ class RunRegistry:
     def close(self) -> None:
         """Close the thread-local connection if open."""
         if hasattr(self._local, "conn") and self._local.conn is not None:
-            try:
+            with suppress(Exception):
                 self._local.conn.close()
-            except Exception:
-                pass
             self._local.conn = None
 
     def _init_schema(self) -> None:

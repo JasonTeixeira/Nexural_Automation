@@ -15,32 +15,32 @@ The public MVP gives contributors a usable loop:
 5. Call the same workflows from MCP, HTTP API, CLI, tests, or Strategy Lab.
 6. Run the repo-local quality gate with `nexural-research quality-gate --threshold 0.95`.
 
-## Remaining Phases To 100/100
+## Public Release Phases To 100/100
 
-### Phase 1: Release Hardening
+### Phase 1: Release Hardening - Complete Locally
 
-- Keep MCP install and `mcp-smoke` green on Windows, macOS, and Linux.
-- Add GitHub Actions for the public MVP quality gate.
-- Add examples for one Python strategy, one NinjaTrader strategy, one TradingView strategy, and one CSV bridge.
-- Publish a clean release checklist covering install, smoke, docs, and security scan.
+- MCP install and `mcp-smoke` are covered by the repo-local quality gate.
+- GitHub Actions runs the public MVP quality gate on Windows, macOS, and Linux.
+- Example Python strategy and CSV bridge fixtures validate through the CLI.
+- Release checklist covers install, smoke, docs, security defaults, and audit status.
 
-### Phase 2: Contributor Experience
+### Phase 2: Contributor Experience - Complete For Public MVP
 
-- Add tutorial walkthroughs for strategy creation, bridge creation, gauntlet review, and report export.
-- Add a contributor-facing `examples/` catalog with expected inputs and outputs.
-- Add schema validation for strategy metadata and bridge contracts.
-- Add "what failed and why" docs for rejected gauntlet checks.
+- Tutorial walkthroughs cover strategy creation, bridge creation, gauntlet review, and report export.
+- Contributor-facing example catalog documents expected files and validation commands.
+- Strategy metadata and bridge contract schemas are published under `schemas/`.
+- Gauntlet failure docs explain every public rejection gate.
 
-### Phase 3: Strategy Lab Product Wiring
+### Phase 3: Strategy Lab Product Wiring - MVP Wired
 
 - Surface the Nexural Automation gateway inside Strategy Lab UI workflows.
 - Add authenticated UI actions for capabilities, CSV gauntlet, cost estimate, and report generation.
 - Add Strategy Lab E2E tests that mock the Automation server and verify the gateway contract.
 - Add a one-command local stack script for Strategy Lab plus Automation server.
 
-### Phase 4: Public Launch Polish
+### Phase 4: Public Launch Polish - In Progress
 
-- Add docs site or GitHub Pages landing docs.
+- Docs site landing page is available at `docs/index.html`.
 - Add issue templates for strategies, bridges, docs, and validation failures.
 - Add release notes and tagged versioning for the MCP/API contract.
 - Add public demo data and screenshots without implying performance claims.

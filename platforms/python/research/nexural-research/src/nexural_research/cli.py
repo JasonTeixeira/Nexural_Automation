@@ -450,7 +450,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     # --- New: API server ---
     serve = sub.add_parser("serve", help="Start the web API server & dashboard")
-    serve.add_argument("--host", default="0.0.0.0", help="Server host")
+    serve.add_argument("--host", default="127.0.0.1", help="Server host")
     serve.add_argument("--port", default=8000, help="Server port")
     serve.add_argument("--reload", action="store_true", help="Enable auto-reload for development")
     serve.set_defaults(func=_cmd_serve)

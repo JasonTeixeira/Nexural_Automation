@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import json
+import logging
 
 from fastapi import APIRouter, Depends, Query
-
-from nexural_research.api.auth import AuthContext, require_auth
 
 from nexural_research.analyze.advanced_analytics import (
     autocorrelation_analysis,
@@ -32,10 +31,12 @@ from nexural_research.analyze.stress_testing import (
     parameter_sensitivity,
     tail_amplification_stress_test,
 )
+from nexural_research.api.auth import require_auth
 from nexural_research.api.cache import cache
 from nexural_research.api.compat import adapt_improvements, adapt_metrics
 from nexural_research.api.sessions import get_executions, get_trades, safe_serialize
 
+logger = logging.getLogger(__name__)
 router = APIRouter(tags=["analysis"], dependencies=[Depends(require_auth)])
 
 
@@ -103,14 +104,15 @@ def get_comprehensive(session_id: str = Query(default="default"), risk_free_rate
     # Write to DB for audit trail
     try:
         import json
+
         from nexural_research.db.engine import SessionLocal
         from nexural_research.db.models import AnalysisRun
         db = SessionLocal()
         db.add(AnalysisRun(session_id=session_id, analysis_type="comprehensive", parameters_json=json.dumps({"risk_free_rate": risk_free_rate}), result_json=None, duration_ms=_dur))
         db.commit()
         db.close()
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("Analysis audit trail write skipped: %s", exc)
     return result
 
 

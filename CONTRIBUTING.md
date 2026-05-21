@@ -11,6 +11,8 @@ Thanks for contributing. The goal is to build a repo that’s useful to real tra
 ## What you can contribute
 - NinjaTrader 8 strategies/indicators (primary)
 - TradingView Pine v5 indicators/strategies (secondary)
+- Python strategy scaffolds for the Strategy SDK
+- paper-first bridge scaffolds for external tools
 - docs, research notes, validation checklists
 - utilities and tooling (carefully)
 
@@ -24,6 +26,24 @@ Each module folder must contain:
 - directories: `src/`, `screenshots/`, `test-results/`
 
 Use the templates in `templates/`.
+
+## Public automation examples
+
+For Strategy SDK and Bridge SDK examples, start with:
+
+- [Automation Academy](docs/automation-academy.md)
+- [Example Catalog](docs/example-catalog.md)
+- [MCP Contract](docs/mcp-contract.md)
+- [Security Hardening](docs/security-hardening.md)
+
+Validate examples before opening a PR:
+
+```powershell
+cd platforms\python\research\nexural-research
+nexural-research validate-strategy ..\examples\strategies\opening_range_failure\metadata.yaml
+nexural-research validate-bridge ..\examples\bridges\ninjatrader_csv\bridge_contract.json
+nexural-research quality-gate --threshold 0.95 --json --fast
+```
 
 ## How to add a NinjaTrader strategy
 1. Copy: `templates/strategy-template/` → `platforms/ninjatrader/Strategies/<StrategyName>/`
@@ -42,5 +62,8 @@ Use the templates in `templates/`.
 - Parameters + units documented
 - Failure modes documented
 - Test notes included (even if minimal)
+- No committed `.mcp.json`, `.env`, exports, reports, databases, or API keys
+- Strategy examples declare no-lookahead execution assumptions
+- Bridge examples stay paper-first unless external safety proofs are documented
 
 By submitting a PR, you agree your contribution is licensed under Apache-2.0.

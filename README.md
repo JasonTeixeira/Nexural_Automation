@@ -86,6 +86,21 @@ Full documentation: **[platforms/python/research/nexural-research/README.md](pla
 
 ---
 
+## Public Docs and 100/100 Release Track
+
+The public docs are built for GitHub Pages and local browsing:
+
+- **[Docs Home](docs/index.md)** - operator path through MCP, SDKs, bridges, gauntlet, and launch quality.
+- **[Automation Academy](docs/automation-academy.md)** - how contributors learn the strategy and automation workflow.
+- **[Example Catalog](docs/example-catalog.md)** - known-good strategy and bridge fixtures.
+- **[Security Hardening](docs/security-hardening.md)** - auth, file scope, secrets, and CI release gates.
+- **[MCP Contract](docs/mcp-contract.md)** - stable tool/resource/prompt contract for agent clients.
+- **[Release Checklist](docs/public-launch-checklist.md)** - public launch proof list.
+
+Open `docs/index.html` in a browser for the polished static docs landing page.
+
+---
+
 ## MCP Automation Server
 
 Nexural Automation can now run as a local **Model Context Protocol server** so AI agents can use the research engine directly instead of reading the repo like an encyclopedia.
@@ -207,4 +222,4 @@ See **[ROADMAP.md](ROADMAP.md)**
 
 ## License
 
-MIT — see **[LICENSE](LICENSE)**
+Apache-2.0 — see **[LICENSE](LICENSE)**

@@ -86,7 +86,17 @@ Example:
 }
 ```
 
-## Security Guardrail
+## Security Guardrails
+
+The API server binds to `127.0.0.1` by default. Only bind to `0.0.0.0` when you are intentionally exposing it inside a controlled network or container boundary.
+
+When API auth is enabled, clients must use a header:
+
+```text
+Authorization: Bearer <key>
+```
+
+Do not pass API keys in query strings. Query parameters are easier to leak through browser history, proxy logs, shell history, and screenshots.
 
 Set `NEXURAL_ALLOWED_DATA_DIRS` to restrict which CSV files MCP tools can read. Use the platform path separator:
 
@@ -94,6 +104,15 @@ Set `NEXURAL_ALLOWED_DATA_DIRS` to restrict which CSV files MCP tools can read. 
 - macOS/Linux: colon, e.g. `/Users/jason/exports:/mnt/research`
 
 If `NEXURAL_ALLOWED_DATA_DIRS` is unset, local file access is unrestricted. That is convenient for solo research but not appropriate for shared workstations or remote MCP deployments.
+
+Recommended shared-workstation defaults:
+
+```powershell
+$env:NEXURAL_AUTH_ENABLED = "true"
+$env:NEXURAL_API_KEYS = "<long-random-local-key>"
+$env:NEXURAL_ALLOWED_DATA_DIRS = "C:\Users\Jason\Documents\NexuralExports;C:\Users\Jason\Downloads"
+$env:NEXURAL_CORS_ORIGINS = "http://localhost:5173,http://127.0.0.1:8000"
+```
 
 ## Example Agent Request
 

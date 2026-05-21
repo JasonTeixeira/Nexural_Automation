@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/JasonTeixeira/Nexural_Automation/schemas/bridge-contract.schema.json",
+  "title": "Nexural Bridge Contract",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "name", "required_methods", "required_proofs"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "required_methods": {
+      "type": "array",
+      "contains": { "const": "health" },
+      "items": {
+        "type": "string",
+        "enum": ["health", "send_signal", "flatten", "reconcile_fills", "kill_switch"]
+      },
+      "allOf": [
+        { "contains": { "const": "health" } },
+        { "contains": { "const": "send_signal" } },
+        { "contains": { "const": "flatten" } }
+      ],
+      "uniqueItems": true
+    },
+    "required_proofs": {
+      "type": "array",
+      "allOf": [
+        { "contains": { "const": "health_check" } },
+        { "contains": { "const": "paper_signal_roundtrip" } },
+        { "contains": { "const": "flatten_ack" } },
+        { "contains": { "const": "kill_switch_ack" } },
+        { "contains": { "const": "fill_reconciliation" } }
+      ],
+      "items": {
+        "type": "string",
+        "enum": [
+          "health_check",
+          "paper_signal_roundtrip",
+          "flatten_ack",
+          "kill_switch_ack",
+          "fill_reconciliation"
+        ]
+      },
+      "uniqueItems": true
+    }
+  }
+}
+

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nexural Automation Docs</title>
+    <meta
+      name="description"
+      content="MCP-powered automation lab for strategy research, bridge development, gauntlet validation, and automation education."
+    />
+    <link rel="stylesheet" href="./assets/site.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="./index.html" aria-label="Nexural Automation docs home">
+          <span class="brand-mark">NX</span>
+          <span>Nexural Automation</span>
+        </a>
+        <div class="nav-links">
+          <a href="./mcp-automation-server.md">MCP</a>
+          <a href="./automation-academy.md">Academy</a>
+          <a href="./security-hardening.md">Security</a>
+          <a href="../README.md">Repo</a>
+        </div>
+      </nav>
+
+      <section class="hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Public MVP release track</p>
+          <h1>Agent-callable strategy automation for builders who need proof, not folklore.</h1>
+          <p class="lede">
+            Build strategy scaffolds, validate bridge contracts, run futures-aware gauntlets,
+            estimate costs, generate reports, and teach contributors the full automation loop.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="./public-mvp-tutorial.md">Start the tutorial</a>
+            <a class="button secondary" href="./mcp-contract.md">Read MCP contract</a>
+          </div>
+        </div>
+
+        <aside class="terminal-card" aria-label="Quality gate command">
+          <div class="terminal-top">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <pre><code>py -3.11 -m pip install -e ".[dev,mcp]"
+nexural-research mcp-smoke
+nexural-research quality-gate --threshold 0.95 --json</code></pre>
+          <div class="score-row">
+            <span>release score</span>
+            <strong>1.00</strong>
+          </div>
+        </aside>
+      </section>
+    </header>
+
+    <main>
+      <section class="band">
+        <div class="section-head">
+          <p class="eyebrow">What people can do here</p>
+          <h2>From blank repo to usable automation lab</h2>
+        </div>
+        <div class="capability-grid">
+          <a class="capability" href="./mcp-automation-server.md">
+            <span class="capability-index">01</span>
+            <h3>MCP Server</h3>
+            <p>Expose strategy analysis, reports, gauntlets, scaffolds, and costs to agent clients.</p>
+          </a>
+          <a class="capability" href="./automation-academy.md">
+            <span class="capability-index">02</span>
+            <h3>Automation Academy</h3>
+            <p>Teach builders the research, validation, bridge, and paper-first workflow.</p>
+          </a>
+          <a class="capability" href="./example-catalog.md">
+            <span class="capability-index">03</span>
+            <h3>Example Catalog</h3>
+            <p>Use known-good strategy and bridge fixtures as contributor templates.</p>
+          </a>
+          <a class="capability" href="./gauntlet-failures.md">
+            <span class="capability-index">04</span>
+            <h3>Gauntlet Failures</h3>
+            <p>Understand DSR, walk-forward, bootstrap, costs, tails, and rejection evidence.</p>
+          </a>
+        </div>
+      </section>
+
+      <section class="split">
+        <div>
+          <p class="eyebrow">Contracts</p>
+          <h2>Strategy and bridge rules are explicit.</h2>
+          <p>
+            Contributors do not guess what "done" means. Strategy metadata and bridge contracts
+            have schemas, validation commands, and CI-facing examples.
+          </p>
+        </div>
+        <div class="checklist">
+          <a href="https://github.com/JasonTeixeira/Nexural_Automation/blob/main/schemas/strategy-metadata.schema.json">strategy-metadata.schema.json</a>
+          <a href="https://github.com/JasonTeixeira/Nexural_Automation/blob/main/schemas/bridge-contract.schema.json">bridge-contract.schema.json</a>
+          <a href="./public-launch-checklist.md">public-launch-checklist.md</a>
+          <a href="./security-hardening.md">security-hardening.md</a>
+        </div>
+      </section>
+
+      <section class="command-strip" aria-label="Core commands">
+        <div>
+          <span>build</span>
+          <code>nexural-research new-strategy "Opening Range Failure"</code>
+        </div>
+        <div>
+          <span>validate</span>
+          <code>nexural-research gauntlet --input C:\Exports\nq.csv --symbol NQ</code>
+        </div>
+        <div>
+          <span>bridge</span>
+          <code>nexural-research new-bridge "NinjaTrader CSV"</code>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Nexural Automation</span>
+      <span>Research, education, simulation, and paper-first development only.</span>
+    </footer>
+  </body>
+</html>

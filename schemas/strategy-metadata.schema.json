@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/JasonTeixeira/Nexural_Automation/schemas/strategy-metadata.schema.json",
+  "title": "Nexural Strategy Metadata",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "slug",
+    "name",
+    "platform",
+    "status",
+    "asset_class",
+    "symbols",
+    "lookahead_policy",
+    "promotion_gate"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:_[a-z0-9]+)*$"
+    },
+    "name": { "type": "string", "minLength": 1 },
+    "platform": {
+      "type": "string",
+      "enum": ["python", "ninjatrader", "tradingview"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["research", "paper", "watchlist", "rejected", "tune", "rewrite"]
+    },
+    "asset_class": { "type": "string", "minLength": 1 },
+    "symbols": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "lookahead_policy": {
+      "type": "string",
+      "pattern": "(next_bar|bar_close)"
+    },
+    "promotion_gate": {
+      "type": "string",
+      "enum": ["PROMOTE_TO_PAPER", "REJECT", "TUNE", "REWRITE"]
+    }
+  }
+}
+

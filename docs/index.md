@@ -6,8 +6,13 @@ paper-first validation.
 
 ## Start Here
 
+- [Polished Docs Landing Page](index.html)
 - [Public MVP Tutorial](public-mvp-tutorial.md)
 - [MCP Automation Server](mcp-automation-server.md)
+- [MCP Contract](mcp-contract.md)
+- [Automation Academy](automation-academy.md)
+- [Example Catalog](example-catalog.md)
+- [Security Hardening](security-hardening.md)
 - [Gauntlet Failure Guide](gauntlet-failures.md)
 - [Public Launch Checklist](public-launch-checklist.md)
 

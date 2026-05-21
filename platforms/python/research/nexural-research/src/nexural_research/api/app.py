@@ -21,8 +21,8 @@ from nexural_research.api.middleware.rate_limiter import RateLimiterMiddleware
 from nexural_research.api.middleware.request_id import RequestIDMiddleware
 from nexural_research.api.middleware.security_headers import SecurityHeadersMiddleware
 from nexural_research.api.routers import (
-    analysis,
     ai,
+    analysis,
     automation,
     charts,
     export,
@@ -30,7 +30,11 @@ from nexural_research.api.routers import (
     robustness,
     upload,
 )
-from nexural_research.api.sessions import cleanup_expired_sessions, load_persisted_sessions, sessions
+from nexural_research.api.sessions import (
+    cleanup_expired_sessions,
+    load_persisted_sessions,
+    sessions,
+)
 
 _logger = logging.getLogger("nexural_research.api")
 
@@ -178,8 +182,8 @@ def _load_demo_data() -> None:
                 "df": df, "kind": "trades", "filename": "demo_trades.csv",
                 "n_rows": len(df), "columns": list(df.columns),
             }
-        except Exception:
-            pass
+        except Exception as exc:
+            _logger.warning("Demo data load skipped: %s", exc)
 
 
 # Restore persisted sessions from disk (survives restarts)
@@ -199,7 +203,7 @@ _load_demo_data()
 # Entry points
 # ---------------------------------------------------------------------------
 
-def run_server(host: str = "0.0.0.0", port: int = 8000, reload: bool = False):
+def run_server(host: str = "127.0.0.1", port: int = 8000, reload: bool = False):
     import uvicorn
     uvicorn.run("nexural_research.api.app:app", host=host, port=port, reload=reload)
 
@@ -208,6 +212,7 @@ def launch(port: int = 8000) -> None:
     """Launch the full application: start server and open browser."""
     import threading
     import webbrowser
+
     import uvicorn
 
     url = f"http://localhost:{port}"
