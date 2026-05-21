@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "nexural-automation": {
+      "command": "py",
+      "args": [
+        "-3.11",
+        "-m",
+        "nexural_research.mcp_server"
+      ],
+      "cwd": "C:\\Users\\Jason\\Nexural_Automation\\platforms\\python\\research\\nexural-research",
+      "env": {
+        "PYTHONPATH": "C:\\Users\\Jason\\Nexural_Automation\\platforms\\python\\research\\nexural-research\\src",
+        "SETUPTOOLS_USE_DISTUTILS": "stdlib",
+        "NEXURAL_ALLOWED_DATA_DIRS": "C:\\Users\\Jason\\Documents;C:\\Users\\Jason\\Downloads"
+      }
+    }
+  }
+}

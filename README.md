@@ -86,6 +86,44 @@ Full documentation: **[platforms/python/research/nexural-research/README.md](pla
 
 ---
 
+## MCP Automation Server
+
+Nexural Automation can now run as a local **Model Context Protocol server** so AI agents can use the research engine directly instead of reading the repo like an encyclopedia.
+
+```bat
+cd platforms\python\research\nexural-research
+py -3.11 -m pip install -e ".[mcp]"
+nexural-mcp
+```
+
+Agent-callable tools:
+
+| Tool | Purpose |
+|------|---------|
+| `analyze_strategy_csv` | Full strategy due diligence: metrics, Deflated Sharpe, Monte Carlo, walk-forward, grade, decision gate |
+| `compare_strategy_csvs` | Rank 2-10 strategy exports by composite institutional metrics |
+| `generate_report` | Write a local HTML research report for an export |
+| `run_strategy_gauntlet` | 10-check promotion gate: DSR, walk-forward, bootstrap, path fragility, costs, tails |
+| `estimate_strategy_costs` | Futures commission/slippage estimates for ES, NQ, RTY, CL, GC, SI, HG, ZB |
+| `scaffold_strategy` | Create Python, NinjaTrader, or TradingView strategy SDK starter projects |
+| `scaffold_bridge` | Create bridge connector starter projects with required proof contracts |
+| `list_capabilities` | Return supported workflows, imports, and guardrails |
+
+See **[docs/mcp-automation-server.md](docs/mcp-automation-server.md)** for Claude/Codex/Cursor setup, HTTP mode, and file-access guardrails.
+
+Fast local commands:
+
+```bat
+nexural-research mcp-smoke
+nexural-research gauntlet --input path\to\trades.csv --symbol NQ --strategy-name "NQ Research"
+nexural-research costs --symbol NQ --trades 250 --stress-profile elevated
+nexural-research new-strategy "Opening Range Failure" --platform python
+nexural-research new-bridge "NinjaTrader CSV"
+nexural-research quality-gate --threshold 0.95 --json
+```
+
+---
+
 ## What Else Is in This Repo
 
 ### NinjaTrader Modules

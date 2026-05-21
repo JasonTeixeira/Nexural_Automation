@@ -258,6 +258,109 @@ def _cmd_serve(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_mcp(args: argparse.Namespace) -> int:
+    """Start the MCP automation server."""
+    from nexural_research.mcp_server import create_mcp_server
+
+    mcp = create_mcp_server(host=args.host, port=int(args.port))
+    mcp.run(transport=args.transport)
+    return 0
+
+
+def _cmd_mcp_install(args: argparse.Namespace) -> int:
+    """Install MCP config into a supported local host."""
+    from nexural_research.mcp_hosts import install_mcp_config
+
+    installed = install_mcp_config(host=args.host, yes=args.yes)
+    for name, path in installed:
+        print(f"installed nexural-automation MCP config into {name}: {path}")
+    return 0
+
+
+def _cmd_mcp_smoke(args: argparse.Namespace) -> int:
+    """Run an end-to-end stdio MCP smoke test."""
+    from nexural_research.mcp_hosts import mcp_smoke
+
+    for line in mcp_smoke():
+        print(line)
+    return 0
+
+
+def _cmd_gauntlet(args: argparse.Namespace) -> int:
+    """Run the public institutional gauntlet on a trade export."""
+    from nexural_research.automation import run_strategy_gauntlet_export
+
+    result = run_strategy_gauntlet_export(
+        args.input,
+        strategy_name=args.strategy_name,
+        symbol=args.symbol,
+        min_trades=int(args.min_trades),
+        n_trials=int(args.n_trials),
+        cost_stress_profile=args.cost_stress_profile,
+    )
+    gauntlet = result["gauntlet"]
+    print(f"Decision: {gauntlet['decision']} | Score: {gauntlet['score']} | Passed: {gauntlet['passed']}")
+    for check in gauntlet["checks"]:
+        status = "PASS" if check["passed"] else "FAIL"
+        print(f"{status:4s} {check['name']:28s} {check['value']} / {check['threshold']}")
+    return 0
+
+
+def _cmd_costs(args: argparse.Namespace) -> int:
+    """Estimate futures execution costs."""
+    from nexural_research.automation import estimate_strategy_costs
+
+    result = estimate_strategy_costs(
+        symbol=args.symbol,
+        trades=int(args.trades),
+        quantity=float(args.quantity),
+        slippage_multiplier=float(args.slippage_multiplier),
+        stress_profile=args.stress_profile,
+    )
+    for key, value in result.items():
+        print(f"{key}: {value}")
+    return 0
+
+
+def _cmd_new_strategy(args: argparse.Namespace) -> int:
+    """Create a strategy SDK scaffold."""
+    from nexural_research.automation import create_strategy_scaffold
+
+    result = create_strategy_scaffold(
+        name=args.name,
+        platform=args.platform,
+        output_dir=args.output_dir,
+        overwrite=args.overwrite,
+    )
+    print(f"strategy scaffold: {result['root']}")
+    return 0
+
+
+def _cmd_new_bridge(args: argparse.Namespace) -> int:
+    """Create a bridge SDK scaffold."""
+    from nexural_research.automation import create_bridge_scaffold
+
+    result = create_bridge_scaffold(
+        name=args.name,
+        output_dir=args.output_dir,
+        overwrite=args.overwrite,
+    )
+    print(f"bridge scaffold: {result['root']}")
+    return 0
+
+
+def _cmd_quality_gate(args: argparse.Namespace) -> int:
+    """Run the repo-local quality gate."""
+    from nexural_research.quality_gate import main as quality_gate_main
+
+    argv = ["--threshold", str(args.threshold)]
+    if args.json:
+        argv.append("--json")
+    if args.fast:
+        argv.append("--fast")
+    return quality_gate_main(argv)
+
+
 def _cmd_list_runs(args: argparse.Namespace) -> int:
     project = paths()
     reg = RunRegistry(project.experiments / "runs.duckdb")
@@ -329,6 +432,65 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--port", default=8000, help="Server port")
     serve.add_argument("--reload", action="store_true", help="Enable auto-reload for development")
     serve.set_defaults(func=_cmd_serve)
+
+    # --- New: MCP automation server ---
+    mcp = sub.add_parser("mcp", help="Start the Model Context Protocol automation server")
+    mcp.add_argument("--transport", choices=["stdio", "streamable-http", "sse"], default="stdio")
+    mcp.add_argument("--host", default="127.0.0.1", help="Host for HTTP/SSE transports")
+    mcp.add_argument("--port", default=8765, help="Port for HTTP/SSE transports")
+    mcp.set_defaults(func=_cmd_mcp)
+
+    mcp_install = sub.add_parser("mcp-install", help="Install MCP config into Claude/Codex/Cursor")
+    mcp_install.add_argument(
+        "--host",
+        choices=["cursor", "claude-code", "claude-desktop", "codex", "all"],
+        required=True,
+    )
+    mcp_install.add_argument("--yes", action="store_true", help="Write config without prompting")
+    mcp_install.set_defaults(func=_cmd_mcp_install)
+
+    mcp_smoke = sub.add_parser("mcp-smoke", help="Run MCP stdio smoke test")
+    mcp_smoke.set_defaults(func=_cmd_mcp_smoke)
+
+    gauntlet = sub.add_parser("gauntlet", help="Run the institutional gauntlet on a trade CSV")
+    gauntlet.add_argument("--input", "-i", required=True, help="Path to trade CSV export")
+    gauntlet.add_argument("--strategy-name", default="strategy")
+    gauntlet.add_argument("--symbol", default="ES")
+    gauntlet.add_argument("--min-trades", default=100)
+    gauntlet.add_argument("--n-trials", default=100)
+    gauntlet.add_argument("--cost-stress-profile", default="elevated")
+    gauntlet.set_defaults(func=_cmd_gauntlet)
+
+    costs = sub.add_parser("costs", help="Estimate futures execution costs")
+    costs.add_argument("--symbol", required=True)
+    costs.add_argument("--trades", required=True)
+    costs.add_argument("--quantity", default=1.0)
+    costs.add_argument("--slippage-multiplier", default=1.0)
+    costs.add_argument("--stress-profile", default="normal")
+    costs.set_defaults(func=_cmd_costs)
+
+    new_strategy = sub.add_parser("new-strategy", help="Create a strategy SDK scaffold")
+    new_strategy.add_argument("name")
+    new_strategy.add_argument(
+        "--platform",
+        choices=["python", "ninjatrader", "tradingview"],
+        default="python",
+    )
+    new_strategy.add_argument("--output-dir", default="strategies")
+    new_strategy.add_argument("--overwrite", action="store_true")
+    new_strategy.set_defaults(func=_cmd_new_strategy)
+
+    new_bridge = sub.add_parser("new-bridge", help="Create a bridge SDK scaffold")
+    new_bridge.add_argument("name")
+    new_bridge.add_argument("--output-dir", default="bridges")
+    new_bridge.add_argument("--overwrite", action="store_true")
+    new_bridge.set_defaults(func=_cmd_new_bridge)
+
+    quality_gate = sub.add_parser("quality-gate", help="Run the public MVP quality gate")
+    quality_gate.add_argument("--threshold", type=float, default=0.95)
+    quality_gate.add_argument("--json", action="store_true")
+    quality_gate.add_argument("--fast", action="store_true")
+    quality_gate.set_defaults(func=_cmd_quality_gate)
 
     return p
 

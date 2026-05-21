@@ -33,6 +33,51 @@ Open **http://localhost:3000** — upload a NinjaTrader CSV and start analyzing.
 
 ---
 
+## MCP Automation Server
+
+Install the optional MCP dependency and expose Nexural Research directly to AI agents:
+
+```powershell
+$env:SETUPTOOLS_USE_DISTUTILS = "stdlib"
+py -3.11 -m pip install -e ".[mcp]"
+nexural-mcp
+```
+
+For HTTP-compatible MCP clients:
+
+```powershell
+nexural-mcp --transport streamable-http --host 127.0.0.1 --port 8765
+```
+
+Connect to `http://127.0.0.1:8765/mcp`.
+
+Tools exposed:
+
+- `analyze_strategy_csv` - decision gate, metrics, DSR, Monte Carlo, walk-forward, and improvement plan.
+- `compare_strategy_csvs` - ranked comparison for 2-10 strategy exports.
+- `generate_report` - local HTML report generation.
+- `run_strategy_gauntlet` - 10-check promotion gate with cost stress.
+- `estimate_strategy_costs` - futures commission/slippage estimates.
+- `scaffold_strategy` - Python, NinjaTrader, and TradingView strategy starters.
+- `scaffold_bridge` - connector starters with required bridge proofs.
+- `list_capabilities` - machine-readable server catalog.
+
+Set `NEXURAL_ALLOWED_DATA_DIRS` to restrict which files agent clients can read.
+
+CLI accelerators:
+
+```powershell
+nexural-research mcp-install --host codex --yes
+nexural-research mcp-smoke
+nexural-research gauntlet --input C:\Exports\nq_strategy.csv --symbol NQ
+nexural-research costs --symbol ES --trades 100 --stress-profile elevated
+nexural-research new-strategy "Opening Range Failure" --platform python
+nexural-research new-bridge "NinjaTrader CSV"
+nexural-research quality-gate --threshold 0.95 --json
+```
+
+---
+
 ## What You Get
 
 ### 71+ Metrics Across 14 Analysis Modules

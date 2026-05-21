@@ -20,7 +20,16 @@ from nexural_research.api.middleware.metrics import MetricsMiddleware
 from nexural_research.api.middleware.rate_limiter import RateLimiterMiddleware
 from nexural_research.api.middleware.request_id import RequestIDMiddleware
 from nexural_research.api.middleware.security_headers import SecurityHeadersMiddleware
-from nexural_research.api.routers import analysis, ai, charts, export, health, robustness, upload
+from nexural_research.api.routers import (
+    analysis,
+    ai,
+    automation,
+    charts,
+    export,
+    health,
+    robustness,
+    upload,
+)
 from nexural_research.api.sessions import cleanup_expired_sessions, load_persisted_sessions, sessions
 
 _logger = logging.getLogger("nexural_research.api")
@@ -119,6 +128,7 @@ for prefix in ["/api", "/api/v1"]:
     app.include_router(health.router, prefix=prefix)
     app.include_router(upload.router, prefix=prefix)
     app.include_router(analysis.router, prefix=prefix)
+    app.include_router(automation.router, prefix=prefix)
     app.include_router(robustness.router, prefix=prefix)
     app.include_router(charts.router, prefix=prefix)
     app.include_router(export.router, prefix=prefix)

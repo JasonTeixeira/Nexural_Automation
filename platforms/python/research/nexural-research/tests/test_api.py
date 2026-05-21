@@ -1,6 +1,8 @@
 """Tests for the FastAPI backend endpoints."""
 
 import io
+
+import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
 
@@ -131,6 +133,53 @@ class TestAI:
         data = resp.json()
         assert "context" in data
         assert len(data["context"]) > 100
+
+
+class TestAutomationEndpoints:
+    def test_capabilities(self, client):
+        resp = client.get("/api/automation/capabilities")
+        assert resp.status_code == 200
+        assert resp.json()["name"] == "Nexural Automation"
+
+    def test_costs(self, client):
+        resp = client.post(
+            "/api/automation/costs",
+            json={"symbol": "ES", "trades": 25, "quantity": 1, "stress_profile": "normal"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["estimated_total_cost"] > 0
+
+    def test_gauntlet_csv(self, client, tmp_path):
+        csv_path = tmp_path / "api_gauntlet.csv"
+        base = pd.Timestamp("2025-01-02 09:30:00")
+        rows = []
+        for i, profit in enumerate([120, 90, -45, 80, -35, 110, 70, -50] * 10):
+            rows.append(
+                {
+                    "trade_id": f"T{i + 1}",
+                    "symbol": "NQ",
+                    "side": "BUY" if i % 2 == 0 else "SELL",
+                    "entry_time": base + pd.Timedelta(minutes=30 * i),
+                    "exit_time": base + pd.Timedelta(minutes=30 * i + 12),
+                    "net_pnl": profit,
+                    "commission": 4.50,
+                    "strategy": "api",
+                }
+            )
+        pd.DataFrame(rows).to_csv(csv_path, index=False)
+
+        resp = client.post(
+            "/api/automation/gauntlet-csv",
+            json={
+                "csv_path": str(csv_path),
+                "strategy_name": "api",
+                "symbol": "NQ",
+                "min_trades": 20,
+                "n_trials": 10,
+            },
+        )
+        assert resp.status_code == 200
+        assert len(resp.json()["gauntlet"]["checks"]) == 10
 
 
 class TestErrorHandling:

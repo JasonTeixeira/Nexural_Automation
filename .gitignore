@@ -5,6 +5,10 @@ Thumbs.db
 # IDEs
 .vscode/
 .idea/
+.mcp.json
+.env
+.env.*
+!.env.example
 
 # Build artifacts / temp
 bin/
@@ -33,6 +37,8 @@ node_modules/
 # NOTE: frontend/dist/ is COMMITTED so users don't need Node.js
 dist-electron/
 *.duckdb
+*.db
 *.parquet
 experiments/
 reports/
+**/data/sessions/
