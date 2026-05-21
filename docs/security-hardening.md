@@ -56,7 +56,6 @@ The public CI surface includes:
 
 ## Known Residual Risk
 
-The frontend dependency tree currently has no high or critical npm audit findings. Moderate Vite/esbuild development-server advisories remain unless the project accepts a breaking Vite major upgrade. Do not expose the Vite dev server to untrusted networks.
+The frontend dependency tree is upgraded to Vite 8 and currently has zero `npm audit --audit-level=moderate` findings. The Vite dev and preview servers are explicitly bound to `127.0.0.1`; do not expose local dev servers to untrusted networks.
 
 `pip-audit` should be run against a locked project environment before release tagging. Running it against a global workstation environment can report unrelated packages.
-

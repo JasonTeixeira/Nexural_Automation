@@ -6,7 +6,7 @@
 - [x] GitHub Actions public MVP gate is wired for Windows, macOS, and Linux.
 - [ ] No `.mcp.json`, `.env`, database, session, report, or export artifacts are committed.
 - [ ] MCP smoke lists all public tools and calls `list_capabilities`.
-- [x] Frontend lockfile has no high or critical npm audit findings.
+- [x] Frontend lockfile has zero `npm audit --audit-level=moderate` findings.
 - [x] API binds to `127.0.0.1` by default and requires header-based auth when enabled.
 
 ## Documentation
