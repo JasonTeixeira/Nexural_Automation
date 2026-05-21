@@ -12,6 +12,7 @@ from nexural_research.automation import (
     CAPABILITIES,
     analyze_strategy_export,
     estimate_strategy_costs,
+    generate_strategy_report,
     run_strategy_gauntlet_export,
 )
 
@@ -42,6 +43,12 @@ class CostEstimateRequest(BaseModel):
     quantity: float = 1.0
     slippage_multiplier: float = 1.0
     stress_profile: str = "normal"
+
+
+class ReportCsvRequest(BaseModel):
+    csv_path: str
+    output_dir: str | None = None
+    title: str | None = None
 
 
 @router.get("/automation/capabilities")
@@ -81,4 +88,13 @@ def post_costs(req: CostEstimateRequest) -> dict[str, Any]:
         quantity=req.quantity,
         slippage_multiplier=req.slippage_multiplier,
         stress_profile=req.stress_profile,
+    )
+
+
+@router.post("/automation/report-csv")
+def post_report_csv(req: ReportCsvRequest) -> dict[str, Any]:
+    return generate_strategy_report(
+        req.csv_path,
+        output_dir=req.output_dir,
+        title=req.title,
     )

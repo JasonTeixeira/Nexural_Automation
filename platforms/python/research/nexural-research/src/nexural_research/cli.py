@@ -361,6 +361,28 @@ def _cmd_quality_gate(args: argparse.Namespace) -> int:
     return quality_gate_main(argv)
 
 
+def _cmd_validate_strategy(args: argparse.Namespace) -> int:
+    """Validate a public strategy metadata file."""
+    import json
+
+    from nexural_research.contracts import validate_strategy_metadata
+
+    result = validate_strategy_metadata(args.path)
+    print(json.dumps(result, indent=2, default=str))
+    return 0 if result["valid"] else 1
+
+
+def _cmd_validate_bridge(args: argparse.Namespace) -> int:
+    """Validate a public bridge contract file."""
+    import json
+
+    from nexural_research.contracts import validate_bridge_contract
+
+    result = validate_bridge_contract(args.path)
+    print(json.dumps(result, indent=2, default=str))
+    return 0 if result["valid"] else 1
+
+
 def _cmd_list_runs(args: argparse.Namespace) -> int:
     project = paths()
     reg = RunRegistry(project.experiments / "runs.duckdb")
@@ -491,6 +513,20 @@ def build_parser() -> argparse.ArgumentParser:
     quality_gate.add_argument("--json", action="store_true")
     quality_gate.add_argument("--fast", action="store_true")
     quality_gate.set_defaults(func=_cmd_quality_gate)
+
+    validate_strategy = sub.add_parser(
+        "validate-strategy",
+        help="Validate a strategy metadata.yaml contract",
+    )
+    validate_strategy.add_argument("path")
+    validate_strategy.set_defaults(func=_cmd_validate_strategy)
+
+    validate_bridge = sub.add_parser(
+        "validate-bridge",
+        help="Validate a bridge_contract.json contract",
+    )
+    validate_bridge.add_argument("path")
+    validate_bridge.set_defaults(func=_cmd_validate_bridge)
 
     return p
 

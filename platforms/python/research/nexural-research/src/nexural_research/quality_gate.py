@@ -20,6 +20,7 @@ MVP_PYTHON_TARGETS = [
     "src/nexural_research/gauntlet.py",
     "src/nexural_research/strategy_sdk.py",
     "src/nexural_research/bridge_sdk.py",
+    "src/nexural_research/contracts.py",
     "src/nexural_research/quality_gate.py",
     "src/nexural_research/api/routers/automation.py",
     "tests/test_automation.py",
@@ -68,6 +69,24 @@ def run_quality_gate(*, fast: bool = False) -> dict[str, object]:
         _run([py, "-m", "ruff", "check", *MVP_PYTHON_TARGETS]),
         _run([py, "-m", "pytest", "tests/test_automation.py", "tests/test_api.py", "-q"]),
         _run([py, "-m", "nexural_research.cli", "mcp-smoke"]),
+        _run(
+            [
+                py,
+                "-m",
+                "nexural_research.cli",
+                "validate-strategy",
+                "../examples/strategies/opening_range_failure/metadata.yaml",
+            ]
+        ),
+        _run(
+            [
+                py,
+                "-m",
+                "nexural_research.cli",
+                "validate-bridge",
+                "../examples/bridges/ninjatrader_csv/bridge_contract.json",
+            ]
+        ),
         _run([py, "-m", "bandit", "-q", *SECURITY_TARGETS]),
     ]
     if not fast:

@@ -181,6 +181,32 @@ class TestAutomationEndpoints:
         assert resp.status_code == 200
         assert len(resp.json()["gauntlet"]["checks"]) == 10
 
+    def test_report_csv(self, client, tmp_path):
+        csv_path = tmp_path / "api_report.csv"
+        base = pd.Timestamp("2025-01-02 09:30:00")
+        rows = []
+        for i, profit in enumerate([120, -40, 90, -30, 80, -20]):
+            rows.append(
+                {
+                    "trade_id": f"R{i + 1}",
+                    "symbol": "ES",
+                    "side": "BUY" if i % 2 == 0 else "SELL",
+                    "entry_time": base + pd.Timedelta(minutes=30 * i),
+                    "exit_time": base + pd.Timedelta(minutes=30 * i + 12),
+                    "net_pnl": profit,
+                    "commission": 4.50,
+                    "strategy": "report",
+                }
+            )
+        pd.DataFrame(rows).to_csv(csv_path, index=False)
+
+        resp = client.post(
+            "/api/automation/report-csv",
+            json={"csv_path": str(csv_path), "output_dir": str(tmp_path / "reports")},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["report_path"].endswith("api_report_nexural_report.html")
+
 
 class TestErrorHandling:
     def test_missing_session(self, client):

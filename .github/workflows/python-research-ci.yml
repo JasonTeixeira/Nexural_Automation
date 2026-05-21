@@ -5,11 +5,15 @@ on:
     paths:
       - "platforms/python/research/nexural-research/**"
       - ".github/workflows/python-research-ci.yml"
+      - "platforms/python/research/examples/**"
   push:
     branches: [ main ]
     paths:
       - "platforms/python/research/nexural-research/**"
       - ".github/workflows/python-research-ci.yml"
+      - "platforms/python/research/examples/**"
+
+  workflow_dispatch:
 
 jobs:
   lint:
@@ -90,6 +94,32 @@ jobs:
         with:
           name: coverage-report
           path: platforms/python/research/nexural-research/coverage.xml
+
+  public-mvp-quality-gate:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    defaults:
+      run:
+        working-directory: platforms/python/research/nexural-research
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install public MVP dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,mcp]"
+      - name: Run public MVP quality gate
+        shell: bash
+        env:
+          SETUPTOOLS_USE_DISTUTILS: stdlib
+          PYTHONPATH: src
+        run: python -m nexural_research.cli quality-gate --threshold 0.95 --json --fast
 
   frontend:
     runs-on: ubuntu-latest

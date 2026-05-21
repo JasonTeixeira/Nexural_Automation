@@ -119,8 +119,18 @@ nexural-research gauntlet --input path\to\trades.csv --symbol NQ --strategy-name
 nexural-research costs --symbol NQ --trades 250 --stress-profile elevated
 nexural-research new-strategy "Opening Range Failure" --platform python
 nexural-research new-bridge "NinjaTrader CSV"
+nexural-research validate-strategy ..\examples\strategies\opening_range_failure\metadata.yaml
+nexural-research validate-bridge ..\examples\bridges\ninjatrader_csv\bridge_contract.json
 nexural-research quality-gate --threshold 0.95 --json
 ```
+
+Public release docs and fixtures:
+
+- [Public MVP Tutorial](docs/public-mvp-tutorial.md)
+- [Gauntlet Failure Guide](docs/gauntlet-failures.md)
+- [Launch Checklist](docs/public-launch-checklist.md)
+- [Example Strategy Fixture](platforms/python/research/examples/strategies/opening_range_failure)
+- [Example Bridge Fixture](platforms/python/research/examples/bridges/ninjatrader_csv)
 
 ---
 

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "name": "ninjatrader_csv",
+  "required_methods": ["health", "send_signal", "flatten"],
+  "required_proofs": [
+    "health_check",
+    "paper_signal_roundtrip",
+    "flatten_ack",
+    "kill_switch_ack",
+    "fill_reconciliation"
+  ]
+}

@@ -15,6 +15,7 @@ from nexural_research.automation import (
     generate_strategy_report,
     run_strategy_gauntlet_export,
 )
+from nexural_research.contracts import validate_bridge_contract, validate_strategy_metadata
 
 
 def _write_trade_csv(path, profits: list[float]) -> None:
@@ -138,6 +139,22 @@ def test_create_bridge_scaffold_writes_contract(tmp_path):
     assert root.exists()
     assert (root / "bridge_contract.json").exists()
     assert (root / "bridge.py").exists()
+
+
+def test_strategy_metadata_contract_validates(tmp_path):
+    create_strategy_scaffold(name="Opening Range Failure", platform="python", output_dir=tmp_path)
+    report = validate_strategy_metadata(tmp_path / "opening_range_failure" / "metadata.yaml")
+
+    assert report["valid"] is True
+    assert report["errors"] == []
+
+
+def test_bridge_contract_validates(tmp_path):
+    create_bridge_scaffold(name="NinjaTrader CSV", output_dir=tmp_path)
+    report = validate_bridge_contract(tmp_path / "ninjatrader_csv" / "bridge_contract.json")
+
+    assert report["valid"] is True
+    assert report["errors"] == []
 
 
 def test_capabilities_are_mcp_catalog_ready():

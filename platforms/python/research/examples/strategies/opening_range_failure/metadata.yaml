@@ -1,0 +1,9 @@
+schema_version: 1
+slug: opening_range_failure
+name: "Opening Range Failure"
+platform: python
+status: research
+asset_class: futures
+symbols: [ES, NQ, RTY]
+lookahead_policy: next_bar_execution
+promotion_gate: PROMOTE_TO_PAPER
