@@ -63,3 +63,14 @@ jobs:
           fi
 
           echo "Metadata validation passed."
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install schema validators
+        run: python -m pip install jsonschema pyyaml
+
+      - name: Validate strategy and bridge schemas
+        run: python scripts/repo-tools/validate_contract_schemas.py

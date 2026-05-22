@@ -4,6 +4,9 @@
 [![python-research-ci](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/python-research-ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/python-research-ci.yml)
 [![docs-and-metadata](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/docs-and-metadata.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/docs-and-metadata.yml)
 [![module-catalog](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/module-catalog.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/module-catalog.yml)
+[![docs-pages](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/docs-pages.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/docs-pages.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
+[![MCP Smoke](https://img.shields.io/badge/MCP-smoke%20tested-111827.svg)](docs/mcp-contract.md)
 
 An open-source toolkit for NinjaTrader automation developers. Import your trade logs, get **50+ institutional-grade metrics**, **Monte Carlo simulations**, **overfitting detection**, **AI-powered strategy recommendations**, and **actionable improvement suggestions** — all from a professional desktop application running on your local machine.
 
@@ -40,7 +43,9 @@ docker compose up --build
 # Open http://localhost:8000
 ```
 
-**Requirements:** Python 3.11+ ([download](https://python.org/downloads)). Node.js is NOT required — the frontend comes pre-built.
+**Requirements:** Python 3.11 ([download](https://python.org/downloads)). Node.js is NOT required — the frontend comes pre-built.
+
+Public MVP release notes: [v0.1.0-public-mvp](RELEASE_NOTES.md).
 
 ### How to Use
 

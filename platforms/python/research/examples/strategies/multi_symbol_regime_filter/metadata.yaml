@@ -1,0 +1,15 @@
+schema_version: 1
+slug: multi_symbol_regime_filter
+name: "Multi-Symbol Regime Filter"
+type: strategy
+platform: python
+status: research
+version: 0.1.0
+owner: nexural
+asset_class: futures
+symbols: [ES, NQ, RTY, CL, GC, ZB]
+instruments: [ES, NQ, RTY, CL, GC, ZB]
+tags: [python, multi-symbol, regime, risk, educational]
+lookahead_policy: next_bar_execution
+promotion_gate: PROMOTE_TO_PAPER
+

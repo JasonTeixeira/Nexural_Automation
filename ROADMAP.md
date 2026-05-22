@@ -38,12 +38,12 @@ The public MVP gives contributors a usable loop:
 - Add Strategy Lab E2E tests that mock the Automation server and verify the gateway contract.
 - Add a one-command local stack script for Strategy Lab plus Automation server.
 
-### Phase 4: Public Launch Polish - In Progress
+### Phase 4: Public Launch Polish - Complete For Release Pack
 
 - Docs site landing page is available at `docs/index.html`.
 - Add issue templates for strategies, bridges, docs, and validation failures.
 - Add release notes and tagged versioning for the MCP/API contract.
-- Add public demo data and screenshots without implying performance claims.
+- Add public walkthrough docs, glossary, architecture diagram, install matrix, and Strategy Lab wiring contract.
 
 ## Definition Of 100/100
 

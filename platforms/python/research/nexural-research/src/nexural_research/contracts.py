@@ -21,7 +21,7 @@ REQUIRED_STRATEGY_FIELDS = {
     "lookahead_policy",
     "promotion_gate",
 }
-REQUIRED_BRIDGE_METHODS = {"health", "send_signal", "flatten"}
+REQUIRED_BRIDGE_METHODS = {"health", "send_signal", "flatten", "kill_switch", "reconcile_fills"}
 REQUIRED_BRIDGE_PROOFS = {
     "health_check",
     "paper_signal_roundtrip",

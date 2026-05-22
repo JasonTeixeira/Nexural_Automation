@@ -1,8 +1,8 @@
 # --- Stage 1: Build frontend ---
-FROM node:20-alpine AS frontend-build
+FROM node:22-alpine AS frontend-build
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json* ./
-RUN npm install
+RUN npm ci
 COPY frontend/ ./
 RUN npm run build
 
@@ -10,17 +10,11 @@ RUN npm run build
 FROM python:3.11-slim AS production
 WORKDIR /app
 
-# System dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-# Python dependencies
-COPY pyproject.toml requirements.txt ./
-RUN pip install --no-cache-dir -e . 2>/dev/null || pip install --no-cache-dir .
-
-# Copy source
+# Python package metadata and source
+COPY README.md pyproject.toml requirements.txt ./
 COPY src/ ./src/
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel jaraco.context
+RUN pip install --no-cache-dir -e . 2>/dev/null || pip install --no-cache-dir .
 
 # Copy built frontend
 COPY --from=frontend-build /app/frontend/dist ./static/

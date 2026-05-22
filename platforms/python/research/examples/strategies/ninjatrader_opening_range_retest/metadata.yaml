@@ -1,0 +1,15 @@
+schema_version: 1
+slug: ninjatrader_opening_range_retest
+name: "NinjaTrader Opening Range Retest"
+type: strategy
+platform: ninjatrader
+status: research
+version: 0.1.0
+owner: nexural
+asset_class: futures
+symbols: [ES, NQ]
+instruments: [ES, NQ]
+tags: [ninjatrader, opening-range, retest, educational]
+lookahead_policy: next_bar_execution
+promotion_gate: PROMOTE_TO_PAPER
+

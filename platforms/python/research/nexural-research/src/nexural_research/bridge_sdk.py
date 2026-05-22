@@ -36,17 +36,29 @@ class BridgeAck:
     external_id: str | None = None
 
 
+@dataclass(frozen=True)
+class BridgeFill:
+    symbol: str
+    side: Literal["BUY", "SELL"]
+    quantity: float
+    price: float
+    timestamp: str
+    external_id: str
+    metadata: dict[str, object] = field(default_factory=dict)
+
+
 class BridgeConnector(Protocol):
     name: str
 
-    def health(self) -> BridgeHealth:
-        ...
+    def health(self) -> BridgeHealth: ...
 
-    def send_signal(self, signal: BridgeSignal) -> BridgeAck:
-        ...
+    def send_signal(self, signal: BridgeSignal) -> BridgeAck: ...
 
-    def flatten(self, symbol: str, reason: str) -> BridgeAck:
-        ...
+    def flatten(self, symbol: str, reason: str) -> BridgeAck: ...
+
+    def kill_switch(self, reason: str) -> BridgeAck: ...
+
+    def reconcile_fills(self, fills: list[BridgeFill]) -> BridgeAck: ...
 
 
 class CsvSignalBridge:
@@ -71,14 +83,20 @@ class CsvSignalBridge:
             ],
         )
 
-    def send_signal(self, signal: BridgeSignal) -> BridgeAck:
+    def _write_record(self, record: dict[str, object]) -> BridgeAck:
         health = self.health()
         if health.status != "ready":
             return BridgeAck(False, self.name, "Bridge output directory is not ready")
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
         with self.output_path.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(asdict(signal), default=str) + "\n")
-        return BridgeAck(True, self.name, "Signal written", str(self.output_path))
+            fh.write(json.dumps(record, default=str) + "\n")
+        return BridgeAck(True, self.name, "Record written", str(self.output_path))
+
+    def send_signal(self, signal: BridgeSignal) -> BridgeAck:
+        ack = self._write_record({"type": "signal", "payload": asdict(signal)})
+        if not ack.accepted:
+            return ack
+        return BridgeAck(True, self.name, "Signal written", ack.external_id)
 
     def flatten(self, symbol: str, reason: str) -> BridgeAck:
         signal = BridgeSignal(
@@ -90,6 +108,30 @@ class CsvSignalBridge:
             metadata={"reason": reason},
         )
         return self.send_signal(signal)
+
+    def kill_switch(self, reason: str) -> BridgeAck:
+        """Write a paper-only kill-switch control record.
+
+        This SDK never routes live orders. A production bridge must prove this
+        control path before any external live-routing config is allowed.
+        """
+        return self._write_record(
+            {
+                "type": "control",
+                "control": "kill_switch",
+                "accepted_scope": "paper_only",
+                "reason": reason,
+            }
+        )
+
+    def reconcile_fills(self, fills: list[BridgeFill]) -> BridgeAck:
+        return self._write_record(
+            {
+                "type": "fill_reconciliation",
+                "fills": [asdict(fill) for fill in fills],
+                "count": len(fills),
+            }
+        )
 
 
 def _slug(value: str) -> str:
@@ -116,6 +158,8 @@ This bridge must implement the Nexural bridge contract:
 - `health()`
 - `send_signal(signal)`
 - `flatten(symbol, reason)`
+- `kill_switch(reason)`
+- `reconcile_fills(fills)`
 
 Live order routing must stay disabled until health, flatten, kill-switch, and
 fill reconciliation pass.
@@ -124,7 +168,13 @@ fill reconciliation pass.
             {
                 "schema_version": 1,
                 "name": slug,
-                "required_methods": ["health", "send_signal", "flatten"],
+                "required_methods": [
+                    "health",
+                    "send_signal",
+                    "flatten",
+                    "kill_switch",
+                    "reconcile_fills",
+                ],
                 "required_proofs": [
                     "health_check",
                     "paper_signal_roundtrip",
@@ -152,7 +202,7 @@ def _bridge_template(slug: str) -> str:
     cls = "".join(part.capitalize() for part in slug.split("_") if part) or "NewBridge"
     return f'''"""Nexural bridge scaffold."""
 
-from nexural_research.bridge_sdk import BridgeAck, BridgeHealth, BridgeSignal
+from nexural_research.bridge_sdk import BridgeAck, BridgeFill, BridgeHealth, BridgeSignal
 
 
 class {cls}:
@@ -172,4 +222,10 @@ class {cls}:
 
     def flatten(self, symbol: str, reason: str) -> BridgeAck:
         return BridgeAck(False, self.name, "flatten not implemented")
+
+    def kill_switch(self, reason: str) -> BridgeAck:
+        return BridgeAck(False, self.name, "kill_switch not implemented")
+
+    def reconcile_fills(self, fills: list[BridgeFill]) -> BridgeAck:
+        return BridgeAck(False, self.name, "reconcile_fills not implemented")
 '''

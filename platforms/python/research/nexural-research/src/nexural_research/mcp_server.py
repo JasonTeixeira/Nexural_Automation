@@ -32,7 +32,7 @@ def _load_fastmcp():
         from mcp.server.fastmcp import FastMCP
     except ImportError as exc:
         raise SystemExit(
-            "The MCP SDK is not installed. Install with: pip install -e \".[mcp]\""
+            'The MCP SDK is not installed. Install with: pip install -e ".[mcp]"'
         ) from exc
     return FastMCP
 

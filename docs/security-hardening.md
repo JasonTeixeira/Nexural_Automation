@@ -51,11 +51,15 @@ The public CI surface includes:
 - Public MVP quality gate at threshold `0.95`.
 - MCP smoke through the local quality gate.
 - Bandit scan for higher-confidence issues.
-- Frontend typecheck, build, and `npm audit --audit-level=high`.
+- Secret scanning for tracked files.
+- Schema validation for strategy and bridge examples.
+- Locked Python dependency audit through `pip-audit -r requirements/py311-ci-lock.txt`.
+- Frontend typecheck, build, and `npm audit --audit-level=moderate`.
+- Docker/Trivy fixable high/critical findings fail CI; unfixed base-image findings require a base-image migration note.
 - Docs and metadata validation.
 
 ## Known Residual Risk
 
 The frontend dependency tree is upgraded to Vite 8 and currently has zero `npm audit --audit-level=moderate` findings. The Vite dev and preview servers are explicitly bound to `127.0.0.1`; do not expose local dev servers to untrusted networks.
 
-`pip-audit` should be run against a locked project environment before release tagging. Running it against a global workstation environment can report unrelated packages.
+`pip-audit` runs against the locked project dependency file before release tagging. Running it against a global workstation environment can report unrelated packages and is not the release signal.

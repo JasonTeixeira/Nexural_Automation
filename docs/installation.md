@@ -4,7 +4,7 @@
 - Git
 - NinjaTrader 8 (for NinjaScript examples)
 - TradingView account (for Pine examples)
-- Python 3.11+ (for research tooling)
+- Python 3.11 (for research tooling)
 
 ## Clone
 ```bash

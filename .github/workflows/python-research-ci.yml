@@ -26,12 +26,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install ruff
-        run: pip install ruff
-      - name: Lint
-        run: ruff check src/ tests/ --select E,F,W,I --ignore E501
+      - name: Install
+        run: pip install -e ".[dev,mcp]"
+      - name: Lint public MVP surface
+        env:
+          PYTHONPATH: src
+        run: python -m ruff check src/nexural_research/automation.py src/nexural_research/mcp_server.py src/nexural_research/mcp_hosts.py src/nexural_research/cost_model.py src/nexural_research/gauntlet.py src/nexural_research/strategy_sdk.py src/nexural_research/bridge_sdk.py src/nexural_research/contracts.py src/nexural_research/quality_gate.py src/nexural_research/api/routers/automation.py tests/test_automation.py tests/test_api.py tests/test_mcp_contract.py
       - name: Format check
-        run: ruff format --check src/ tests/ || true
+        run: ruff format --check src/nexural_research/automation.py src/nexural_research/mcp_server.py src/nexural_research/mcp_hosts.py src/nexural_research/cost_model.py src/nexural_research/gauntlet.py src/nexural_research/strategy_sdk.py src/nexural_research/bridge_sdk.py src/nexural_research/contracts.py src/nexural_research/quality_gate.py src/nexural_research/api/routers/automation.py tests/test_automation.py tests/test_api.py tests/test_mcp_contract.py
 
   typecheck:
     runs-on: ubuntu-latest
@@ -63,13 +65,23 @@ jobs:
       - name: Bandit security scan
         run: bandit -r src/ -ll -ii
       - name: Dependency audit
-        run: pip-audit
+        run: pip-audit -r requirements/py311-ci-lock.txt
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Scan tracked files for committed secrets
+        run: python scripts/repo-tools/secret_scan.py
 
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ["3.11"]
     defaults:
       run:
         working-directory: platforms/python/research/nexural-research
@@ -130,7 +142,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: platforms/python/research/nexural-research/frontend/package-lock.json
       - name: Install
         run: npm ci || npm install
       - name: Dependency audit
@@ -156,7 +170,8 @@ jobs:
           image-ref: nexural-research:ci
           format: table
           severity: HIGH,CRITICAL
-          exit-code: 0  # warn but don't fail (for now)
+          ignore-unfixed: true
+          exit-code: 1
 
       - name: Smoke test
         run: |

@@ -4,7 +4,7 @@ services:
   nexural-research:
     build: .
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       - ./data:/app/data
       - ./reports:/app/reports
@@ -48,7 +48,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U nexural"]
       interval: 10s
@@ -59,7 +59,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redisdata:/data
     healthcheck:
@@ -76,21 +76,21 @@ services:
       target: production
     profiles: ["dev"]
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       - ./src:/app/src
       - ./data:/app/data
     command: ["python", "-m", "uvicorn", "nexural_research.api.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
   nexural-frontend-dev:
-    image: node:20-alpine
+    image: node:22-alpine
     profiles: ["dev"]
     working_dir: /app
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3010:3010"
     volumes:
       - ./frontend:/app
-    command: ["sh", "-c", "npm install && npm run dev -- --host 0.0.0.0"]
+    command: ["sh", "-c", "npm install && npm run dev -- --host 0.0.0.0 --port 3010"]
     depends_on:
       - nexural-backend-dev
 

@@ -55,8 +55,7 @@ def resolve_stress_profile(profile: str | CostStressProfile | None = None) -> Co
     key = profile.lower().strip()
     if key not in COST_STRESS_PROFILES:
         raise ValueError(
-            f"Unknown cost stress profile '{profile}'. "
-            f"Available: {sorted(COST_STRESS_PROFILES)}"
+            f"Unknown cost stress profile '{profile}'. Available: {sorted(COST_STRESS_PROFILES)}"
         )
     return COST_STRESS_PROFILES[key]
 

@@ -4,8 +4,8 @@
 
 - [x] `nexural-research quality-gate --threshold 0.95 --json` returns `score: 1.0`.
 - [x] GitHub Actions public MVP gate is wired for Windows, macOS, and Linux.
-- [ ] No `.mcp.json`, `.env`, database, session, report, or export artifacts are committed.
-- [ ] MCP smoke lists all public tools and calls `list_capabilities`.
+- [x] No `.mcp.json`, `.env`, database, session, report, or export artifacts are committed by CI secret scan.
+- [x] MCP smoke lists all public tools and calls `list_capabilities`.
 - [x] Frontend lockfile has zero `npm audit --audit-level=moderate` findings.
 - [x] API binds to `127.0.0.1` by default and requires header-based auth when enabled.
 
@@ -29,4 +29,4 @@
 
 - [ ] Confirm CI green on GitHub after push.
 - [ ] Rotate any local API keys that were ever copied into local MCP configs.
-- [ ] Add screenshots from the docs site and Strategy Lab Automation screen.
+- [ ] Add final launch screenshots/GIF from the live docs site and Strategy Lab Automation screen.

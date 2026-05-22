@@ -31,6 +31,48 @@ Expected result:
 {"valid": true}
 ```
 
+### NinjaTrader Opening Range Retest
+
+Path:
+
+```text
+platforms/python/research/examples/strategies/ninjatrader_opening_range_retest
+```
+
+Purpose:
+
+- Demonstrates a NinjaScript strategy example.
+- Documents next-bar execution and paper-first validation.
+- Shows how NinjaTrader examples should structure parameters and validation notes.
+
+### TradingView VWAP Reversion
+
+Path:
+
+```text
+platforms/python/research/examples/strategies/tradingview_vwap_reversion
+```
+
+Purpose:
+
+- Demonstrates a Pine strategy example.
+- Calls out repainting and bar-close behavior.
+- Keeps promotion gated behind out-of-sample validation.
+
+### Multi-Symbol Regime Filter
+
+Path:
+
+```text
+platforms/python/research/examples/strategies/multi_symbol_regime_filter
+```
+
+Purpose:
+
+- Demonstrates multi-symbol Python strategy structure.
+- Separates regime filter inputs from trade execution.
+- Documents no-lookahead rules for cross-symbol features.
+
 ## Bridges
 
 ### NinjaTrader CSV Bridge
@@ -78,4 +120,3 @@ New bridge examples must include:
 - Paper-only proof notes.
 
 No example may claim profitability, use live status, or require real API keys to validate.
-

@@ -13,6 +13,22 @@
 - `configs/`: reusable configuration presets and examples
 - `scripts/`: repo tooling (catalog generation, validation, release helpers)
 
+## Public MVP Flow
+
+```mermaid
+flowchart LR
+  A[Strategy Export CSV] --> B[Nexural Automation API]
+  B --> C[Gauntlet]
+  B --> D[Cost Model]
+  B --> E[HTML Report]
+  B --> F[MCP Tools]
+  F --> G[Agent Client]
+  B --> H[Strategy Lab Gateway]
+  H --> I[Strategy Lab UI]
+  J[Strategy SDK] --> B
+  K[Bridge SDK] --> B
+```
+
 ## Module boundary
 A *module* is a strategy or indicator folder that ships with documentation and metadata:
 - `src/`: code

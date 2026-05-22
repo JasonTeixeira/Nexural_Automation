@@ -1,0 +1,31 @@
+{
+  "name": "Nexural Automation",
+  "version": "2.1.0",
+  "purpose": "Agent-ready strategy analysis, robustness validation, and report automation.",
+  "supported_imports": [
+    "NinjaTrader Strategy Analyzer CSV",
+    "TradingView strategy tester CSV",
+    "MetaTrader 4/5 history CSV",
+    "Interactive Brokers activity CSV",
+    "TradeStation trade CSV"
+  ],
+  "automation_workflows": [
+    "single_strategy_due_diligence",
+    "multi_strategy_ranking",
+    "walk_forward_validation",
+    "deflated_sharpe_overfitting_check",
+    "monte_carlo_risk_envelope",
+    "strategy_improvement_plan",
+    "html_research_report_generation",
+    "institutional_gauntlet",
+    "futures_cost_stress",
+    "strategy_scaffolding",
+    "bridge_scaffolding"
+  ],
+  "guardrails": [
+    "Historical analysis only; no live execution.",
+    "No forward-filled future data or lookahead assumptions are introduced.",
+    "Overfitting checks are first-class outputs, not optional footnotes.",
+    "Optional NEXURAL_ALLOWED_DATA_DIRS can restrict which files MCP tools may read."
+  ]
+}

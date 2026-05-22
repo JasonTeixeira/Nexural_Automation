@@ -58,18 +58,21 @@ class TestUpload:
 
 
 class TestAnalysisEndpoints:
-    @pytest.mark.parametrize("endpoint", [
-        "/api/analysis/metrics",
-        "/api/analysis/risk-return",
-        "/api/analysis/expectancy",
-        "/api/analysis/dependency",
-        "/api/analysis/distribution",
-        "/api/analysis/time-decay",
-        "/api/analysis/comprehensive",
-        "/api/analysis/benchmark",
-        "/api/analysis/portfolio",
-        "/api/analysis/improvements",
-    ])
+    @pytest.mark.parametrize(
+        "endpoint",
+        [
+            "/api/analysis/metrics",
+            "/api/analysis/risk-return",
+            "/api/analysis/expectancy",
+            "/api/analysis/dependency",
+            "/api/analysis/distribution",
+            "/api/analysis/time-decay",
+            "/api/analysis/comprehensive",
+            "/api/analysis/benchmark",
+            "/api/analysis/portfolio",
+            "/api/analysis/improvements",
+        ],
+    )
     def test_analysis_endpoint(self, client, uploaded_session, endpoint):
         resp = client.get(f"{endpoint}?session_id={uploaded_session}")
         assert resp.status_code == 200, f"{endpoint} returned {resp.status_code}: {resp.text[:200]}"
@@ -77,27 +80,33 @@ class TestAnalysisEndpoints:
 
 
 class TestRobustnessEndpoints:
-    @pytest.mark.parametrize("endpoint", [
-        "/api/robustness/monte-carlo",
-        "/api/robustness/parametric-monte-carlo",
-        "/api/robustness/block-bootstrap",
-        "/api/robustness/walk-forward",
-        "/api/robustness/rolling-walk-forward",
-        "/api/robustness/deflated-sharpe",
-        "/api/robustness/regime",
-    ])
+    @pytest.mark.parametrize(
+        "endpoint",
+        [
+            "/api/robustness/monte-carlo",
+            "/api/robustness/parametric-monte-carlo",
+            "/api/robustness/block-bootstrap",
+            "/api/robustness/walk-forward",
+            "/api/robustness/rolling-walk-forward",
+            "/api/robustness/deflated-sharpe",
+            "/api/robustness/regime",
+        ],
+    )
     def test_robustness_endpoint(self, client, uploaded_session, endpoint):
         resp = client.get(f"{endpoint}?session_id={uploaded_session}")
         assert resp.status_code == 200, f"{endpoint} returned {resp.status_code}: {resp.text[:200]}"
 
 
 class TestChartEndpoints:
-    @pytest.mark.parametrize("endpoint", [
-        "/api/charts/equity",
-        "/api/charts/heatmap",
-        "/api/charts/distribution",
-        "/api/charts/trades",
-    ])
+    @pytest.mark.parametrize(
+        "endpoint",
+        [
+            "/api/charts/equity",
+            "/api/charts/heatmap",
+            "/api/charts/distribution",
+            "/api/charts/trades",
+        ],
+    )
     def test_chart_endpoint(self, client, uploaded_session, endpoint):
         resp = client.get(f"{endpoint}?session_id={uploaded_session}")
         assert resp.status_code == 200

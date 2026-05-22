@@ -25,6 +25,7 @@ MVP_PYTHON_TARGETS = [
     "src/nexural_research/api/routers/automation.py",
     "tests/test_automation.py",
     "tests/test_api.py",
+    "tests/test_mcp_contract.py",
 ]
 
 SECURITY_TARGETS = [
@@ -67,7 +68,17 @@ def run_quality_gate(*, fast: bool = False) -> dict[str, object]:
     py = sys.executable
     checks = [
         _run([py, "-m", "ruff", "check", *MVP_PYTHON_TARGETS]),
-        _run([py, "-m", "pytest", "tests/test_automation.py", "tests/test_api.py", "-q"]),
+        _run(
+            [
+                py,
+                "-m",
+                "pytest",
+                "tests/test_automation.py",
+                "tests/test_api.py",
+                "tests/test_mcp_contract.py",
+                "-q",
+            ]
+        ),
         _run([py, "-m", "nexural_research.cli", "mcp-smoke"]),
         _run(
             [

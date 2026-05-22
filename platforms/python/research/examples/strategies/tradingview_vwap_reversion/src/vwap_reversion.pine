@@ -1,0 +1,21 @@
+//@version=5
+strategy("Nexural VWAP Reversion Scaffold", overlay=true, process_orders_on_close=false)
+
+vwapValue = ta.vwap(hlc3)
+atrValue = ta.atr(14)
+upperBand = vwapValue + atrValue * 1.5
+lowerBand = vwapValue - atrValue * 1.5
+
+longSignal = barstate.isconfirmed and close < lowerBand
+shortSignal = barstate.isconfirmed and close > upperBand
+
+if longSignal
+    strategy.entry("ResearchLong", strategy.long)
+
+if shortSignal
+    strategy.entry("ResearchShort", strategy.short)
+
+plot(vwapValue, "VWAP")
+plot(upperBand, "Upper")
+plot(lowerBand, "Lower")
+

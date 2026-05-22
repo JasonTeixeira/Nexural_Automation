@@ -1,0 +1,15 @@
+schema_version: 1
+slug: tradingview_vwap_reversion
+name: "TradingView VWAP Reversion"
+type: strategy
+platform: tradingview
+status: research
+version: 0.1.0
+owner: nexural
+asset_class: futures
+symbols: [ES, NQ]
+instruments: [ES, NQ]
+tags: [tradingview, vwap, mean-reversion, educational]
+lookahead_policy: bar_close_execution
+promotion_gate: PROMOTE_TO_PAPER
+

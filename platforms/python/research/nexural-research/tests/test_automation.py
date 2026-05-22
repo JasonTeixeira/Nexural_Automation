@@ -15,6 +15,7 @@ from nexural_research.automation import (
     generate_strategy_report,
     run_strategy_gauntlet_export,
 )
+from nexural_research.bridge_sdk import BridgeFill, BridgeSignal, CsvSignalBridge
 from nexural_research.contracts import validate_bridge_contract, validate_strategy_metadata
 
 
@@ -139,6 +140,44 @@ def test_create_bridge_scaffold_writes_contract(tmp_path):
     assert root.exists()
     assert (root / "bridge_contract.json").exists()
     assert (root / "bridge.py").exists()
+
+
+def test_csv_bridge_lifecycle_writes_paper_safe_records(tmp_path):
+    bridge = CsvSignalBridge(tmp_path / "signals.jsonl")
+
+    signal_ack = bridge.send_signal(
+        BridgeSignal(
+            strategy_name="pytest_strategy",
+            symbol="NQ",
+            side="BUY",
+            quantity=1,
+            timestamp="2026-01-01T14:30:00Z",
+            metadata={"mode": "paper"},
+        )
+    )
+    flatten_ack = bridge.flatten("NQ", "test_complete")
+    kill_ack = bridge.kill_switch("operator_test")
+    reconcile_ack = bridge.reconcile_fills(
+        [
+            BridgeFill(
+                symbol="NQ",
+                side="BUY",
+                quantity=1,
+                price=18000.25,
+                timestamp="2026-01-01T14:31:00Z",
+                external_id="fill-001",
+            )
+        ]
+    )
+
+    assert signal_ack.accepted is True
+    assert flatten_ack.accepted is True
+    assert kill_ack.accepted is True
+    assert reconcile_ack.accepted is True
+    records = (tmp_path / "signals.jsonl").read_text(encoding="utf-8")
+    assert '"type": "signal"' in records
+    assert '"control": "kill_switch"' in records
+    assert '"type": "fill_reconciliation"' in records
 
 
 def test_strategy_metadata_contract_validates(tmp_path):

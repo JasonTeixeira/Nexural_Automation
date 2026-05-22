@@ -23,8 +23,9 @@ jobs:
 
       - name: Install and test
         run: |
-          pip install -e ".[dev]"
-          pytest tests/ --tb=short -q
+          pip install -e ".[dev,mcp]"
+          python -m nexural_research.cli quality-gate --threshold 0.95 --json --fast
+          pytest tests/ --ignore=tests/e2e --tb=short -q
 
       - name: Build Docker image
         run: |

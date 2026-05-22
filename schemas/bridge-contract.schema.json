@@ -21,7 +21,9 @@
       "allOf": [
         { "contains": { "const": "health" } },
         { "contains": { "const": "send_signal" } },
-        { "contains": { "const": "flatten" } }
+        { "contains": { "const": "flatten" } },
+        { "contains": { "const": "kill_switch" } },
+        { "contains": { "const": "reconcile_fills" } }
       ],
       "uniqueItems": true
     },
@@ -48,4 +50,3 @@
     }
   }
 }
-

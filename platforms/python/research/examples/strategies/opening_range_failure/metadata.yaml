@@ -1,9 +1,14 @@
 schema_version: 1
 slug: opening_range_failure
 name: "Opening Range Failure"
+type: strategy
 platform: python
 status: research
+version: 0.1.0
+owner: nexural
 asset_class: futures
 symbols: [ES, NQ, RTY]
+instruments: [ES, NQ, RTY]
+tags: [opening-range, failure, futures, educational]
 lookahead_policy: next_bar_execution
 promotion_gate: PROMOTE_TO_PAPER
