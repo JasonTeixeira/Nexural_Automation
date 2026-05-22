@@ -1,4 +1,4 @@
-﻿# Nexural Automation — NinjaTrader Strategy Analysis & Development
+# Nexural Automation - MCP Strategy Lab, Gauntlet, and Bridge SDK
 
 [![CI](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/ci.yml)
 [![python-research-ci](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/python-research-ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/python-research-ci.yml)
@@ -8,27 +8,73 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 [![MCP Smoke](https://img.shields.io/badge/MCP-smoke%20tested-111827.svg)](docs/mcp-contract.md)
 
-An open-source toolkit for NinjaTrader automation developers. Import your trade logs, get **50+ institutional-grade metrics**, **Monte Carlo simulations**, **overfitting detection**, **AI-powered strategy recommendations**, and **actionable improvement suggestions** — all from a professional desktop application running on your local machine.
+Nexural Automation is a public, local-first automation lab for strategy builders. It combines a Python research engine, MCP server, Strategy SDK, Bridge SDK, cost model, validation gauntlet, contributor examples, and education docs so people can build strategies, validate them, export reports, wire bridges, and learn the automation workflow end to end.
 
-> **Not financial advice.** This project is for research, education, and simulation-first development. See [DISCLAIMER.md](DISCLAIMER.md).
+> Not financial advice. This project is for research, education, simulation, and paper-first development. See [DISCLAIMER.md](DISCLAIMER.md).
 
----
+## Public MVP
 
-## Nexural Research — Strategy Analysis Dashboard
+Current public release: [v0.1.0-public-mvp](RELEASE_NOTES.md)
 
-The flagship tool in this repo. A complete strategy analysis engine with a professional web dashboard.
+Live docs: https://jasonteixeira.github.io/Nexural_Automation/
 
-### Install and Run (3 commands)
+Release status:
 
-**Windows:**
+- GitHub Pages is enabled with GitHub Actions deployment.
+- Public release workflow is tagged and green.
+- Repo secret scan is clean for tracked files.
+- Local MCP/API keys are not stored in this repo; rotate any real keys that were ever pasted into local configs.
+
+What is included:
+
+- MCP automation server with 8 stable tools.
+- Strategy SDK for Python, NinjaTrader, TradingView, and multi-symbol examples.
+- Bridge SDK with health, paper signal, flatten, kill-switch, and fill reconciliation lifecycle.
+- SageQuant-style gauntlet with reject, tune, rewrite, and promote-to-paper decisions.
+- Futures cost model and cost stress docs.
+- Golden MCP contract fixture and contract tests.
+- Public examples that validate in CI.
+- One-command local stack scripts.
+- Secret scanning, schema validation, locked Python audit, npm audit, Docker build, Trivy, and cross-platform quality gates.
+
+## Install And Run
+
+### One-Command Local Stack
+
+Windows:
+
+```powershell
+git clone https://github.com/JasonTeixeira/Nexural_Automation.git
+cd Nexural_Automation
+.\scripts\start-local-stack.ps1
+```
+
+macOS/Linux:
+
+```bash
+git clone https://github.com/JasonTeixeira/Nexural_Automation.git
+cd Nexural_Automation
+./scripts/start-local-stack.sh
+```
+
+Local URLs:
+
+- API: `http://127.0.0.1:8000`
+- MCP HTTP: `http://127.0.0.1:8765/mcp`
+- UI: `http://127.0.0.1:3010`
+
+### Dashboard Installer
+
+Windows:
+
 ```bat
 git clone https://github.com/JasonTeixeira/Nexural_Automation.git
 cd Nexural_Automation\platforms\python\research\nexural-research
 install.bat
 ```
-Then double-click **"Nexural Research"** on your Desktop.
 
-**macOS / Linux:**
+macOS/Linux:
+
 ```bash
 git clone https://github.com/JasonTeixeira/Nexural_Automation.git
 cd Nexural_Automation/platforms/python/research/nexural-research
@@ -36,195 +82,189 @@ chmod +x install.sh && ./install.sh
 ./nexural-research
 ```
 
-**Docker:**
+Docker:
+
 ```bash
 cd platforms/python/research/nexural-research
 docker compose up --build
-# Open http://localhost:8000
 ```
 
-**Requirements:** Python 3.11 ([download](https://python.org/downloads)). Node.js is NOT required — the frontend comes pre-built.
+Open `http://127.0.0.1:8000`.
 
-Public MVP release notes: [v0.1.0-public-mvp](RELEASE_NOTES.md).
+Requirements:
 
-### How to Use
+- Python 3.11
+- Node.js 22 only if developing the frontend
+- Docker only if using the container path
 
-1. **Export trades** from NinjaTrader Strategy Analyzer (File > Save as CSV)
-2. **Launch the app** — it opens in your browser at `http://localhost:8000`
-3. **Drag & drop** your CSV into the upload zone (auto-detects any NinjaTrader format)
-4. **Explore the dashboard** — 10 analysis tabs with full institutional metrics
-5. **Export results** — download filtered CSV, JSON metrics, or HTML report
-6. **Ask the AI** — connect your Claude / GPT-4o / Perplexity key for strategy analysis
+## Core Workflows
 
-### What You Get
+### Strategy Validation
 
-| Tab | What It Does |
-|-----|-------------|
-| **Overview** | Net profit, win rate, Sharpe, Sortino, Calmar, Kelly %, equity curve, drawdown, per-trade PnL |
-| **Improvements** | Letter grade (A-F), actionable recommendations, time filter suggestions, loss cluster detection, MAE/MFE efficiency |
-| **Advanced Metrics** | Trade dependency (Z-score), edge stability, Deflated Sharpe Ratio (overfitting), benchmark vs random, regime analysis |
-| **Robustness** | Shuffle MC, parametric MC (3 distributions), block bootstrap, rolling walk-forward with bar charts |
-| **Distribution** | Skewness, kurtosis, VaR 95%, CVaR, Jarque-Bera normality, PnL histogram |
-| **Heatmap** | Day-of-week x hour PnL heatmap — find your best and worst trading times |
-| **Trades** | Full searchable trade log |
-| **Compare** | Upload 2 CSVs side-by-side, see delta for every metric |
-| **AI Analyst** | Claude / GPT-4o / Perplexity with full strategy context (bring your own key) |
-| **Settings** | API key configuration, provider selection |
+```powershell
+cd platforms\python\research\nexural-research
+nexural-research gauntlet --input C:\Exports\nq_strategy.csv --symbol NQ --strategy-name "NQ Research"
+nexural-research costs --symbol NQ --trades 250 --stress-profile elevated
+nexural-research report --input C:\Exports\nq_strategy.csv
+```
 
-### CSV Compatibility
+### Strategy SDK
 
-Works with any NinjaTrader export format. Auto-detects 50+ column name variations:
+```powershell
+nexural-research new-strategy "Opening Range Failure" --platform python
+nexural-research validate-strategy ..\examples\strategies\opening_range_failure\metadata.yaml
+```
 
-| Your Column | Recognized As |
-|------------|---------------|
-| `net_pnl`, `pnl`, `realized_pnl`, `profit_loss` | `profit` |
-| `symbol`, `ticker`, `contract` | `instrument` |
-| `side`, `direction`, `buy_sell` | `market_pos` |
-| `trade_id`, `trade_num` | `trade_number` |
-| `qty`, `size`, `contracts` | `quantity` |
+Included examples:
 
-### API
+- [Opening Range Failure](platforms/python/research/examples/strategies/opening_range_failure)
+- [NinjaTrader Opening Range Retest](platforms/python/research/examples/strategies/ninjatrader_opening_range_retest)
+- [TradingView VWAP Reversion](platforms/python/research/examples/strategies/tradingview_vwap_reversion)
+- [Multi-Symbol Regime Filter](platforms/python/research/examples/strategies/multi_symbol_regime_filter)
 
-When running, interactive API docs are at **http://localhost:8000/api/docs** with 26+ endpoints.
+### Bridge SDK
 
-Full documentation: **[platforms/python/research/nexural-research/README.md](platforms/python/research/nexural-research/README.md)**
+```powershell
+nexural-research new-bridge "NinjaTrader CSV"
+nexural-research validate-bridge ..\examples\bridges\ninjatrader_csv\bridge_contract.json
+```
 
----
+Bridge lifecycle requirements:
 
-## Public Docs and 100/100 Release Track
+- `health()`
+- `send_signal(signal)`
+- `flatten(symbol, reason)`
+- `kill_switch(reason)`
+- `reconcile_fills(fills)`
 
-The public docs are built for GitHub Pages and local browsing:
-
-- **[Docs Home](docs/index.md)** - operator path through MCP, SDKs, bridges, gauntlet, and launch quality.
-- **[Automation Academy](docs/automation-academy.md)** - how contributors learn the strategy and automation workflow.
-- **[Example Catalog](docs/example-catalog.md)** - known-good strategy and bridge fixtures.
-- **[Security Hardening](docs/security-hardening.md)** - auth, file scope, secrets, and CI release gates.
-- **[MCP Contract](docs/mcp-contract.md)** - stable tool/resource/prompt contract for agent clients.
-- **[Release Checklist](docs/public-launch-checklist.md)** - public launch proof list.
-
-Open `docs/index.html` in a browser for the polished static docs landing page.
-
----
+Example bridge: [NinjaTrader CSV Bridge](platforms/python/research/examples/bridges/ninjatrader_csv)
 
 ## MCP Automation Server
 
-Nexural Automation can now run as a local **Model Context Protocol server** so AI agents can use the research engine directly instead of reading the repo like an encyclopedia.
+Run stdio mode for desktop MCP clients:
 
-```bat
+```powershell
 cd platforms\python\research\nexural-research
 py -3.11 -m pip install -e ".[mcp]"
 nexural-mcp
 ```
 
-Agent-callable tools:
+Run HTTP mode:
+
+```powershell
+nexural-research mcp --transport streamable-http --host 127.0.0.1 --port 8765
+```
+
+Smoke test:
+
+```powershell
+nexural-research mcp-smoke
+```
+
+Stable MCP tools:
 
 | Tool | Purpose |
 |------|---------|
-| `analyze_strategy_csv` | Full strategy due diligence: metrics, Deflated Sharpe, Monte Carlo, walk-forward, grade, decision gate |
+| `list_capabilities` | Return supported workflows, imports, and guardrails |
+| `analyze_strategy_csv` | Full strategy due diligence with metrics, DSR, Monte Carlo, walk-forward, grade, and decision gate |
 | `compare_strategy_csvs` | Rank 2-10 strategy exports by composite institutional metrics |
 | `generate_report` | Write a local HTML research report for an export |
-| `run_strategy_gauntlet` | 10-check promotion gate: DSR, walk-forward, bootstrap, path fragility, costs, tails |
-| `estimate_strategy_costs` | Futures commission/slippage estimates for ES, NQ, RTY, CL, GC, SI, HG, ZB |
-| `scaffold_strategy` | Create Python, NinjaTrader, or TradingView strategy SDK starter projects |
-| `scaffold_bridge` | Create bridge connector starter projects with required proof contracts |
-| `list_capabilities` | Return supported workflows, imports, and guardrails |
+| `run_strategy_gauntlet` | Run the 10-check promotion gate |
+| `estimate_strategy_costs` | Estimate futures commission and slippage |
+| `scaffold_strategy` | Create Python, NinjaTrader, or TradingView strategy starters |
+| `scaffold_bridge` | Create bridge connector starters with required proof contracts |
 
-See **[docs/mcp-automation-server.md](docs/mcp-automation-server.md)** for Claude/Codex/Cursor setup, HTTP mode, and file-access guardrails.
+See [MCP Contract](docs/mcp-contract.md), [MCP/API Examples](docs/mcp-api-examples.md), and [Backward Compatibility](docs/backward-compatibility.md).
 
-Fast local commands:
+## Public Docs
 
-```bat
-nexural-research mcp-smoke
-nexural-research gauntlet --input path\to\trades.csv --symbol NQ --strategy-name "NQ Research"
-nexural-research costs --symbol NQ --trades 250 --stress-profile elevated
-nexural-research new-strategy "Opening Range Failure" --platform python
-nexural-research new-bridge "NinjaTrader CSV"
-nexural-research validate-strategy ..\examples\strategies\opening_range_failure\metadata.yaml
-nexural-research validate-bridge ..\examples\bridges\ninjatrader_csv\bridge_contract.json
-nexural-research quality-gate --threshold 0.95 --json
+Start here:
+
+- [Docs Home](docs/index.md)
+- [Automation Academy](docs/automation-academy.md)
+- [Build Your First Strategy](docs/build-your-first-strategy.md)
+- [Build Your First Bridge](docs/build-your-first-bridge.md)
+- [Why Strategies Fail The Gauntlet](docs/why-strategies-fail-the-gauntlet.md)
+- [Automation Glossary](docs/automation-glossary.md)
+- [Example Catalog](docs/example-catalog.md)
+- [Install Matrix](docs/install-matrix.md)
+- [Security Hardening](docs/security-hardening.md)
+- [Secret Rotation](docs/secret-rotation.md)
+- [Strategy Lab Wiring](docs/strategy-lab-wiring.md)
+- [Public Launch Checklist](docs/public-launch-checklist.md)
+
+Open `docs/index.html` locally or use the live GitHub Pages site.
+
+## Quality Gates
+
+Local release checks:
+
+```powershell
+python scripts\repo-tools\secret_scan.py
+python scripts\repo-tools\validate_contract_schemas.py
+cd platforms\python\research\nexural-research
+py -3.11 -m nexural_research.cli quality-gate --threshold 0.95 --json --fast
+py -3.11 -m pytest tests --ignore=tests/e2e -q
+py -3.11 -m pip_audit -r requirements\py311-ci-lock.txt
+cd frontend
+npm audit --audit-level=moderate
+npm run build
 ```
 
-Public release docs and fixtures:
+CI gates:
 
-- [Public MVP Tutorial](docs/public-mvp-tutorial.md)
-- [Gauntlet Failure Guide](docs/gauntlet-failures.md)
-- [Launch Checklist](docs/public-launch-checklist.md)
-- [Example Strategy Fixture](platforms/python/research/examples/strategies/opening_range_failure)
-- [Example Bridge Fixture](platforms/python/research/examples/bridges/ninjatrader_csv)
+- Python 3.11 release gate.
+- Cross-platform public MVP quality gate on Windows, macOS, and Linux.
+- MCP smoke.
+- Strategy and bridge schema validation.
+- Secret scanning.
+- Locked Python dependency audit.
+- Frontend typecheck, build, and npm audit.
+- Docker build and Trivy scan for fixable high/critical findings.
+- Module catalog freshness.
+- Docs metadata validation.
+- GitHub Pages deployment when Pages is enabled.
 
----
+## Security Defaults
 
-## What Else Is in This Repo
+- API and MCP HTTP bind to `127.0.0.1` by default.
+- Docker compose binds public services to localhost.
+- `.mcp.json`, `.env`, local databases, raw exports, and reports are ignored.
+- Query-string API keys are not accepted.
+- Use `NEXURAL_ALLOWED_DATA_DIRS` to restrict agent-readable CSV/report paths.
+- Rotate any local provider keys that were ever pasted into local configs before public launch.
 
-### NinjaTrader Modules
-- Strategy and indicator templates with full documentation standards
-- Example: `platforms/ninjatrader/Strategies/AbsorptionReversal/`
-
-### TradingView Modules
-- Pine Script v5 indicator templates
-- Example: `platforms/tradingview/indicators/VWAPReversion/`
-
-### Templates (start here for new modules)
-- `templates/strategy-template/` — full strategy scaffold with docs
-- `templates/indicator-template/` — full indicator scaffold with docs
-
----
-
-## Quick Safety Note
-
-- **Not financial advice.** Nothing here is guaranteed profitable.
-- Futures and leveraged trading can result in **substantial losses**.
-- You are responsible for validation, simulation, risk controls, and compliance.
-- Full disclaimer: **[DISCLAIMER.md](DISCLAIMER.md)**
-
----
-
-## Core Principles
-
-- **Simulation-first**: treat live trading as a separate, high-risk deployment step
-- **Clarity over cleverness**: readable code + documented assumptions
-- **Reproducibility**: parameter tables, test notes, and data assumptions
-- **No hype**: no marketing language and no performance claims
-
----
+See [Security Hardening](docs/security-hardening.md) and [Secret Rotation](docs/secret-rotation.md).
 
 ## Repo Layout
 
-```
+```text
 Nexural_Automation/
 ├── platforms/
-│   ├── ninjatrader/         # NinjaScript strategies & indicators
-│   ├── tradingview/         # Pine Script v5 modules
+│   ├── ninjatrader/              # NinjaScript strategies and indicators
+│   ├── tradingview/              # Pine Script modules
 │   └── python/research/
-│       └── nexural-research/   # <-- THE ANALYSIS DASHBOARD
-│           ├── src/             # Python analysis engine (50+ metrics)
-│           ├── frontend/        # React dashboard (pre-built)
-│           ├── desktop/         # Electron wrapper
-│           ├── tests/           # 97 tests
-│           ├── install.bat      # Windows one-click install
-│           ├── install.sh       # Mac/Linux install
-│           └── launch.bat       # Windows launcher
-├── templates/               # Strategy & indicator templates
-├── docs/                    # Architecture, policies, guides
-└── .github/workflows/       # CI: pytest + ruff + TypeScript
+│       ├── examples/             # Public strategy and bridge examples
+│       └── nexural-research/     # Python engine, API, MCP server, dashboard
+├── templates/                    # Strategy and indicator templates
+├── docs/                         # Education, contracts, architecture, launch docs
+├── schemas/                      # Strategy and bridge JSON schemas
+├── scripts/                      # Setup, local stack, validation, security tooling
+└── .github/workflows/            # CI, docs, catalog, and release workflows
 ```
-
----
 
 ## Contributing
 
-1. Read **[CONTRIBUTING.md](CONTRIBUTING.md)**
-2. Fork, branch, code, test (`pytest`), submit PR
-3. CI runs automatically — all checks must pass
-
----
+1. Read [CONTRIBUTING.md](CONTRIBUTING.md).
+2. Use the templates or SDK scaffolds.
+3. Document parameters, assumptions, failure modes, and no-lookahead policy.
+4. Run validation before opening a PR.
+5. Keep examples paper-first and free of performance claims.
 
 ## Roadmap
 
-See **[ROADMAP.md](ROADMAP.md)**
-
----
+See [ROADMAP.md](ROADMAP.md).
 
 ## License
 
-Apache-2.0 — see **[LICENSE](LICENSE)**
+Apache-2.0. See [LICENSE](LICENSE).
