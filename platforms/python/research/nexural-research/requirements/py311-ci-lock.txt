@@ -29,7 +29,7 @@ certifi==2026.5.20
     #   httpx
 cffi==2.0.0
     # via cryptography
-click==8.4.0
+click==8.4.1
     # via uvicorn
 colorama==0.4.6
     # via
