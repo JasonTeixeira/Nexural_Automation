@@ -1,0 +1,37 @@
+{
+  "name": "Nexural_Automation",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "20" },
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "ms-azuretools.vscode-docker",
+        "github.vscode-github-actions",
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "editor.formatOnSave": true,
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff"
+        }
+      }
+    },
+    "codespaces": {
+      "openFiles": ["GETTING_STARTED.md", "README.md"]
+    }
+  },
+  "postCreateCommand": "make setup",
+  "postAttachCommand": "echo '👋 Welcome to Nexural_Automation. Try: make smoke'  ",
+  "remoteUser": "vscode",
+  "forwardPorts": [],
+  "mounts": []
+}
