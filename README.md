@@ -1,4 +1,8 @@
-# Nexural Automation - MCP Strategy Lab, Gauntlet, and Bridge SDK
+# Nexural Automation — MCP Strategy Lab, Gauntlet, and Bridge SDK
+
+<p align="center">
+  <img src="docs/assets/og-card.png" alt="Nexural Automation — local-first automation lab for futures strategy research" width="720" />
+</p>
 
 [![CI](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/ci.yml)
 [![python-research-ci](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/python-research-ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/python-research-ci.yml)

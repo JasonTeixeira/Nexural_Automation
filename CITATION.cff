@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+title: "Nexural Automation"
+message: "If you use Nexural Automation in research, please cite it."
+type: software
+authors:
+  - given-names: Jason
+    family-names: Teixeira
+    affiliation: Sage Ideas LLC
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+url: "https://github.com/JasonTeixeira/Nexural_Automation"
+repository-code: "https://github.com/JasonTeixeira/Nexural_Automation"
+license: Apache-2.0
+keywords:
+  - algorithmic-trading
+  - quantitative-finance
+  - mcp
+  - backtesting
+  - paper-trading
+  - ninjatrader
+  - tradingview
+  - python
+  - futures
+abstract: >
+  Nexural Automation is a local-first automation lab for futures
+  strategy research. It combines an MCP server, Strategy & Bridge SDKs,
+  a validation gauntlet with 10 promotion gates, a futures cost model,
+  and multi-platform support (NinjaTrader 8, TradingView, Python) into
+  a single, paper-first, agent-callable workflow.
+version: 0.1.0
+date-released: "2026-05-22"
