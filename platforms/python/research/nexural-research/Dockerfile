@@ -7,7 +7,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # --- Stage 2: Python backend + serve static frontend ---
-FROM python:3.11-slim AS production
+FROM python:3.14-slim AS production
 WORKDIR /app
 
 # Python package metadata and source
