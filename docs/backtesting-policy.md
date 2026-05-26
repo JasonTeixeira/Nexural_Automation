@@ -1,4 +1,4 @@
-﻿# Backtesting Policy and Limitations
+# Backtesting Policy and Limitations
 
 Backtesting is useful, but it is also easy to misuse.
 

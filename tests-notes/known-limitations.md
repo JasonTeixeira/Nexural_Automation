@@ -1,4 +1,4 @@
-﻿# Known Limitations
+# Known Limitations
 
 - Order flow signals are data-provider dependent.
 - Historical volumetric data may be incomplete or aggregated.

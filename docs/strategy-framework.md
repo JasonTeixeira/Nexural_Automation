@@ -1,4 +1,4 @@
-﻿# Strategy Framework Philosophy
+# Strategy Framework Philosophy
 
 ## Principles
 - **Order flow context first** (liquidity, absorption, imbalance, initiative vs. responsive flows).

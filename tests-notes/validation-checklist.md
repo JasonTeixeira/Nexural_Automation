@@ -1,4 +1,4 @@
-﻿# Validation Checklist
+# Validation Checklist
 
 Use this checklist before claiming a module is stable.
 

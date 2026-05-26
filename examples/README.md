@@ -1,4 +1,4 @@
-﻿# Examples
+# Examples
 
 This folder contains **non-code** examples that support the repo:
 - documented workflows (how we validate modules)

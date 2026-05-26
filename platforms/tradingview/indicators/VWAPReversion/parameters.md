@@ -1,4 +1,4 @@
-﻿# Parameters
+# Parameters
 
 | Name | Type | Default | Range | Unit | Description |
 |------|------|---------|-------|------|-------------|

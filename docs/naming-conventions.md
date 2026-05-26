@@ -1,4 +1,4 @@
-﻿# Naming Conventions
+# Naming Conventions
 
 ## Module naming
 Use **PascalCase** with descriptive names:

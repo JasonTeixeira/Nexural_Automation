@@ -1,4 +1,4 @@
-﻿---
+---
 name: Bug report
 about: Report a defect in a strategy/indicator/template or repo tooling
 labels: [bug]

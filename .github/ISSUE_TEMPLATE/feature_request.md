@@ -1,4 +1,4 @@
-﻿---
+---
 name: Feature request
 about: Propose a new feature, module, or improvement
 labels: [enhancement]

@@ -1,4 +1,4 @@
-﻿# NinjaTrader Platform
+# NinjaTrader Platform
 
 This folder contains NinjaTrader 8 (NinjaScript/C#) strategies, indicators, workspaces, and shared components.
 

@@ -1,4 +1,4 @@
-﻿# Disclaimer (Read Carefully)
+# Disclaimer (Read Carefully)
 
 This repository (the “Project”) is maintained by **Jason Teixeira / Nexural** and is published openly for **educational and research purposes only**.
 

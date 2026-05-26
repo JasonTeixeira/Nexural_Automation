@@ -1,4 +1,4 @@
-﻿# Notes
+# Notes
 
 ## Assumptions
 - List market microstructure assumptions.

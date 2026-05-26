@@ -1,4 +1,4 @@
-﻿# AbsorptionReversal (NinjaTrader) — Example Module
+# AbsorptionReversal (NinjaTrader) — Example Module
 
 ## Summary
 An example strategy module layout for an absorption-style reversal concept.
