@@ -1,0 +1,13 @@
+name: NexJMA Strategy
+slug: NexJMAStrategy
+kind: strategy
+platform: ninjatrader
+status: scaffolded
+classification: unclassified
+symbols: []
+timeframes: []
+sessions: []
+created: 2026-05-26
+maintainers:
+  - JasonTeixeira
+license: Apache-2.0
