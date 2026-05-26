@@ -1,4 +1,4 @@
-﻿# Supported Platforms
+# Supported Platforms
 
 ## NinjaTrader 8
 - NinjaScript (C#)

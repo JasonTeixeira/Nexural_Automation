@@ -1,4 +1,4 @@
-﻿---
+---
 name: Strategy proposal
 about: Propose a new strategy module before implementation
 labels: [proposal]

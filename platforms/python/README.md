@@ -1,4 +1,4 @@
-﻿# Python Platform
+# Python Platform
 
 Python tooling lives here.
 

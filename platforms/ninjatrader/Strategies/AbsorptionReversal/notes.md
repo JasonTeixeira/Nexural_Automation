@@ -1,4 +1,4 @@
-﻿# Notes
+# Notes
 
 ## Data requirements
 - Document whether volumetric/orderflow data is required.

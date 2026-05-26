@@ -1,4 +1,4 @@
-﻿# VWAPReversion (TradingView) — Example Module
+# VWAPReversion (TradingView) — Example Module
 
 ## Summary
 Example Pine Script indicator module layout for a VWAP mean-reversion context.

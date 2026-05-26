@@ -1,4 +1,4 @@
-﻿# Enforce LF in repo for consistent CI behavior.
+# Enforce LF in repo for consistent CI behavior.
 # Contributors on Windows can still use CRLF locally if their tooling requires it,
 # but Git will normalize on commit.
 

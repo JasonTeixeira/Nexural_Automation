@@ -1,4 +1,4 @@
-﻿# Contributing
+# Contributing
 
 Thanks for contributing. The goal is to build a repo that’s useful to real traders and developers: clear, cautious, and reproducible.
 

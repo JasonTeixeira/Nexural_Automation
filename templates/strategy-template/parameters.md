@@ -1,4 +1,4 @@
-﻿# Parameters
+# Parameters
 
 Document all parameters with defaults, ranges, and units.
 

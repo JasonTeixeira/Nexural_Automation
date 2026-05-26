@@ -1,4 +1,4 @@
-﻿name: IndicatorNameHere
+name: IndicatorNameHere
 type: indicator
 platform: ninjatrader
 language: csharp

@@ -1,4 +1,4 @@
-﻿"""Ingest utilities for NinjaTrader exports."""
+"""Ingest utilities for NinjaTrader exports."""
 
 from __future__ import annotations
 

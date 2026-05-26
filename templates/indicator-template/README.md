@@ -1,4 +1,4 @@
-﻿# Indicator Module Template
+# Indicator Module Template
 
 Use this template when adding a new **indicator** module for NinjaTrader or TradingView.
 

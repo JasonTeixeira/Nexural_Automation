@@ -1,4 +1,4 @@
-﻿name: docs-and-metadata
+name: docs-and-metadata
 
 on:
   pull_request:

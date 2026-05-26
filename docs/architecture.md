@@ -1,4 +1,4 @@
-﻿# Architecture
+# Architecture
 
 ## Goals
 - Multi-platform: NinjaTrader (C#), TradingView (Pine v5), Python research tooling.

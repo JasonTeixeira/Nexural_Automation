@@ -1,4 +1,4 @@
-﻿# Contribution Workflow
+# Contribution Workflow
 
 ## Recommended steps
 1. Fork the repository.

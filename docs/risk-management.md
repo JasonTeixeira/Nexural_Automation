@@ -1,4 +1,4 @@
-﻿# Risk Management
+# Risk Management
 
 This repo treats risk as part of the engineering work, not an afterthought.
 

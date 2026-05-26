@@ -1,4 +1,4 @@
-﻿name: AbsorptionReversal
+name: AbsorptionReversal
 type: strategy
 platform: ninjatrader
 language: csharp

@@ -1,4 +1,4 @@
-﻿//@version=5
+//@version=5
 indicator("VWAP Reversion (Example)", overlay=true)
 
 // NOTE: This is a minimal example for repository structure.

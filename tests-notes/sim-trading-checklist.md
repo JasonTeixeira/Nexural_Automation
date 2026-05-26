@@ -1,4 +1,4 @@
-﻿# Simulation Trading Checklist
+# Simulation Trading Checklist
 
 - [ ] Run in sim for at least N sessions
 - [ ] Verify order handling on disconnect/reconnect

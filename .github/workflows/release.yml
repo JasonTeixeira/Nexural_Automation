@@ -5,15 +5,16 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: platforms/python/research/nexural-research
-    permissions:
-      contents: write
-      packages: write
     steps:
       - uses: actions/checkout@v4
 
@@ -32,8 +33,18 @@ jobs:
           docker build -t nexural-research:${{ github.ref_name }} .
           docker tag nexural-research:${{ github.ref_name }} nexural-research:latest
 
+      - name: Generate SBOM (SPDX-JSON)
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: ${{ github.workspace }}/sbom.spdx.json
+          artifact-name: sbom.spdx.json
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           draft: false
+          files: |
+            ${{ github.workspace }}/sbom.spdx.json

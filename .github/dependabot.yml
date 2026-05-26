@@ -1,0 +1,90 @@
+# Dependabot keeps dependencies fresh by opening PRs on a schedule.
+# Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+version: 2
+
+updates:
+  # GitHub Actions versions (workflows/*.yml)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci(deps)"
+    labels:
+      - "dependencies"
+      - "github-actions"
+
+  # Root Python pins (if any)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build(deps-py)"
+    labels:
+      - "dependencies"
+      - "python"
+
+  # The locked, CI-critical Python deps
+  - package-ecosystem: "pip"
+    directory: "/platforms/python/research/nexural-research"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "build(deps-py)"
+    labels:
+      - "dependencies"
+      - "python"
+      - "nexural-research"
+    # Group dev/test bumps together to reduce PR noise
+    groups:
+      python-dev:
+        patterns:
+          - "pytest*"
+          - "mypy*"
+          - "ruff*"
+          - "black*"
+          - "coverage*"
+          - "pip-audit*"
+
+  # Frontend (Vite dashboard)
+  - package-ecosystem: "npm"
+    directory: "/platforms/python/research/nexural-research/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build(deps-js)"
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "frontend"
+    groups:
+      frontend-dev:
+        patterns:
+          - "@types/*"
+          - "eslint*"
+          - "prettier*"
+          - "vite*"
+          - "vitest*"
+          - "typescript"
+
+  # Docker base images for the dashboard container
+  - package-ecosystem: "docker"
+    directory: "/platforms/python/research/nexural-research"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "build(deps-docker)"
+    labels:
+      - "dependencies"
+      - "docker"

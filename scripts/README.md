@@ -1,4 +1,4 @@
-﻿# Scripts
+# Scripts
 
 This folder is for repository tooling.
 

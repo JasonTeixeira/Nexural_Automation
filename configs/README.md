@@ -1,4 +1,4 @@
-﻿# Configs
+# Configs
 
 This folder contains reusable configuration presets and examples.
 

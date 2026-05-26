@@ -1,4 +1,4 @@
-﻿# Strategy Module Template
+# Strategy Module Template
 
 Use this template when adding a new **strategy** module for NinjaTrader or TradingView.
 

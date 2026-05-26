@@ -1,4 +1,4 @@
-﻿# Indicator Framework
+# Indicator Framework
 
 Indicators should be:
 - composable (work with other tools)

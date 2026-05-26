@@ -1,4 +1,4 @@
-﻿# Notes
+# Notes
 
 - Document calculation details.
 - Document any repainting/lookahead.
