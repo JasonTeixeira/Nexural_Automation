@@ -65,7 +65,7 @@ httpx-sse==0.4.3
     # via mcp
 hypothesis==6.152.9
     # via nexural-research (pyproject.toml)
-idna==3.15
+idna==3.16
     # via
     #   anyio
     #   httpx
