@@ -63,7 +63,7 @@ httpx==0.28.1
     #   nexural-research (pyproject.toml)
 httpx-sse==0.4.3
     # via mcp
-hypothesis==6.152.9
+hypothesis==6.152.11
     # via nexural-research (pyproject.toml)
 idna==3.15
     # via
