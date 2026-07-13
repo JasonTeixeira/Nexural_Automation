@@ -37,7 +37,7 @@ colorama==0.4.6
     #   click
     #   pytest
     #   uvicorn
-coverage==7.14.0
+coverage==7.15.1
     # via pytest-cov
 cryptography==48.0.0
     # via pyjwt
@@ -87,7 +87,7 @@ mcp==1.27.1
     # via nexural-research (pyproject.toml)
 mdurl==0.1.2
     # via markdown-it-py
-mypy==2.1.0
+mypy==2.3.0
     # via nexural-research (pyproject.toml)
 mypy-extensions==1.1.0
     # via mypy
@@ -142,7 +142,7 @@ pygments==2.20.0
     #   rich
 pyjwt==2.13.0
     # via mcp
-pytest==9.0.3
+pytest==9.1.1
     # via
     #   nexural-research (pyproject.toml)
     #   pytest-cov
@@ -177,7 +177,7 @@ rpds-py==0.30.0
     # via
     #   jsonschema
     #   referencing
-ruff==0.15.14
+ruff==0.15.21
     # via nexural-research (pyproject.toml)
 scikit-learn==1.8.0
     # via nexural-research (pyproject.toml)
