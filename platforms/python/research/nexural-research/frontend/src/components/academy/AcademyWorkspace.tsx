@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   ChevronRight,
   CircleAlert,
-  Clock3,
   FlaskConical,
   Gauge,
   GraduationCap,

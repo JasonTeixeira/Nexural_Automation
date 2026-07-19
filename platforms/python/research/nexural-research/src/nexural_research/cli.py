@@ -66,12 +66,12 @@ def _cmd_academy(args: argparse.Namespace) -> int:
     from nexural_research.academy import AcademyService, CurriculumCatalog
     from nexural_research.academy.faults import FaultInjector
     from nexural_research.academy.freshness import check_freshness
+    from nexural_research.academy.plugins import PluginRegistry
     from nexural_research.academy.presentation import (
         learner_catalog,
         learner_grade,
         learner_progress,
     )
-    from nexural_research.academy.plugins import PluginRegistry
 
     academy_root, state_root = _academy_paths()
     service = AcademyService.from_paths(academy_root, state_root)
@@ -495,8 +495,6 @@ def _cmd_quality_gate(args: argparse.Namespace) -> int:
 
 def _cmd_validate_strategy(args: argparse.Namespace) -> int:
     """Validate a public strategy metadata file."""
-    import json
-
     from nexural_research.contracts import validate_strategy_metadata
 
     result = validate_strategy_metadata(args.path)
@@ -506,8 +504,6 @@ def _cmd_validate_strategy(args: argparse.Namespace) -> int:
 
 def _cmd_validate_bridge(args: argparse.Namespace) -> int:
     """Validate a public bridge contract file."""
-    import json
-
     from nexural_research.contracts import validate_bridge_contract
 
     result = validate_bridge_contract(args.path)

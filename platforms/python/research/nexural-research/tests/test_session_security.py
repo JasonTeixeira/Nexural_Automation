@@ -34,9 +34,29 @@ def authenticated_client(monkeypatch, tmp_path):
     monkeypatch.setattr(auth_module, "_VALID_KEY_HASHES", {auth_module._hash_key(k) for k in keys})
     monkeypatch.setattr(sessions_module, "_SESSION_DIR", tmp_path)
     sessions.clear()
+    sessions_module._persisted_paths.clear()
     with TestClient(app) as client:
         yield client
     sessions.clear()
+    sessions_module._persisted_paths.clear()
+
+
+@pytest.mark.parametrize("endpoint", ["/api/report/html", "/api/export/pdf-report"])
+def test_report_titles_are_html_escaped(authenticated_client, endpoint):
+    response = _upload(authenticated_client, "owner-a")
+    session_id = response.json()["session_id"]
+    headers = {"Authorization": "Bearer owner-a"}
+    hostile_title = "<script>alert('xss')</script>"
+
+    report_response = authenticated_client.get(
+        endpoint,
+        params={"session_id": session_id, "title": hostile_title},
+        headers=headers,
+    )
+
+    assert report_response.status_code == 200
+    assert hostile_title not in report_response.text
+    assert "&lt;script&gt;" in report_response.text
 
 
 def test_upload_uses_server_uuid_even_when_caller_supplies_session_id(authenticated_client):
@@ -58,16 +78,12 @@ def test_session_owner_can_list_read_and_delete(authenticated_client):
 
     listed = authenticated_client.get("/api/sessions", headers=headers)
     assert session_id in {item["session_id"] for item in listed.json()["sessions"]}
-    assert (
-        authenticated_client.get(
-            f"/api/analysis/metrics?session_id={session_id}", headers=headers
-        ).status_code
-        == 200
+    metrics_response = authenticated_client.get(
+        f"/api/analysis/metrics?session_id={session_id}", headers=headers
     )
-    assert (
-        authenticated_client.delete(f"/api/sessions/{session_id}", headers=headers).status_code
-        == 200
-    )
+    delete_response = authenticated_client.delete(f"/api/sessions/{session_id}", headers=headers)
+    assert metrics_response.status_code == 200
+    assert delete_response.status_code == 200
 
 
 def test_cross_owner_access_is_hidden_and_cannot_delete(authenticated_client):
@@ -77,22 +93,16 @@ def test_cross_owner_access_is_hidden_and_cannot_delete(authenticated_client):
 
     listed = authenticated_client.get("/api/sessions", headers=owner_b)
     assert session_id not in {item["session_id"] for item in listed.json()["sessions"]}
-    assert (
-        authenticated_client.get(
-            f"/api/analysis/metrics?session_id={session_id}", headers=owner_b
-        ).status_code
-        == 404
+    metrics_response = authenticated_client.get(
+        f"/api/analysis/metrics?session_id={session_id}", headers=owner_b
     )
-    assert (
-        authenticated_client.post(
-            f"/api/ai/context-preview?session_id={session_id}", headers=owner_b
-        ).status_code
-        == 404
+    preview_response = authenticated_client.post(
+        f"/api/ai/context-preview?session_id={session_id}", headers=owner_b
     )
-    assert (
-        authenticated_client.delete(f"/api/sessions/{session_id}", headers=owner_b).status_code
-        == 404
-    )
+    delete_response = authenticated_client.delete(f"/api/sessions/{session_id}", headers=owner_b)
+    assert metrics_response.status_code == 404
+    assert preview_response.status_code == 404
+    assert delete_response.status_code == 404
     assert session_id in sessions
 
 

@@ -68,9 +68,9 @@ class TestUploadFlow:
         assert test_session in sids
 
     def test_upload_persists_to_disk(self, test_session):
-        from pathlib import Path
+        from nexural_research.api.sessions import _session_path
 
-        p = Path("data/sessions") / test_session / "data.parquet"
+        p = _session_path(test_session) / "data.parquet"
         assert p.exists()
 
     def test_upload_writes_to_db(self, test_session):

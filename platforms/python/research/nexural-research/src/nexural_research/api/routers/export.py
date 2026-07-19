@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+from html import escape
 
 import pandas as pd
 from fastapi import APIRouter, Depends, Query
@@ -171,7 +172,7 @@ def export_pdf_report(
     df = get_trades(session_id)
     from nexural_research.export.pdf import generate_pdf_report_html
 
-    html = generate_pdf_report_html(df, title=title)
+    html = generate_pdf_report_html(df, title=escape(title, quote=True))
     return HTMLResponse(content=html)
 
 
@@ -182,4 +183,4 @@ def generate_html_report(
 ):
     """Generate a full HTML report."""
     df = get_trades(session_id)
-    return HTMLResponse(content=build_trades_report_html(df, title=title))
+    return HTMLResponse(content=build_trades_report_html(df, title=escape(title, quote=True)))

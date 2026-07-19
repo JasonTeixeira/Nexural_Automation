@@ -6,6 +6,7 @@ On startup, persisted sessions are reloaded automatically.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
@@ -62,6 +63,7 @@ _SESSION_DIR.mkdir(parents=True, exist_ok=True)
 # ---------------------------------------------------------------------------
 
 sessions: dict[str, dict[str, Any]] = {}
+_persisted_paths: dict[str, Path] = {}
 
 _SAFE_SESSION_ID = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
 
@@ -72,11 +74,17 @@ def new_session_id() -> str:
 
 
 def _session_path(session_id: str) -> Path:
-    """Resolve a session directory and prove that it remains under the data root."""
+    """Map an external session identifier to an opaque storage directory.
+
+    Hashing means a caller-controlled identifier is never used as a filesystem
+    component. The allowlist remains useful for rejecting malformed IDs before
+    any storage operation.
+    """
     if not _SAFE_SESSION_ID.fullmatch(session_id):
         raise HTTPException(404, "Session not found")
     root = _SESSION_DIR.resolve()
-    candidate = (_SESSION_DIR / session_id).resolve()
+    storage_key = hashlib.sha256(session_id.encode("utf-8")).hexdigest()
+    candidate = (root / storage_key).resolve()
     if candidate.parent != root:
         raise HTTPException(404, "Session not found")
     return candidate
@@ -126,8 +134,6 @@ def _write_session_to_db(
 ) -> None:
     """Write session metadata to SQLAlchemy database (if available)."""
     try:
-        import json
-
         from nexural_research.db.engine import SessionLocal
         from nexural_research.db.models import AnalysisSession
 
@@ -171,6 +177,7 @@ def persist_session(
 
     # Save metadata
     meta = {
+        "session_id": session_id,
         "kind": kind,
         "filename": filename,
         "n_rows": len(df),
@@ -179,6 +186,7 @@ def persist_session(
         "owner_hash": owner_hash,
     }
     (session_path / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
+    _persisted_paths[session_id] = session_path
     # Also write to DB
     _write_session_to_db(session_id, kind, filename, len(df), list(df.columns))
     _logger.info("Persisted session %s (%d rows)", session_id, len(df))
@@ -193,20 +201,25 @@ def load_persisted_sessions() -> int:
     for session_path in _SESSION_DIR.iterdir():
         if not session_path.is_dir() or session_path.is_symlink():
             continue
-        try:
-            safe_path = _session_path(session_path.name)
-        except HTTPException:
-            _logger.warning("Ignored invalid persisted session directory: %s", session_path.name)
-            continue
-        meta_file = safe_path / "meta.json"
-        data_file = safe_path / "data.parquet"
+        meta_file = session_path / "meta.json"
+        data_file = session_path / "data.parquet"
         if not meta_file.exists() or not data_file.exists():
             continue
 
         try:
             meta = json.loads(meta_file.read_text(encoding="utf-8"))
+            session_id = str(meta.get("session_id", session_path.name))
+            if not _SAFE_SESSION_ID.fullmatch(session_id):
+                _logger.warning("Ignored invalid persisted session id in %s", session_path.name)
+                continue
+            expected_names = {session_id, hashlib.sha256(session_id.encode("utf-8")).hexdigest()}
+            if session_path.name not in expected_names:
+                _logger.warning(
+                    "Ignored mismatched persisted session directory: %s", session_path.name
+                )
+                continue
             df = pd.read_parquet(data_file)
-            sessions[session_path.name] = {
+            sessions[session_id] = {
                 "df": df,
                 "kind": meta["kind"],
                 "filename": meta.get("filename"),
@@ -215,6 +228,7 @@ def load_persisted_sessions() -> int:
                 "created_at": meta.get("created_at", time.time()),
                 "owner_hash": meta.get("owner_hash"),
             }
+            _persisted_paths[session_id] = session_path
             loaded += 1
         except Exception as e:
             _logger.warning("Failed to load persisted session %s: %s", session_path.name, e)
@@ -226,7 +240,11 @@ def load_persisted_sessions() -> int:
 
 def delete_persisted_session(session_id: str) -> None:
     """Remove persisted session data from disk."""
-    session_path = _session_path(session_id)
+    session_path = _persisted_paths.pop(session_id, None) or _session_path(session_id)
+    root = _SESSION_DIR.resolve()
+    session_path = session_path.resolve()
+    if session_path.parent != root:
+        raise HTTPException(404, "Session not found")
     if session_path.exists():
         import shutil
 
