@@ -1,8 +1,15 @@
 const BASE = "/api";
 const REQUEST_TIMEOUT_MS = 30_000;
+let platformCredential = "";
+
+export function setPlatformCredential(value: string) {
+  platformCredential = value.trim();
+}
 
 const USER_MESSAGES: Record<number, string> = {
   400: "Invalid request. Please check your input.",
+  401: "Authentication required. Add your Nexural API key in Settings.",
+  403: "This Nexural API key does not have access to that resource.",
   404: "Data not found. Please upload a CSV first.",
   413: "File is too large. Maximum upload size is 100MB.",
   422: "Invalid parameters. Please check your input values.",
@@ -16,8 +23,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
+    const headers = new Headers(init?.headers);
+    if (platformCredential) headers.set("Authorization", `Bearer ${platformCredential}`);
     const res = await fetch(`${BASE}${path}`, {
       ...init,
+      headers,
       signal: controller.signal,
     });
     if (!res.ok) {
@@ -146,10 +156,29 @@ export const getTradesData = (s = "default") =>
 export const getImprovements = (s = "default") =>
   request<Record<string, unknown>>(`/analysis/improvements?session_id=${s}`);
 
-// Exports
-export const getExportJsonUrl = (s = "default") => `${BASE}/export/json?session_id=${s}`;
-export const getExportCsvUrl = (s = "default", filtered = false) =>
-  `${BASE}/export/csv?session_id=${s}&filtered=${filtered}`;
+// Exports must be fetched so hosted mode can attach the Authorization header.
+async function downloadExport(path: string, filename: string) {
+  const headers = new Headers();
+  if (platformCredential) headers.set("Authorization", `Bearer ${platformCredential}`);
+  const response = await fetch(`${BASE}${path}`, { headers });
+  if (!response.ok) {
+    throw new Error(USER_MESSAGES[response.status] || `Export failed (${response.status})`);
+  }
+  const url = URL.createObjectURL(await response.blob());
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+export const downloadExportJson = (s = "default") =>
+  downloadExport(`/export/json?session_id=${encodeURIComponent(s)}`, `${s}-analysis.json`);
+export const downloadExportCsv = (s = "default", filtered = false) =>
+  downloadExport(
+    `/export/csv?session_id=${encodeURIComponent(s)}&filtered=${filtered}`,
+    `${s}-${filtered ? "filtered" : "trades"}.csv`,
+  );
 
 // Comparison
 export const getComparison = (a: string, b: string) =>
@@ -158,3 +187,187 @@ export const getComparison = (a: string, b: string) =>
 // Sessions
 export const getSessions = () =>
   request<Record<string, { kind: string; filename: string; n_rows: number }>>(`/sessions`);
+
+// Automation Academy
+export type AcademyStatus = "not_started" | "in_progress" | "completed";
+
+export interface AcademyCriterion {
+  id: string;
+  metric: string;
+  operator: string;
+  expected: unknown;
+  weight: number;
+  visibility: "public" | "hidden";
+  message: string;
+}
+
+export interface AcademyItem {
+  id: string;
+  kind: "lesson" | "capstone";
+  track: string;
+  title: string;
+  objectives: string[];
+  prerequisites: string[];
+  updated_at: string;
+  estimated_minutes: number;
+  translations: Record<string, Record<string, string>>;
+  rubric: AcademyCriterion[];
+  hidden_checks: number;
+  starter_submission: Record<string, unknown>;
+  hints: string[];
+  tags: string[];
+}
+
+export interface AcademyTrack {
+  id: string;
+  title: string;
+  description: string;
+  lessons: string[];
+  capstones: string[];
+}
+
+export interface AcademyCatalog {
+  schema_version: string;
+  version: string;
+  updated_at: string;
+  default_locale: string;
+  tracks: Record<string, AcademyTrack>;
+  lessons: Record<string, AcademyItem>;
+  capstones: Record<string, AcademyItem>;
+}
+
+export interface AcademyItemProgress {
+  item_id: string;
+  status: AcademyStatus;
+  attempts: number;
+  hint_level: number;
+  best_score: number;
+  last_failures: string[];
+}
+
+export interface AcademyProgress {
+  learner_id: string;
+  completed: number;
+  in_progress: number;
+  total_attempts: number;
+  items: AcademyItemProgress[];
+}
+
+export interface AcademyGrade {
+  item_id: string;
+  passed: boolean;
+  score: number;
+  criteria: Array<{
+    id: string;
+    passed: boolean;
+    earned: number;
+    possible: number;
+    visibility: "public" | "hidden";
+    message: string;
+  }>;
+}
+
+export interface AcademyTraceEvent {
+  timestamp: string;
+  event: string;
+  learner_id: string;
+  item_id: string | null;
+  data: Record<string, unknown>;
+}
+
+export interface AcademyLedgerRecord {
+  id: string;
+  item_id: string;
+  recorded_at: string;
+  code_sha: string;
+  data_hash: string;
+  seed: number;
+  costs: Record<string, unknown>;
+  folds: Array<Record<string, unknown>>;
+  artifacts: Array<{ name: string; sha256: string; size: number }>;
+  previous_hash: string | null;
+  record_hash: string;
+  verified: boolean;
+}
+
+export interface AcademyFreshness {
+  fresh: boolean;
+  stale_items: string[];
+  newest_update?: string;
+  checked_at?: string;
+}
+
+export interface AcademyMarketplaceCatalog {
+  schema_version: string;
+  templates: Array<{
+    name: string;
+    version: string;
+    publisher: string;
+    tags: string[];
+    digest: string;
+  }>;
+}
+
+export interface AcademyCohortSummary {
+  cohort_id: string;
+  learners: number;
+  completed_items: number;
+  started_items: number;
+  completion_rate: number;
+  common_failures: Array<[string, number]>;
+}
+
+export const getAcademyCatalog = () => request<AcademyCatalog>(`/academy/catalog`);
+export const getAcademyProgress = (learnerId: string) =>
+  request<AcademyProgress>(`/academy/progress/${encodeURIComponent(learnerId)}`);
+export const getAcademyTrace = (learnerId: string) =>
+  request<AcademyTraceEvent[]>(`/academy/trace/${encodeURIComponent(learnerId)}`);
+export const getAcademyLedger = (learnerId: string) =>
+  request<AcademyLedgerRecord[]>(`/academy/ledger/${encodeURIComponent(learnerId)}`);
+export const getAcademyFreshness = () => request<AcademyFreshness>(`/academy/freshness`);
+export const getAcademyMarketplace = () =>
+  request<AcademyMarketplaceCatalog>(`/academy/marketplace`);
+export const getAcademyCohortSummary = (cohortId: string, learnerIds: string[]) =>
+  request<AcademyCohortSummary>(`/academy/cohorts/summary`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ cohort_id: cohortId, learner_ids: learnerIds }),
+  });
+export const applyAcademyFault = (
+  profile: "disconnect" | "duplicate" | "latency" | "partial_fill" | "stale_data",
+  events: Array<Record<string, unknown>>,
+  seed = 42,
+) => request<{ profile: string; seed: number; events: Array<Record<string, unknown>> }>(
+  `/academy/faults/apply`,
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ profile, events, seed }),
+  },
+);
+
+const academyAction = <T>(
+  itemId: string,
+  action: "start" | "check" | "submit" | "hint",
+  learnerId: string,
+  submission?: Record<string, unknown>,
+) => request<T>(`/academy/items/${encodeURIComponent(itemId)}/${action}`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ learner_id: learnerId, submission: submission ?? {} }),
+});
+
+export const startAcademyItem = (itemId: string, learnerId: string) =>
+  academyAction<AcademyItemProgress>(itemId, "start", learnerId);
+export const checkAcademyItem = (
+  itemId: string,
+  learnerId: string,
+  submission: Record<string, unknown>,
+) => academyAction<AcademyGrade>(itemId, "check", learnerId, submission);
+export const submitAcademyItem = (
+  itemId: string,
+  learnerId: string,
+  submission: Record<string, unknown>,
+) => academyAction<AcademyGrade>(itemId, "submit", learnerId, submission);
+export const getAcademyHint = (itemId: string, learnerId: string) =>
+  academyAction<{ item_id: string; level: number; text: string }>(itemId, "hint", learnerId);

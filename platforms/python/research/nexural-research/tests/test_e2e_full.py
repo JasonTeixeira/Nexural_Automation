@@ -5,8 +5,6 @@ Tests the complete pipeline: upload -> analyze -> every page -> export -> cleanu
 """
 
 import io
-import json
-import time
 
 import numpy as np
 import pandas as pd
@@ -32,9 +30,14 @@ def test_session(client):
     for i in range(n):
         entry = base + pd.Timedelta(hours=i * 2)
         exit_ = entry + pd.Timedelta(minutes=15 + rng.integers(5, 60))
-        rows.append(f"T{i},NQ,BUY,{entry.strftime('%Y-%m-%d %H:%M')},{exit_.strftime('%Y-%m-%d %H:%M')},{profits[i]:.2f},4.50,TestStrategy")
+        rows.append(
+            f"T{i},NQ,BUY,{entry.strftime('%Y-%m-%d %H:%M')},"
+            f"{exit_.strftime('%Y-%m-%d %H:%M')},{profits[i]:.2f},4.50,TestStrategy"
+        )
 
-    csv = "trade_id,symbol,side,entry_time,exit_time,net_pnl,commission,strategy\n" + "\n".join(rows)
+    csv = "trade_id,symbol,side,entry_time,exit_time,net_pnl,commission,strategy\n" + "\n".join(
+        rows
+    )
     r = client.post(
         "/api/upload?session_id=e2e_test",
         files={"file": ("e2e_trades.csv", io.BytesIO(csv.encode()), "text/csv")},
@@ -43,16 +46,20 @@ def test_session(client):
     data = r.json()
     assert data["n_rows"] == 100
     assert data["kind"] == "trades"
-    return "e2e_test"
+    return data["session_id"]
 
 
 # ===================================================================
 # FLOW 1: Upload and Session Management
 # ===================================================================
 
+
 class TestUploadFlow:
     def test_upload_returns_session(self, client, test_session):
-        assert test_session == "e2e_test"
+        from uuid import UUID
+
+        assert UUID(test_session).version == 4
+        assert test_session != "e2e_test"
 
     def test_session_appears_in_list(self, client, test_session):
         r = client.get("/api/sessions")
@@ -61,15 +68,19 @@ class TestUploadFlow:
         assert test_session in sids
 
     def test_upload_persists_to_disk(self, test_session):
-        from pathlib import Path
-        p = Path("data/sessions") / test_session / "data.parquet"
+        from nexural_research.api.sessions import _session_path
+
+        p = _session_path(test_session) / "data.parquet"
         assert p.exists()
 
     def test_upload_writes_to_db(self, test_session):
         try:
             import sqlite3
+
             conn = sqlite3.connect("data/nexural.db")
-            rows = conn.execute("SELECT * FROM analysis_sessions WHERE session_id=?", (test_session,)).fetchall()
+            rows = conn.execute(
+                "SELECT * FROM analysis_sessions WHERE session_id=?", (test_session,)
+            ).fetchall()
             conn.close()
             assert len(rows) >= 1
         except Exception:
@@ -79,6 +90,7 @@ class TestUploadFlow:
 # ===================================================================
 # FLOW 2: Overview Tab (6 endpoints)
 # ===================================================================
+
 
 class TestOverviewTab:
     def test_core_metrics(self, client, test_session):
@@ -98,7 +110,14 @@ class TestOverviewTab:
         r = client.get(f"/api/analysis/risk-return?session_id={test_session}")
         assert r.status_code == 200
         d = r.json()
-        for field in ["sharpe_ratio", "sortino_ratio", "calmar_ratio", "omega_ratio", "tail_ratio", "risk_of_ruin"]:
+        for field in [
+            "sharpe_ratio",
+            "sortino_ratio",
+            "calmar_ratio",
+            "omega_ratio",
+            "tail_ratio",
+            "risk_of_ruin",
+        ]:
             assert field in d, f"Missing field: {field}"
             assert isinstance(d[field], (int, float, str)), f"{field} has wrong type"
 
@@ -139,12 +158,20 @@ class TestOverviewTab:
 # FLOW 3: Advanced Metrics Tab
 # ===================================================================
 
+
 class TestAdvancedTab:
     def test_comprehensive(self, client, test_session):
         r = client.get(f"/api/analysis/comprehensive?session_id={test_session}")
         assert r.status_code == 200
         d = r.json()
-        for section in ["risk_return", "expectancy", "dependency", "distribution", "time_decay", "institutional"]:
+        for section in [
+            "risk_return",
+            "expectancy",
+            "dependency",
+            "distribution",
+            "time_decay",
+            "institutional",
+        ]:
             assert section in d, f"Missing section: {section}"
             assert isinstance(d[section], dict)
 
@@ -152,6 +179,7 @@ class TestAdvancedTab:
 # ===================================================================
 # FLOW 4: Distribution Tab
 # ===================================================================
+
 
 class TestDistributionTab:
     def test_metrics(self, client, test_session):
@@ -173,6 +201,7 @@ class TestDistributionTab:
 # ===================================================================
 # FLOW 5: Desk Analytics Tab (4 endpoints)
 # ===================================================================
+
 
 class TestDeskAnalyticsTab:
     def test_hurst(self, client, test_session):
@@ -213,6 +242,7 @@ class TestDeskAnalyticsTab:
 # FLOW 6: Improvements Tab
 # ===================================================================
 
+
 class TestImprovementsTab:
     def test_full_report(self, client, test_session):
         r = client.get(f"/api/analysis/improvements?session_id={test_session}")
@@ -230,9 +260,12 @@ class TestImprovementsTab:
 # FLOW 7: Monte Carlo Tab
 # ===================================================================
 
+
 class TestMonteCarloTab:
     def test_parametric(self, client, test_session):
-        r = client.get(f"/api/robustness/parametric-monte-carlo?session_id={test_session}&n_simulations=100")
+        r = client.get(
+            f"/api/robustness/parametric-monte-carlo?session_id={test_session}&n_simulations=100"
+        )
         assert r.status_code == 200
         d = r.json()
         assert d["n_simulations"] == 100
@@ -240,16 +273,30 @@ class TestMonteCarloTab:
         assert 0 <= d["probability_of_profit"] <= 100
 
     def test_bootstrap(self, client, test_session):
-        r = client.get(f"/api/robustness/block-bootstrap?session_id={test_session}&n_simulations=100")
+        r = client.get(
+            f"/api/robustness/block-bootstrap?session_id={test_session}&n_simulations=100"
+        )
+        assert r.status_code == 200
+        d = r.json()
+        assert d["n_simulations"] == 0
+        assert d["sufficient_history"] is False
+
+        r = client.get(
+            f"/api/robustness/block-bootstrap?session_id={test_session}"
+            "&n_simulations=100&periods_per_year=1"
+        )
         assert r.status_code == 200
         d = r.json()
         assert d["n_simulations"] == 100
         assert d["block_size"] >= 3
+        assert d["sufficient_history"] is True
+        assert d["observation_basis"] == "explicit_observation_frequency"
 
 
 # ===================================================================
 # FLOW 8: Walk-Forward Tab
 # ===================================================================
+
 
 class TestWalkForwardTab:
     def test_simple(self, client, test_session):
@@ -271,6 +318,7 @@ class TestWalkForwardTab:
 # FLOW 9: Overfitting Tab
 # ===================================================================
 
+
 class TestOverfittingTab:
     def test_deflated_sharpe(self, client, test_session):
         r = client.get(f"/api/robustness/deflated-sharpe?session_id={test_session}")
@@ -278,11 +326,14 @@ class TestOverfittingTab:
         d = r.json()
         assert isinstance(d["survives_deflation"], bool)
         assert len(d["interpretation"]) > 10
+        assert d["survives_deflation"] is False
+        assert "insufficient" in d["interpretation"]
 
 
 # ===================================================================
 # FLOW 10: Regime Tab
 # ===================================================================
+
 
 class TestRegimeTab:
     def test_regime(self, client, test_session):
@@ -300,6 +351,7 @@ class TestRegimeTab:
 # ===================================================================
 # FLOW 11: Stress Testing Tab (3 endpoints)
 # ===================================================================
+
 
 class TestStressTestingTab:
     def test_tail(self, client, test_session):
@@ -319,7 +371,9 @@ class TestStressTestingTab:
         assert len(d["worst_windows"]) > 0
 
     def test_sensitivity(self, client, test_session):
-        r = client.get(f"/api/stress/sensitivity?session_id={test_session}&size_steps=4&stop_steps=4")
+        r = client.get(
+            f"/api/stress/sensitivity?session_id={test_session}&size_steps=4&stop_steps=4"
+        )
         assert r.status_code == 200
         d = r.json()
         assert d["n_points"] == 16
@@ -329,6 +383,7 @@ class TestStressTestingTab:
 # ===================================================================
 # FLOW 12: Trade Log Tab
 # ===================================================================
+
 
 class TestTradeLogTab:
     def test_trades_list(self, client, test_session):
@@ -342,6 +397,7 @@ class TestTradeLogTab:
 # ===================================================================
 # FLOW 13: Heatmap Tab
 # ===================================================================
+
 
 class TestHeatmapTab:
     def test_heatmap(self, client, test_session):
@@ -358,6 +414,7 @@ class TestHeatmapTab:
 # FLOW 14: Equity Curve Tab
 # ===================================================================
 
+
 class TestEquityCurveTab:
     def test_equity_data(self, client, test_session):
         r = client.get(f"/api/charts/equity?session_id={test_session}")
@@ -370,6 +427,7 @@ class TestEquityCurveTab:
 # ===================================================================
 # FLOW 15: Rolling Metrics Tab
 # ===================================================================
+
 
 class TestRollingMetricsTab:
     def test_rolling(self, client, test_session):
@@ -385,6 +443,7 @@ class TestRollingMetricsTab:
 # FLOW 16: Compare Tab
 # ===================================================================
 
+
 class TestCompareTab:
     def test_comparison(self, client, test_session):
         r = client.get(f"/api/export/comparison?session_a={test_session}&session_b={test_session}")
@@ -396,6 +455,7 @@ class TestCompareTab:
 # ===================================================================
 # FLOW 17: AI Analyst Tab
 # ===================================================================
+
 
 class TestAIAnalystTab:
     def test_context_preview(self, client, test_session):
@@ -418,6 +478,7 @@ class TestAIAnalystTab:
 # ===================================================================
 # FLOW 18: Export Tab
 # ===================================================================
+
 
 class TestExportTab:
     def test_json_export(self, client, test_session):
@@ -454,9 +515,12 @@ class TestExportTab:
 # FLOW 19: Parameter Sweep
 # ===================================================================
 
+
 class TestParameterSweepTab:
     def test_sweep(self, client, test_session):
-        r = client.get(f"/api/analysis/parameter-sweep?session_id={test_session}&stop_steps=3&target_steps=3&size_steps=2")
+        r = client.get(
+            f"/api/analysis/parameter-sweep?session_id={test_session}&stop_steps=3&target_steps=3&size_steps=2"
+        )
         assert r.status_code == 200
         d = r.json()
         assert d["n_combinations"] == 18
@@ -468,14 +532,19 @@ class TestParameterSweepTab:
 # FLOW 20: Compare Matrix
 # ===================================================================
 
+
 class TestCompareMatrixTab:
     def test_matrix(self, client, test_session):
         # Upload a second session
         csv2 = "trade_id,symbol,entry_time,exit_time,net_pnl\n" + "\n".join(
-            f"{i},ES,2025-02-{1+i//10:02d} 09:30,2025-02-{1+i//10:02d} 09:45,{(-1)**i * 40}"
+            f"{i},ES,2025-02-{1 + i // 10:02d} 09:30,"
+            f"2025-02-{1 + i // 10:02d} 09:45,{(-1) ** i * 40}"
             for i in range(30)
         )
-        client.post("/api/upload?session_id=e2e_compare", files={"file": ("cmp.csv", io.BytesIO(csv2.encode()), "text/csv")})
+        client.post(
+            "/api/upload?session_id=e2e_compare",
+            files={"file": ("cmp.csv", io.BytesIO(csv2.encode()), "text/csv")},
+        )
         r = client.get(f"/api/compare/matrix?session_ids={test_session},e2e_compare")
         assert r.status_code == 200
         d = r.json()
@@ -486,6 +555,7 @@ class TestCompareMatrixTab:
 # ===================================================================
 # FLOW 21: Health & Infrastructure
 # ===================================================================
+
 
 class TestHealthInfrastructure:
     def test_health(self, client):
@@ -532,6 +602,7 @@ class TestHealthInfrastructure:
 # ===================================================================
 # FLOW 22: Cleanup
 # ===================================================================
+
 
 class TestCleanup:
     def test_delete_session(self, client, test_session):

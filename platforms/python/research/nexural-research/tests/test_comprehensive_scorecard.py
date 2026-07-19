@@ -12,23 +12,16 @@ Covers:
 
 import io
 import math
+
 import numpy as np
 import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
 
 from nexural_research.analyze.advanced_metrics import (
-    ComprehensiveMetrics,
-    DistributionMetrics,
-    ExpectancyMetrics,
-    RiskReturnMetrics,
-    TradeDependencyMetrics,
-    comprehensive_analysis,
     distribution_metrics,
     expectancy_metrics,
     risk_return_metrics,
-    time_decay_analysis,
-    trade_dependency_analysis,
 )
 from nexural_research.analyze.advanced_robustness import (
     block_bootstrap_monte_carlo,
@@ -43,28 +36,30 @@ from nexural_research.analyze.equity import (
     max_drawdown,
     ulcer_index,
 )
-from nexural_research.analyze.metrics import metrics_from_trades
 from nexural_research.analyze.improvements import generate_improvement_report
+from nexural_research.analyze.metrics import metrics_from_trades
 from nexural_research.analyze.portfolio import benchmark_comparison, portfolio_analysis
 from nexural_research.analyze.robustness import monte_carlo_max_drawdown, walk_forward_split
-from nexural_research.ingest.nt_csv import parse_money
 from nexural_research.api.app import app
-
+from nexural_research.ingest.nt_csv import parse_money
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_trades(profits: list[float], n_days: int = 5) -> pd.DataFrame:
     n = len(profits)
     base = pd.Timestamp("2025-01-01 09:30:00")
-    return pd.DataFrame({
-        "profit": profits,
-        "entry_time": [base + pd.Timedelta(hours=i) for i in range(n)],
-        "exit_time": [base + pd.Timedelta(hours=i, minutes=15) for i in range(n)],
-        "instrument": "NQ",
-        "strategy": "Test",
-    })
+    return pd.DataFrame(
+        {
+            "profit": profits,
+            "entry_time": [base + pd.Timedelta(hours=i) for i in range(n)],
+            "exit_time": [base + pd.Timedelta(hours=i, minutes=15) for i in range(n)],
+            "instrument": "NQ",
+            "strategy": "Test",
+        }
+    )
 
 
 @pytest.fixture(scope="module")
@@ -99,6 +94,7 @@ def uploaded_session(client):
 # SECTION 1: Mathematical Correctness with Reference Values
 # ===================================================================
 
+
 class TestSharpeRatioCorrectness:
     """Verify Sharpe ratio against manual calculation."""
 
@@ -110,7 +106,6 @@ class TestSharpeRatioCorrectness:
 
         pnl = np.array(profits)
         mean_ret = np.mean(pnl)
-        std_ret = np.std(pnl, ddof=1)
         # Sharpe should be positive (mean is 25.0)
         assert mean_ret > 0
         assert rr.sharpe_ratio > 0
@@ -140,7 +135,7 @@ class TestSortinoRatioCorrectness:
         # Manual calculation of downside deviation
         pnl = np.array(profits, dtype=float)
         downside_diff = np.minimum(pnl - 0.0, 0.0)
-        downside_std_manual = np.sqrt(np.mean(downside_diff ** 2))
+        downside_std_manual = np.sqrt(np.mean(downside_diff**2))
         assert downside_std_manual > 0
         assert rr.sortino_ratio > 0
 
@@ -166,7 +161,6 @@ class TestProfitFactorCorrectness:
         """PF = sum(wins) / abs(sum(losses))."""
         profits = [100, -50, 200, -100]
         df = _make_trades(profits)
-        rr = risk_return_metrics(df)
         expected_pf = (100 + 200) / (50 + 100)  # 2.0
         # The profit_factor is in the core metrics, but also computed in advanced
         m = metrics_from_trades(df)
@@ -243,6 +237,7 @@ class TestVaRCVaR:
 # ===================================================================
 # SECTION 2: Edge Cases
 # ===================================================================
+
 
 class TestEdgeCases:
     def test_empty_dataframe(self):
@@ -328,6 +323,7 @@ class TestMaxDrawdown:
 # SECTION 3: Robustness Module Tests
 # ===================================================================
 
+
 class TestMonteCarloRobustness:
     def test_shuffle_mc_preserves_net(self):
         """Shuffling preserves total PnL (just reorders)."""
@@ -366,7 +362,7 @@ class TestBlockBootstrap:
     def test_block_bootstrap_runs(self):
         profits = list(range(-50, 50)) * 2  # 200 trades
         df = _make_trades(profits)
-        result = block_bootstrap_monte_carlo(df, n_simulations=50, seed=42)
+        result = block_bootstrap_monte_carlo(df, n_simulations=50, seed=42, periods_per_year=1.0)
         assert result.n_simulations == 50
         assert result.block_size >= 3
 
@@ -396,7 +392,7 @@ class TestDeflatedSharpe:
         # Strong strategy with consistent profits
         profits = [100, 80, 120, 90, 110, 95, 105, 85, 115, 100] * 10
         df = _make_trades(profits)
-        result = deflated_sharpe_ratio(df, n_trials=10)
+        result = deflated_sharpe_ratio(df, n_trials=10, periods_per_year=1.0)
         assert result.observed_sharpe > 0
         # Strong strategy with few trials should survive
         assert result.is_significant is True or result.p_value < 0.2
@@ -427,6 +423,7 @@ class TestRegimeAnalysis:
 # ===================================================================
 # SECTION 4: Data Ingestion Tests
 # ===================================================================
+
 
 class TestParseMoney:
     def test_dollar_sign(self):
@@ -464,6 +461,7 @@ class TestParseMoney:
 # ===================================================================
 # SECTION 5: API Error Handling Tests
 # ===================================================================
+
 
 class TestAPIErrorHandling:
     def test_missing_session_returns_404(self, client):
@@ -511,7 +509,9 @@ class TestAPIInputValidation:
         assert resp.status_code == 422
 
     def test_negative_simulations(self, client, uploaded_session):
-        resp = client.get(f"/api/robustness/parametric-monte-carlo?session_id={uploaded_session}&n_simulations=-5")
+        resp = client.get(
+            f"/api/robustness/parametric-monte-carlo?session_id={uploaded_session}&n_simulations=-5"
+        )
         assert resp.status_code == 422
 
     def test_valid_parameters_work(self, client, uploaded_session):
@@ -521,7 +521,10 @@ class TestAPIInputValidation:
 
 class TestAPIFileUpload:
     def test_upload_valid_csv(self, client):
-        csv = "trade_id,symbol,entry_time,exit_time,net_pnl\n1,NQ,2025-01-01 09:30,2025-01-01 09:45,100\n"
+        csv = (
+            "trade_id,symbol,entry_time,exit_time,net_pnl\n"
+            "1,NQ,2025-01-01 09:30,2025-01-01 09:45,100\n"
+        )
         resp = client.post(
             "/api/upload?session_id=upload_test",
             files={"file": ("test.csv", io.BytesIO(csv.encode()), "text/csv")},
@@ -530,7 +533,10 @@ class TestAPIFileUpload:
         assert resp.json()["kind"] == "trades"
 
     def test_upload_creates_session(self, client):
-        csv = "trade_id,symbol,entry_time,exit_time,net_pnl\n1,ES,2025-01-01 09:30,2025-01-01 09:45,50\n"
+        csv = (
+            "trade_id,symbol,entry_time,exit_time,net_pnl\n"
+            "1,ES,2025-01-01 09:30,2025-01-01 09:45,50\n"
+        )
         resp = client.post(
             "/api/upload?session_id=create_test",
             files={"file": ("test.csv", io.BytesIO(csv.encode()), "text/csv")},
@@ -546,6 +552,7 @@ class TestAPIFileUpload:
 # SECTION 6: Portfolio & Benchmark Tests
 # ===================================================================
 
+
 class TestPortfolioAnalysis:
     def test_single_strategy(self):
         df = _make_trades([100, -50, 200, -100, 150])
@@ -555,13 +562,15 @@ class TestPortfolioAnalysis:
     def test_multi_strategy(self):
         n = 20
         base = pd.Timestamp("2025-01-01 09:30:00")
-        df = pd.DataFrame({
-            "profit": [100, -50] * 10,
-            "entry_time": [base + pd.Timedelta(hours=i) for i in range(n)],
-            "exit_time": [base + pd.Timedelta(hours=i, minutes=15) for i in range(n)],
-            "instrument": "NQ",
-            "strategy": ["StratA"] * 10 + ["StratB"] * 10,
-        })
+        df = pd.DataFrame(
+            {
+                "profit": [100, -50] * 10,
+                "entry_time": [base + pd.Timedelta(hours=i) for i in range(n)],
+                "exit_time": [base + pd.Timedelta(hours=i, minutes=15) for i in range(n)],
+                "instrument": "NQ",
+                "strategy": ["StratA"] * 10 + ["StratB"] * 10,
+            }
+        )
         result = portfolio_analysis(df)
         assert result.n_strategies == 2
         assert len(result.correlations) == 1
@@ -585,6 +594,7 @@ class TestBenchmarkComparison:
 # SECTION 7: Improvements Engine Tests
 # ===================================================================
 
+
 class TestImprovementsEngine:
     def test_losing_strategy_gets_critical(self):
         profits = [-100, -200, -50, -150, -300, -80, -120, -90, -250, -180]
@@ -596,10 +606,48 @@ class TestImprovementsEngine:
 
     def test_strong_strategy_gets_good_grade(self):
         # Mix of wins and losses with strong profit factor and win rate
-        profits = [100, -30, 120, -25, 110, -20, 105, -35, 115, -28,
-                   100, -30, 120, -25, 110, -20, 105, -35, 115, -28,
-                   100, -30, 120, -25, 110, -20, 105, -35, 115, -28,
-                   100, -30, 120, -25, 110, -20, 105, -35, 115, -28]
+        profits = [
+            100,
+            -30,
+            120,
+            -25,
+            110,
+            -20,
+            105,
+            -35,
+            115,
+            -28,
+            100,
+            -30,
+            120,
+            -25,
+            110,
+            -20,
+            105,
+            -35,
+            115,
+            -28,
+            100,
+            -30,
+            120,
+            -25,
+            110,
+            -20,
+            105,
+            -35,
+            115,
+            -28,
+            100,
+            -30,
+            120,
+            -25,
+            110,
+            -20,
+            105,
+            -35,
+            115,
+            -28,
+        ]
         df = _make_trades(profits)
         report = generate_improvement_report(df)
         assert report.overall_grade in ("A", "B+", "B", "C")
@@ -614,6 +662,7 @@ class TestImprovementsEngine:
 # ===================================================================
 # SECTION 8: Equity Curve Tests
 # ===================================================================
+
 
 class TestEquityCurve:
     def test_equity_matches_cumsum(self):
@@ -640,6 +689,7 @@ class TestEquityCurve:
 # SECTION 9: Regression Tests (Known Outputs)
 # ===================================================================
 
+
 class TestRegressionValues:
     """Ensure metrics don't silently change across code changes."""
 
@@ -663,6 +713,7 @@ class TestRegressionValues:
 # ===================================================================
 # SECTION 10: Integration Tests (Full API Flow)
 # ===================================================================
+
 
 class TestFullAPIFlow:
     def test_upload_analyze_export(self, client):
@@ -738,6 +789,7 @@ class TestFullAPIFlow:
 # SECTION 11: Institutional Metrics Tests
 # ===================================================================
 
+
 class TestInstitutionalMetrics:
     """Test the new institutional metrics if they exist."""
 
@@ -745,6 +797,7 @@ class TestInstitutionalMetrics:
         """Verify the institutional_metrics function exists."""
         try:
             from nexural_research.analyze.advanced_metrics import institutional_metrics
+
             profits = [100, -50, 200, -100, 150, -75, 300, -125, 180, -60]
             df = _make_trades(profits)
             result = institutional_metrics(df)

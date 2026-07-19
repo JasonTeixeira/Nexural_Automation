@@ -1,0 +1,16 @@
+id: bridge.kill_switch
+track: bridge-engineer
+title: Prove the Kill Switch
+updated_at: "2026-07-19"
+estimated_minutes: 35
+objectives: [Fail closed on uncertainty, Require flatten acknowledgement]
+prerequisites: [bridge.retries]
+tags: [bridge, safety]
+translations:
+  en: {title: Prove the Kill Switch, summary: Design a state machine that cannot silently re-arm.}
+  es: {title: Demuestra el Interruptor de Emergencia, summary: Diseña una máquina de estados que no pueda reactivarse en silencio.}
+hints: [Persist the switch state., Wait for explicit flatten acknowledgement., Require operator action to re-arm.]
+rubric:
+  - {id: persisted, metric: kill_switch.persisted, operator: equals, expected: true, weight: 30, message: Persist kill-switch state.}
+  - {id: acknowledged, metric: kill_switch.requires_flatten_ack, operator: equals, expected: true, weight: 35, message: Require flatten acknowledgement.}
+  - {id: rearm, metric: kill_switch.auto_rearm, operator: equals, expected: false, weight: 35, visibility: hidden}

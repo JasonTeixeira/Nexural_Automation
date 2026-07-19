@@ -1,13 +1,25 @@
 interface Props {
+  platformApiKey: string;
+  onPlatformApiKeyChange: (key: string) => void;
   apiKey: string;
   onApiKeyChange: (key: string) => void;
   provider: "anthropic" | "openai" | "perplexity";
   onProviderChange: (p: "anthropic" | "openai" | "perplexity") => void;
 }
 
-export function SettingsPanel({ apiKey, onApiKeyChange, provider, onProviderChange }: Props) {
+export function SettingsPanel({ platformApiKey, onPlatformApiKeyChange, apiKey, onApiKeyChange, provider, onProviderChange }: Props) {
   return (
     <div className="max-w-2xl space-y-8 animate-slide-up">
+      <div className="panel">
+        <h3 className="section-title">Nexural API Access</h3>
+        <p className="text-xs text-gray-500 -mt-3 mb-5">
+          Required only when NEXURAL_AUTH_ENABLED is active. It protects sessions, Academy progress, AI routes, and exports.
+        </p>
+        <label htmlFor="platform-api-key" className="block text-xs text-gray-400 mb-2 font-medium uppercase tracking-wider">Nexural bearer key</label>
+        <input id="platform-api-key" type="password" autoComplete="off" value={platformApiKey} onChange={(event) => onPlatformApiKeyChange(event.target.value)} placeholder="Local server API key" className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm font-mono text-gray-300 placeholder-gray-600 focus:outline-none focus:border-amber-400/50 focus:ring-1 focus:ring-amber-400/20 transition-all" />
+        <p className="text-[10px] text-gray-600 mt-2">Held in browser memory only and attached as an Authorization header to Nexural requests.</p>
+      </div>
+
       {/* AI Provider */}
       <div className="panel">
         <h3 className="section-title">AI Provider</h3>

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useAsync } from "../hooks/useAnalysis";
-import { getImprovements, getExportCsvUrl, getExportJsonUrl } from "../lib/api";
+import { downloadExportCsv, downloadExportJson, getImprovements } from "../lib/api";
 import { LoadingSpinner } from "./LoadingSpinner";
 import clsx from "clsx";
 
@@ -59,16 +59,16 @@ export function ImprovementsPanel({ sessionId }: Props) {
         </div>
 
         <div className="flex flex-col gap-2 ml-4">
-          <a href={getExportJsonUrl(sessionId)} target="_blank" className="btn-secondary text-xs text-center">
+          <button onClick={() => void downloadExportJson(sessionId)} className="btn-secondary text-xs text-center">
             Export JSON
-          </a>
-          <a href={getExportCsvUrl(sessionId, false)} target="_blank" className="btn-secondary text-xs text-center">
+          </button>
+          <button onClick={() => void downloadExportCsv(sessionId, false)} className="btn-secondary text-xs text-center">
             Export CSV
-          </a>
+          </button>
           {tf && ((tf.hours_to_remove as number[])?.length > 0 || (tf.days_to_remove as string[])?.length > 0) && (
-            <a href={getExportCsvUrl(sessionId, true)} target="_blank" className="btn-primary text-xs text-center">
+            <button onClick={() => void downloadExportCsv(sessionId, true)} className="btn-primary text-xs text-center">
               Export Filtered CSV
-            </a>
+            </button>
           )}
         </div>
       </div>

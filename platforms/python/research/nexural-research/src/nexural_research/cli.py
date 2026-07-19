@@ -1,22 +1,24 @@
 from __future__ import annotations
 
 import argparse
+import json
+import os
 from dataclasses import asdict
 from pathlib import Path
 
-from nexural_research.analyze.metrics import metrics_from_trades
-from nexural_research.analyze.execution_quality import execution_quality_from_executions
-from nexural_research.analyze.robustness import monte_carlo_max_drawdown, walk_forward_split
 from nexural_research.analyze.advanced_metrics import (
     comprehensive_analysis,
 )
 from nexural_research.analyze.advanced_robustness import (
-    parametric_monte_carlo,
-    rolling_walk_forward,
     deflated_sharpe_ratio,
+    parametric_monte_carlo,
     regime_analysis,
+    rolling_walk_forward,
 )
-from nexural_research.analyze.portfolio import portfolio_analysis, benchmark_comparison
+from nexural_research.analyze.execution_quality import execution_quality_from_executions
+from nexural_research.analyze.metrics import metrics_from_trades
+from nexural_research.analyze.portfolio import benchmark_comparison, portfolio_analysis
+from nexural_research.analyze.robustness import monte_carlo_max_drawdown, walk_forward_split
 from nexural_research.cli_helpers import default_run_id, ensure_parent_dir
 from nexural_research.ingest.detect import ExportKind, detect_export_kind
 from nexural_research.ingest.nt_csv import load_nt_trades_csv, save_processed
@@ -27,9 +29,106 @@ from nexural_research.report.html import build_trades_report_html
 from nexural_research.utils.paths import paths
 
 
+def _academy_paths() -> tuple[Path, Path]:
+    configured_root = os.environ.get("NEXURAL_ACADEMY_ROOT")
+    if configured_root:
+        academy_root = Path(configured_root).expanduser().resolve()
+    else:
+        academy_root = next(
+            (
+                parent / "academy"
+                for parent in Path(__file__).resolve().parents
+                if (parent / "academy" / "curriculum.yaml").is_file()
+            ),
+            Path.cwd() / "academy",
+        )
+    configured_state = os.environ.get("NEXURAL_ACADEMY_STATE_DIR")
+    state_root = (
+        Path(configured_state).expanduser().resolve()
+        if configured_state
+        else (Path.home() / ".nexural" / "academy").resolve()
+    )
+    return academy_root, state_root
+
+
+def _academy_emit(payload: object, *, as_json: bool) -> None:
+    if as_json:
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        return
+    if isinstance(payload, dict):
+        for key, value in payload.items():
+            print(f"{key}: {value}")
+        return
+    print(payload)
+
+
+def _cmd_academy(args: argparse.Namespace) -> int:
+    from nexural_research.academy import AcademyService, CurriculumCatalog
+    from nexural_research.academy.faults import FaultInjector
+    from nexural_research.academy.freshness import check_freshness
+    from nexural_research.academy.plugins import PluginRegistry
+    from nexural_research.academy.presentation import (
+        learner_catalog,
+        learner_grade,
+        learner_progress,
+    )
+
+    academy_root, state_root = _academy_paths()
+    service = AcademyService.from_paths(academy_root, state_root)
+    command = args.academy_command
+
+    if command == "catalog":
+        payload: object = learner_catalog(CurriculumCatalog.load(academy_root))
+    elif command == "progress":
+        payload = learner_progress(service.progress(args.learner), service.catalog)
+    elif command == "start":
+        payload = asdict(service.start(args.learner, args.item_id))
+    elif command in {"check", "submit"}:
+        submission = json.loads(Path(args.submission).read_text(encoding="utf-8"))
+        operation = service.check if command == "check" else service.submit
+        payload = learner_grade(operation(args.learner, args.item_id, submission))
+    elif command == "hint":
+        payload = asdict(service.hint(args.learner, args.item_id))
+    elif command == "trace":
+        payload = [asdict(event) for event in service.trace(args.learner, args.limit)]
+    elif command == "freshness":
+        payload = asdict(check_freshness(service.catalog, max_age_days=args.max_age_days))
+    elif command == "fault":
+        events = json.loads(Path(args.events).read_text(encoding="utf-8"))
+        payload = {
+            "profile": args.profile,
+            "seed": args.seed,
+            "events": FaultInjector().apply(args.profile, events, seed=args.seed),
+        }
+    elif command == "plugins":
+        registry = PluginRegistry()
+        report = registry.discover(args.allow_distribution)
+        payload = {
+            **report.to_dict(),
+            "plugins": [
+                {
+                    "kind": plugin.kind,
+                    "name": plugin.name,
+                    "version": plugin.version,
+                    "metadata": plugin.metadata,
+                }
+                for plugin in registry.list()
+            ],
+        }
+    else:  # pragma: no cover - argparse enforces a subcommand
+        raise ValueError(f"Unsupported Academy command: {command}")
+
+    _academy_emit(payload, as_json=args.json)
+    return 0
+
+
 def _cmd_ingest(args: argparse.Namespace) -> int:
     project = paths()
-    in_path = Path(args.input) if args.input else (project.root / "data" / "exports" / "sample_trades.csv")
+    in_path = (
+        Path(args.input)
+        if args.input
+        else (project.root / "data" / "exports" / "sample_trades.csv")
+    )
     detected = detect_export_kind(in_path)
 
     kind: ExportKind = detected.kind
@@ -55,7 +154,9 @@ def _cmd_ingest(args: argparse.Namespace) -> int:
     if not args.no_registry:
         run_id = args.run_id or default_run_id(kind.value)
         reg = RunRegistry(project.experiments / "runs.duckdb")
-        reg.register_run(run_id=run_id, kind=kind.value, input_path=in_path, processed_path=out_path)
+        reg.register_run(
+            run_id=run_id, kind=kind.value, input_path=in_path, processed_path=out_path
+        )
 
         if kind == ExportKind.TRADES:
             tm = metrics_from_trades(df)
@@ -103,12 +204,17 @@ def _cmd_compare(args: argparse.Namespace) -> int:
 
 def _cmd_report(args: argparse.Namespace) -> int:
     project = paths()
-    in_path = Path(args.input) if args.input else (project.root / "data" / "exports" / "sample_trades.csv")
+    in_path = (
+        Path(args.input)
+        if args.input
+        else (project.root / "data" / "exports" / "sample_trades.csv")
+    )
 
     detected = detect_export_kind(in_path)
     if detected.kind != ExportKind.TRADES:
         raise SystemExit(
-            f"report currently supports Trades export only; got {detected.kind.value} ({detected.reason})."
+            f"report currently supports Trades export only; got {detected.kind.value} "
+            f"({detected.reason})."
         )
 
     df = load_nt_trades_csv(in_path)
@@ -136,11 +242,16 @@ def _cmd_report(args: argparse.Namespace) -> int:
 
 def _cmd_execq(args: argparse.Namespace) -> int:
     project = paths()
-    in_path = Path(args.input) if args.input else (project.root / "data" / "exports" / "sample_executions.csv")
+    in_path = (
+        Path(args.input)
+        if args.input
+        else (project.root / "data" / "exports" / "sample_executions.csv")
+    )
     detected = detect_export_kind(in_path)
     if detected.kind != ExportKind.EXECUTIONS:
         raise SystemExit(
-            f"execq currently supports Executions export only; got {detected.kind.value} ({detected.reason})."
+            f"execq currently supports Executions export only; got {detected.kind.value} "
+            f"({detected.reason})."
         )
 
     df = load_nt_executions_csv(in_path)
@@ -150,7 +261,9 @@ def _cmd_execq(args: argparse.Namespace) -> int:
     if not args.no_registry:
         run_id = args.run_id or default_run_id("execq")
         reg = RunRegistry(project.experiments / "runs.duckdb")
-        reg.register_run(run_id=run_id, kind="execq", input_path=in_path, processed_path=None, report_path=None)
+        reg.register_run(
+            run_id=run_id, kind="execq", input_path=in_path, processed_path=None, report_path=None
+        )
         reg.store_executions(run_id, df)
         reg.upsert_execution_quality_metrics(run_id, m)
 
@@ -159,11 +272,16 @@ def _cmd_execq(args: argparse.Namespace) -> int:
 
 def _cmd_robust(args: argparse.Namespace) -> int:
     project = paths()
-    in_path = Path(args.input) if args.input else (project.root / "data" / "exports" / "sample_trades.csv")
+    in_path = (
+        Path(args.input)
+        if args.input
+        else (project.root / "data" / "exports" / "sample_trades.csv")
+    )
     detected = detect_export_kind(in_path)
     if detected.kind != ExportKind.TRADES:
         raise SystemExit(
-            f"robust currently supports Trades export only; got {detected.kind.value} ({detected.reason})."
+            f"robust currently supports Trades export only; got {detected.kind.value} "
+            f"({detected.reason})."
         )
 
     df = load_nt_trades_csv(in_path)
@@ -179,7 +297,11 @@ def _cmd_robust(args: argparse.Namespace) -> int:
 def _cmd_analyze(args: argparse.Namespace) -> int:
     """Run the full institutional analysis suite."""
     project = paths()
-    in_path = Path(args.input) if args.input else (project.root / "data" / "exports" / "sample_trades.csv")
+    in_path = (
+        Path(args.input)
+        if args.input
+        else (project.root / "data" / "exports" / "sample_trades.csv")
+    )
     detected = detect_export_kind(in_path)
     if detected.kind != ExportKind.TRADES:
         raise SystemExit(f"analyze requires Trades export; got {detected.kind.value}")
@@ -224,7 +346,11 @@ def _cmd_analyze(args: argparse.Namespace) -> int:
     print(f"  {'walk_forward_efficiency':30s} : {rwf.walk_forward_efficiency}")
     print(f"  {'pct_profitable_oos':30s} : {rwf.pct_profitable_oos}%")
     for w in rwf.windows:
-        print(f"    Window {w.window_id}: IS={w.in_sample_net:>10.2f} (Sharpe {w.in_sample_sharpe:.2f})  OOS={w.out_sample_net:>10.2f} (Sharpe {w.out_sample_sharpe:.2f})  Eff={w.efficiency:.2f}")
+        print(
+            f"    Window {w.window_id}: IS={w.in_sample_net:>10.2f} "
+            f"(Sharpe {w.in_sample_sharpe:.2f})  OOS={w.out_sample_net:>10.2f} "
+            f"(Sharpe {w.out_sample_sharpe:.2f})  Eff={w.efficiency:.2f}"
+        )
 
     print("\n--- Regime Analysis ---")
     ra = regime_analysis(df)
@@ -252,6 +378,7 @@ def _cmd_analyze(args: argparse.Namespace) -> int:
 def _cmd_serve(args: argparse.Namespace) -> int:
     """Start the API server with web dashboard."""
     from nexural_research.api.app import run_server
+
     print(f"Starting Nexural Research server on http://{args.host}:{args.port}")
     print("API docs available at http://localhost:{}/api/docs".format(args.port))
     run_server(host=args.host, port=int(args.port), reload=args.reload)
@@ -299,10 +426,15 @@ def _cmd_gauntlet(args: argparse.Namespace) -> int:
         cost_stress_profile=args.cost_stress_profile,
     )
     gauntlet = result["gauntlet"]
-    print(f"Decision: {gauntlet['decision']} | Score: {gauntlet['score']} | Passed: {gauntlet['passed']}")
+    print(
+        f"Decision: {gauntlet['decision']} | Score: {gauntlet['score']} | "
+        f"Passed: {gauntlet['passed']}"
+    )
     for check in gauntlet["checks"]:
         status = "PASS" if check["passed"] else "FAIL"
         print(f"{status:4s} {check['name']:28s} {check['value']} / {check['threshold']}")
+    if args.fail_on_reject and gauntlet["decision"] == "REJECT":
+        return 1
     return 0
 
 
@@ -363,8 +495,6 @@ def _cmd_quality_gate(args: argparse.Namespace) -> int:
 
 def _cmd_validate_strategy(args: argparse.Namespace) -> int:
     """Validate a public strategy metadata file."""
-    import json
-
     from nexural_research.contracts import validate_strategy_metadata
 
     result = validate_strategy_metadata(args.path)
@@ -374,8 +504,6 @@ def _cmd_validate_strategy(args: argparse.Namespace) -> int:
 
 def _cmd_validate_bridge(args: argparse.Namespace) -> int:
     """Validate a public bridge contract file."""
-    import json
-
     from nexural_research.contracts import validate_bridge_contract
 
     result = validate_bridge_contract(args.path)
@@ -400,19 +528,91 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="nexural-research", description="Nexural research utilities")
     sub = p.add_subparsers(dest="command", required=True)
 
-    ingest = sub.add_parser("ingest", help="Ingest a NinjaTrader export CSV (Trades / Executions / Optimization)")
+    academy = sub.add_parser("academy", help="Run the scenario-driven Automation Academy")
+    academy_sub = academy.add_subparsers(dest="academy_command", required=True)
+
+    academy_catalog = academy_sub.add_parser("catalog", help="List tracks, labs, and capstones")
+    academy_catalog.add_argument("--json", action="store_true")
+    academy_catalog.set_defaults(func=_cmd_academy)
+
+    academy_progress = academy_sub.add_parser("progress", help="Show learner evidence progress")
+    academy_progress.add_argument("--learner", required=True)
+    academy_progress.add_argument("--json", action="store_true")
+    academy_progress.set_defaults(func=_cmd_academy)
+
+    academy_start = academy_sub.add_parser("start", help="Start an Academy mission")
+    academy_start.add_argument("item_id")
+    academy_start.add_argument("--learner", required=True)
+    academy_start.add_argument("--json", action="store_true")
+    academy_start.set_defaults(func=_cmd_academy)
+
+    for action in ("check", "submit"):
+        academy_grade = academy_sub.add_parser(action, help=f"{action.title()} a mission payload")
+        academy_grade.add_argument("item_id")
+        academy_grade.add_argument("--learner", required=True)
+        academy_grade.add_argument("--submission", required=True, help="JSON submission file")
+        academy_grade.add_argument("--json", action="store_true")
+        academy_grade.set_defaults(func=_cmd_academy)
+
+    academy_hint = academy_sub.add_parser("hint", help="Request the next trace-aware hint")
+    academy_hint.add_argument("item_id")
+    academy_hint.add_argument("--learner", required=True)
+    academy_hint.add_argument("--json", action="store_true")
+    academy_hint.set_defaults(func=_cmd_academy)
+
+    academy_trace = academy_sub.add_parser("trace", help="Show the append-only learning trace")
+    academy_trace.add_argument("--learner", required=True)
+    academy_trace.add_argument("--limit", type=int)
+    academy_trace.add_argument("--json", action="store_true")
+    academy_trace.set_defaults(func=_cmd_academy)
+
+    academy_freshness = academy_sub.add_parser("freshness", help="Audit content and translations")
+    academy_freshness.add_argument("--max-age-days", type=int, default=365)
+    academy_freshness.add_argument("--json", action="store_true")
+    academy_freshness.set_defaults(func=_cmd_academy)
+
+    academy_fault = academy_sub.add_parser("fault", help="Apply a deterministic lab fault")
+    academy_fault.add_argument(
+        "profile", choices=["disconnect", "duplicate", "latency", "partial_fill", "stale_data"]
+    )
+    academy_fault.add_argument("--events", required=True, help="JSON event-list file")
+    academy_fault.add_argument("--seed", type=int, default=0)
+    academy_fault.add_argument("--json", action="store_true")
+    academy_fault.set_defaults(func=_cmd_academy)
+
+    academy_plugins = academy_sub.add_parser(
+        "plugins", help="Discover explicitly allowlisted Academy plugin packages"
+    )
+    academy_plugins.add_argument(
+        "--allow-distribution",
+        action="append",
+        default=[],
+        help="Exact installed distribution name to import (repeatable; default loads none)",
+    )
+    academy_plugins.add_argument("--json", action="store_true")
+    academy_plugins.set_defaults(func=_cmd_academy)
+
+    ingest = sub.add_parser(
+        "ingest", help="Ingest a NinjaTrader export CSV (Trades / Executions / Optimization)"
+    )
     ingest.add_argument("--input", "-i", help="Path to NinjaTrader CSV export")
     ingest.add_argument("--output", "-o", help="Output path (.parquet or .csv)")
     ingest.add_argument("--run-id", help="Optional run id (default: timestamp-based)")
-    ingest.add_argument("--no-registry", action="store_true", help="Do not record run in DuckDB registry")
+    ingest.add_argument(
+        "--no-registry", action="store_true", help="Do not record run in DuckDB registry"
+    )
     ingest.set_defaults(func=_cmd_ingest)
 
     report = sub.add_parser("report", help="Generate HTML report (Trades export)")
     report.add_argument("--input", "-i", help="Path to NinjaTrader Trades CSV export")
-    report.add_argument("--out-dir", "-o", help="Output directory for report (default: reports/<run_id>)")
+    report.add_argument(
+        "--out-dir", "-o", help="Output directory for report (default: reports/<run_id>)"
+    )
     report.add_argument("--title", help="Report title")
     report.add_argument("--run-id", help="Optional run id (default: timestamp-based)")
-    report.add_argument("--no-registry", action="store_true", help="Do not record run in DuckDB registry")
+    report.add_argument(
+        "--no-registry", action="store_true", help="Do not record run in DuckDB registry"
+    )
     report.set_defaults(func=_cmd_report)
 
     runs = sub.add_parser("runs", help="List registered runs")
@@ -427,7 +627,9 @@ def build_parser() -> argparse.ArgumentParser:
     execq = sub.add_parser("execq", help="Execution quality metrics (Executions export)")
     execq.add_argument("--input", "-i", help="Path to NinjaTrader Executions CSV export")
     execq.add_argument("--run-id", help="Optional run id (default: timestamp-based)")
-    execq.add_argument("--no-registry", action="store_true", help="Do not record run in DuckDB registry")
+    execq.add_argument(
+        "--no-registry", action="store_true", help="Do not record run in DuckDB registry"
+    )
     execq.set_defaults(func=_cmd_execq)
 
     robust = sub.add_parser("robust", help="Robustness analytics (Trades export)")
@@ -440,10 +642,19 @@ def build_parser() -> argparse.ArgumentParser:
     # --- New: Full institutional analysis ---
     analyze = sub.add_parser("analyze", help="Full institutional-grade analysis suite")
     analyze.add_argument("--input", "-i", help="Path to NinjaTrader Trades CSV export")
-    analyze.add_argument("--risk-free-rate", default=0.0, help="Annual risk-free rate (e.g. 0.05 for 5%%)")
+    analyze.add_argument(
+        "--risk-free-rate", default=0.0, help="Annual risk-free rate (e.g. 0.05 for 5%%)"
+    )
     analyze.add_argument("--mc-n", default=5000, help="Monte Carlo simulations")
-    analyze.add_argument("--mc-dist", default="empirical", choices=["empirical", "normal", "t"], help="MC distribution")
-    analyze.add_argument("--n-trials", default=100, help="Number of trials for Deflated Sharpe Ratio")
+    analyze.add_argument(
+        "--mc-dist",
+        default="empirical",
+        choices=["empirical", "normal", "t"],
+        help="MC distribution",
+    )
+    analyze.add_argument(
+        "--n-trials", default=100, help="Number of trials for Deflated Sharpe Ratio"
+    )
     analyze.add_argument("--wf-windows", default=5, help="Walk-forward windows")
     analyze.add_argument("--anchored", action="store_true", help="Use anchored walk-forward")
     analyze.set_defaults(func=_cmd_analyze)
@@ -481,6 +692,11 @@ def build_parser() -> argparse.ArgumentParser:
     gauntlet.add_argument("--min-trades", default=100)
     gauntlet.add_argument("--n-trials", default=100)
     gauntlet.add_argument("--cost-stress-profile", default="elevated")
+    gauntlet.add_argument(
+        "--fail-on-reject",
+        action="store_true",
+        help="Exit non-zero when the gauntlet decision is REJECT (recommended for CI/smoke tests)",
+    )
     gauntlet.set_defaults(func=_cmd_gauntlet)
 
     costs = sub.add_parser("costs", help="Estimate futures execution costs")

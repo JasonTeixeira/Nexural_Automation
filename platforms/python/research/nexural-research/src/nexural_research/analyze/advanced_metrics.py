@@ -8,15 +8,16 @@ return distribution statistics, and time-decay analysis.
 from __future__ import annotations
 
 from dataclasses import dataclass, fields
+from typing import Any
 
 import numpy as np
 import pandas as pd
 from scipy import stats as sp_stats
 
+from nexural_research.analyze.annualization import periodic_pnl
 from nexural_research.analyze.equity import (
     max_drawdown,
 )
-
 
 # ---------------------------------------------------------------------------
 # Risk-adjusted return ratios
@@ -36,24 +37,17 @@ class RiskReturnMetrics:
     common_sense_ratio: float
     cpc_ratio: float  # CPC = Profit Factor * Win Rate * (Avg Win / Avg Loss)
     risk_of_ruin: float
+    periods_per_year: float = 1.0
+    annualization_basis: str = "unannualized_observation_pnl"
 
 
 def _annualize_factor(df_trades: pd.DataFrame, ts_col: str = "exit_time") -> float:
-    """Estimate annualization factor from trade timestamps."""
-    if ts_col not in df_trades.columns:
-        ts_col = "entry_time" if "entry_time" in df_trades.columns else None
-    if ts_col is None or len(df_trades) < 2:
-        return 252.0  # default daily assumption
+    """Return the legacy daily factor retained for API compatibility.
 
-    ts = pd.to_datetime(df_trades[ts_col], errors="coerce").dropna().sort_values()
-    if len(ts) < 2:
-        return 252.0
-
-    span_days = (ts.iloc[-1] - ts.iloc[0]).total_seconds() / 86400.0
-    if span_days <= 0:
-        return 252.0
-    trades_per_day = len(ts) / span_days
-    return max(1.0, trades_per_day * 252.0)
+    Risk metrics no longer use this helper to infer a frequency from trade
+    count.  Timestamped PnL is aggregated to daily observations instead.
+    """
+    return 252.0
 
 
 def risk_return_metrics(
@@ -61,30 +55,62 @@ def risk_return_metrics(
     *,
     risk_free_rate: float = 0.0,
     mar_threshold: float = 0.0,
+    periods_per_year: float | None = None,
 ) -> RiskReturnMetrics:
-    """Compute institutional risk/return metrics from a trades DataFrame."""
+    """Compute institutional risk/return metrics from a trades DataFrame.
+
+    Timestamped trades are aggregated to active-day PnL before Sharpe and
+    Sortino annualization.  Untimestamped rows remain unannualized unless an
+    explicit ``periods_per_year`` is provided.
+    """
 
     pnl = pd.to_numeric(df_trades["profit"], errors="coerce").fillna(0.0).to_numpy()
     n = len(pnl)
+    empty_metrics: dict[str, Any] = {
+        field.name: 0.0 for field in fields(RiskReturnMetrics)
+    }
+    empty_metrics["periods_per_year"] = 1.0
+    empty_metrics["annualization_basis"] = "insufficient_observations"
     if n == 0:
-        return RiskReturnMetrics(**{f.name: 0.0 for f in fields(RiskReturnMetrics)})
+        return RiskReturnMetrics(**empty_metrics)
 
     # Single trade: metrics are undefined (avoid exploding Sharpe)
     if n == 1:
-        return RiskReturnMetrics(**{f.name: 0.0 for f in fields(RiskReturnMetrics)})
+        return RiskReturnMetrics(**empty_metrics)
 
-    ann_factor = _annualize_factor(df_trades)
-    mean_ret = float(np.mean(pnl))
-    std_ret = float(np.std(pnl, ddof=1)) if n > 1 else 1e-10
+    periodic = periodic_pnl(df_trades, periods_per_year=periods_per_year)
+    ratio_pnl = periodic.values
+    ann_factor = periodic.periods_per_year
+    mean_ret = float(np.mean(ratio_pnl))
+    std_ret = float(np.std(ratio_pnl, ddof=1)) if len(ratio_pnl) > 1 else 1e-10
 
     # Sharpe Ratio (annualized)
     excess = mean_ret - risk_free_rate / ann_factor
     sharpe = float(excess / std_ret * np.sqrt(ann_factor)) if std_ret > 1e-10 else 0.0
 
     # Sortino Ratio — industry standard: use ALL returns with np.minimum
-    downside_diff = np.minimum(pnl - mar_threshold, 0.0)
-    downside_std = float(np.sqrt(np.mean(downside_diff ** 2))) if n > 0 else 1e-10
-    sortino = float((mean_ret - mar_threshold) / downside_std * np.sqrt(ann_factor)) if downside_std > 1e-10 else 0.0
+    sortino_pnl = ratio_pnl
+    sortino_ann_factor = ann_factor
+    if not np.any(ratio_pnl < mar_threshold) and np.any(pnl < mar_threshold):
+        # Daily netting can hide real intraday losses when every active day
+        # finishes positive.  Retain that downside information, but keep the
+        # fallback unannualized rather than treating trades as days.
+        sortino_pnl = pnl
+        sortino_ann_factor = 1.0
+    sortino_mean = float(np.mean(sortino_pnl))
+    downside_diff = np.minimum(sortino_pnl - mar_threshold, 0.0)
+    downside_std = (
+        float(np.sqrt(np.mean(downside_diff ** 2))) if len(ratio_pnl) > 0 else 1e-10
+    )
+    sortino = (
+        float(
+            (sortino_mean - mar_threshold)
+            / downside_std
+            * np.sqrt(sortino_ann_factor)
+        )
+        if downside_std > 1e-10
+        else 0.0
+    )
 
     # Calmar Ratio
     eq = pd.Series(pnl).cumsum()
@@ -111,14 +137,22 @@ def risk_return_metrics(
 
     # Gain-to-Pain Ratio: sum of all returns / sum of absolute negative returns
     neg_sum = float(np.sum(np.abs(pnl[pnl < 0])))
-    gtp = float(np.sum(pnl) / neg_sum) if neg_sum > 1e-10 else float("inf") if total_return > 0 else 0.0
+    gtp = (
+        float(np.sum(pnl) / neg_sum)
+        if neg_sum > 1e-10
+        else float("inf") if total_return > 0 else 0.0
+    )
 
     # Common Sense Ratio: tail ratio * profit factor
     wins = pnl[pnl > 0]
     losses = pnl[pnl < 0]
     loss_sum = abs(float(np.sum(losses)))
     win_sum = float(np.sum(wins))
-    profit_factor = float(win_sum / loss_sum) if loss_sum > 1e-10 else (float("inf") if win_sum > 0 else 0.0)
+    profit_factor = (
+        float(win_sum / loss_sum)
+        if loss_sum > 1e-10
+        else (float("inf") if win_sum > 0 else 0.0)
+    )
     common_sense = tail * profit_factor if np.isfinite(tail) and np.isfinite(profit_factor) else 0.0
 
     # CPC Ratio
@@ -149,6 +183,8 @@ def risk_return_metrics(
         common_sense_ratio=round(common_sense, 4),
         cpc_ratio=round(cpc, 4),
         risk_of_ruin=round(risk_of_ruin, 6),
+        periods_per_year=periodic.periods_per_year,
+        annualization_basis=periodic.basis,
     )
 
 
@@ -563,7 +599,11 @@ def institutional_metrics(df_trades: pd.DataFrame) -> InstitutionalMetrics:
     # Profit per day and trade frequency
     profit_per_day = 0.0
     trades_per_day = 0.0
-    ts_col = "exit_time" if "exit_time" in df_trades.columns else ("entry_time" if "entry_time" in df_trades.columns else None)
+    ts_col = (
+        "exit_time"
+        if "exit_time" in df_trades.columns
+        else ("entry_time" if "entry_time" in df_trades.columns else None)
+    )
     if ts_col and n >= 2:
         ts = pd.to_datetime(df_trades[ts_col], errors="coerce").dropna().sort_values()
         if len(ts) >= 2:

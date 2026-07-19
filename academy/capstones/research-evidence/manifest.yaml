@@ -1,0 +1,17 @@
+id: capstone.research_evidence
+track: research-operator
+title: Reproducible Research Evidence Package
+updated_at: "2026-07-19"
+estimated_minutes: 180
+objectives: [Produce auditable lineage, Demonstrate causal validation, Document adverse scenarios]
+prerequisites: [research.lookahead, research.walk_forward, research.cost_stress]
+tags: [capstone, research, evidence]
+translations:
+  en: {title: Reproducible Research Evidence Package, summary: Submit a sealed experiment package another operator can reproduce.}
+  es: {title: Paquete de Evidencia de Investigación Reproducible, summary: Entrega un experimento sellado que otro operador pueda reproducir.}
+hints: [Start with data and code hashes., Include frozen folds seeds and all assumptions., Have another operator reproduce the artifact digest.]
+rubric:
+  - {id: lineage, metric: evidence.lineage_complete, operator: equals, expected: true, weight: 25, message: Complete the experiment lineage.}
+  - {id: causal, metric: evidence.temporal_audit_passed, operator: equals, expected: true, weight: 25, message: Pass the temporal audit.}
+  - {id: adverse, metric: evidence.adverse_scenarios, operator: gte, expected: 3, weight: 25, message: Include three adverse scenarios.}
+  - {id: reproduced, metric: evidence.independent_digest_match, operator: equals, expected: true, weight: 25, visibility: hidden}

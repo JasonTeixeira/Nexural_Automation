@@ -100,7 +100,7 @@ status: research
 asset_class: futures
 symbols: [ES, NQ]
 lookahead_policy: next_bar_execution
-promotion_gate: PROMOTE_TO_PAPER
+promotion_gate: REJECT
 """
 
 

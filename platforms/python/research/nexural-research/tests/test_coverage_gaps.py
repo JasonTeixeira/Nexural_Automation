@@ -1,8 +1,6 @@
 """Tests to close coverage gaps in uncovered modules."""
 
 import io
-import tempfile
-from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -20,6 +18,7 @@ def client():
 # Excel Export
 # ===================================================================
 
+
 class TestExcelExport:
     def test_generates_valid_xlsx(self, client):
         r = client.get("/api/export/excel?session_id=demo")
@@ -28,8 +27,9 @@ class TestExcelExport:
         assert len(r.content) > 1000  # non-trivial file
 
     def test_excel_has_multiple_sheets(self):
-        from nexural_research.export.excel import generate_excel_report
         from nexural_research.api.sessions import sessions
+        from nexural_research.export.excel import generate_excel_report
+
         if "demo" not in sessions:
             pytest.skip("No demo session")
         df = sessions["demo"]["df"]
@@ -44,6 +44,7 @@ class TestExcelExport:
 # ===================================================================
 # PDF Report
 # ===================================================================
+
 
 class TestPDFReportContent:
     def test_has_grade(self, client):
@@ -71,23 +72,36 @@ class TestPDFReportContent:
 # Session Persistence
 # ===================================================================
 
+
 class TestSessionPersistence:
     def test_persist_and_load(self):
-        from nexural_research.api.sessions import persist_session, load_persisted_sessions, sessions, delete_persisted_session
-        df = pd.DataFrame({"profit": [100, -50, 200], "entry_time": pd.date_range("2025-01-01", periods=3, freq="h"), "exit_time": pd.date_range("2025-01-01 00:15", periods=3, freq="h"), "instrument": "NQ", "strategy": "Test"})
+        from nexural_research.api.sessions import (
+            _session_path,
+            delete_persisted_session,
+            persist_session,
+        )
+
+        df = pd.DataFrame(
+            {
+                "profit": [100, -50, 200],
+                "entry_time": pd.date_range("2025-01-01", periods=3, freq="h"),
+                "exit_time": pd.date_range("2025-01-01 00:15", periods=3, freq="h"),
+                "instrument": "NQ",
+                "strategy": "Test",
+            }
+        )
         persist_session("persist_test_123", df, "trades", "test.csv")
         # Should be on disk
-        from pathlib import Path
-        import os
-        session_dir = Path(os.environ.get("NEXURAL_SESSION_DIR", "data/sessions"))
-        assert (session_dir / "persist_test_123" / "data.parquet").exists()
-        assert (session_dir / "persist_test_123" / "meta.json").exists()
+        session_path = _session_path("persist_test_123")
+        assert (session_path / "data.parquet").exists()
+        assert (session_path / "meta.json").exists()
         # Cleanup
         delete_persisted_session("persist_test_123")
-        assert not (session_dir / "persist_test_123").exists()
+        assert not session_path.exists()
 
     def test_cleanup_expired(self):
         from nexural_research.api.sessions import cleanup_expired_sessions
+
         count = cleanup_expired_sessions()
         assert isinstance(count, int)
 
@@ -96,19 +110,23 @@ class TestSessionPersistence:
 # DB Engine
 # ===================================================================
 
+
 class TestDBEngine:
     def test_engine_creates(self):
         from nexural_research.db.engine import engine
+
         assert engine is not None
 
     def test_session_factory(self):
         from nexural_research.db.engine import SessionLocal
+
         db = SessionLocal()
         assert db is not None
         db.close()
 
     def test_init_database(self):
         from nexural_research.db.init_db import init_database
+
         init_database()  # should not raise
 
 
@@ -116,9 +134,11 @@ class TestDBEngine:
 # DB Models
 # ===================================================================
 
+
 class TestDBModels:
     def test_models_importable(self):
-        from nexural_research.db.models import User, ApiKey, AnalysisSession, AnalysisRun
+        from nexural_research.db.models import AnalysisRun, AnalysisSession, ApiKey, User
+
         assert User.__tablename__ == "users"
         assert ApiKey.__tablename__ == "api_keys"
         assert AnalysisSession.__tablename__ == "analysis_sessions"
@@ -129,9 +149,11 @@ class TestDBModels:
 # Cache
 # ===================================================================
 
+
 class TestCacheOperations:
     def test_put_get(self):
         from nexural_research.api.cache import AnalysisCache
+
         c = AnalysisCache(max_size=10, default_ttl=60)
         c.put("test_key", {"data": 42})
         hit, val = c.get("test_key")
@@ -140,6 +162,7 @@ class TestCacheOperations:
 
     def test_miss(self):
         from nexural_research.api.cache import AnalysisCache
+
         c = AnalysisCache(max_size=10)
         hit, val = c.get("nonexistent")
         assert hit is False
@@ -147,7 +170,9 @@ class TestCacheOperations:
 
     def test_ttl_expiry(self):
         import time
+
         from nexural_research.api.cache import AnalysisCache
+
         c = AnalysisCache(max_size=10, default_ttl=1)
         c.put("expire_key", {"data": 1}, ttl=1)
         # Wait for TTL to expire
@@ -157,6 +182,7 @@ class TestCacheOperations:
 
     def test_max_size_eviction(self):
         from nexural_research.api.cache import AnalysisCache
+
         c = AnalysisCache(max_size=3, default_ttl=60)
         c.put("a", 1)
         c.put("b", 2)
@@ -169,6 +195,7 @@ class TestCacheOperations:
 
     def test_stats(self):
         from nexural_research.api.cache import AnalysisCache
+
         c = AnalysisCache(max_size=10, default_ttl=60)
         c.put("k1", "v1")
         c.get("k1")  # hit
@@ -180,6 +207,7 @@ class TestCacheOperations:
 
     def test_clear(self):
         from nexural_research.api.cache import AnalysisCache
+
         c = AnalysisCache(max_size=10)
         c.put("k", "v")
         c.clear()
@@ -187,6 +215,7 @@ class TestCacheOperations:
 
     def test_make_key(self):
         from nexural_research.api.cache import AnalysisCache
+
         k1 = AnalysisCache.make_key("demo", "comprehensive", {"rfr": 0.0})
         k2 = AnalysisCache.make_key("demo", "comprehensive", {"rfr": 0.0})
         k3 = AnalysisCache.make_key("demo", "comprehensive", {"rfr": 0.05})
@@ -198,14 +227,17 @@ class TestCacheOperations:
 # Auth Module
 # ===================================================================
 
+
 class TestAuthModule:
     def test_auth_disabled_by_default(self):
         from nexural_research.api.auth import is_auth_enabled
+
         # In test env, auth should be disabled
         assert not is_auth_enabled()
 
     def test_auth_context_creation(self):
         from nexural_research.api.auth import AuthContext
+
         ctx = AuthContext(authenticated=False)
         assert not ctx.authenticated
         ctx2 = AuthContext(authenticated=True, key_hash="abc123", tier="pro")
@@ -216,6 +248,7 @@ class TestAuthModule:
 # ===================================================================
 # Middleware
 # ===================================================================
+
 
 class TestMiddleware:
     def test_request_id_generated(self, client):
@@ -246,6 +279,7 @@ class TestMiddleware:
 # Comparison Matrix
 # ===================================================================
 
+
 class TestComparisonMatrixEdgeCases:
     def test_same_session_twice(self, client):
         r = client.get("/api/compare/matrix?session_ids=demo,demo")
@@ -266,11 +300,16 @@ class TestComparisonMatrixEdgeCases:
 # Parameter Sweep Caching
 # ===================================================================
 
+
 class TestSweepCaching:
     def test_sweep_cached(self, client):
-        r1 = client.get("/api/analysis/parameter-sweep?session_id=demo&stop_steps=3&target_steps=3&size_steps=2")
+        r1 = client.get(
+            "/api/analysis/parameter-sweep?session_id=demo&stop_steps=3&target_steps=3&size_steps=2"
+        )
         assert r1.status_code == 200
-        r2 = client.get("/api/analysis/parameter-sweep?session_id=demo&stop_steps=3&target_steps=3&size_steps=2")
+        r2 = client.get(
+            "/api/analysis/parameter-sweep?session_id=demo&stop_steps=3&target_steps=3&size_steps=2"
+        )
         assert r2.status_code == 200
         # Second call should be faster (cached)
         assert r1.json()["n_combinations"] == r2.json()["n_combinations"]

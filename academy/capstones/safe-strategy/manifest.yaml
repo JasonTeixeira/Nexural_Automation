@@ -1,0 +1,17 @@
+id: capstone.safe_strategy
+track: strategy-builder
+title: Paper-Ready Strategy Contract
+updated_at: "2026-07-19"
+estimated_minutes: 180
+objectives: [Ship a causal contract, Prove deterministic replay, Fail closed]
+prerequisites: [strategy.contracts, strategy.idempotency, strategy.regime]
+tags: [capstone, strategy, paper]
+translations:
+  en: {title: Paper-Ready Strategy Contract, summary: Build a deterministic strategy package eligible only for paper promotion.}
+  es: {title: Contrato de Estrategia Listo para Simulación, summary: Crea un paquete determinista apto únicamente para promoción a paper trading.}
+hints: [Version every interface and assumption., Replay identical inputs twice and compare action digests., Make missing stale or unknown data produce no action.]
+rubric:
+  - {id: contract, metric: package.contract_valid, operator: equals, expected: true, weight: 25, message: Validate the package contract.}
+  - {id: replay, metric: package.replay_digest_match, operator: equals, expected: true, weight: 25, message: Prove deterministic replay.}
+  - {id: paper_only, metric: package.promotion_target, operator: equals, expected: paper, weight: 25, message: Promotion target must be paper.}
+  - {id: closed, metric: package.unsafe_input_action, operator: equals, expected: no_action, weight: 25, visibility: hidden}

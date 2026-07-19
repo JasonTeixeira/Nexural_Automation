@@ -1,0 +1,5 @@
+[
+  {"id": "evt-001", "type": "signal", "quantity": 2, "timestamp": "2026-01-02T14:30:00Z"},
+  {"id": "evt-002", "type": "ack", "quantity": 2, "timestamp": "2026-01-02T14:30:01Z"},
+  {"id": "evt-003", "type": "fill", "quantity": 2, "timestamp": "2026-01-02T14:30:02Z"}
+]

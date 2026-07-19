@@ -82,6 +82,10 @@ fmt: ## Auto-format with ruff
 quality-gate: ## Run the full quality gate (used in CI)
 	cd $(PY_DIR) && python -m nexural_research.cli quality-gate --threshold 0.95 --json --fast
 
+.PHONY: docs-smoke
+docs-smoke: ## Execute tutorial commands and compare their output contracts
+	python scripts/docs_smoke.py
+
 # ---------------------------------------------------------------------------
 # MCP server
 # ---------------------------------------------------------------------------

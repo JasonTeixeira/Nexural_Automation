@@ -4,7 +4,7 @@
 
 Upload your NinjaTrader trade logs. Get 71+ institutional metrics, Monte Carlo simulations, stress testing, overfitting detection, parameter sweep optimization, and AI-powered analysis with response validation — all running locally on your machine.
 
-**470 tests | 93% coverage | 58 API endpoints | 71+ metrics | 3 AI providers**
+**584 non-browser tests | 149 registered HTTP paths | 14 Academy routes | 71+ metrics | 3 AI providers**
 
 ---
 
@@ -75,6 +75,18 @@ nexural-research new-strategy "Opening Range Failure" --platform python
 nexural-research new-bridge "NinjaTrader CSV"
 nexural-research quality-gate --threshold 0.95 --json
 ```
+
+Automation Academy:
+
+```powershell
+nexural-research academy catalog
+nexural-research academy start research.lookahead --learner local-operator
+nexural-research academy check research.lookahead --learner local-operator --submission ..\..\..\..\..\academy\fixtures\lookahead-safe-submission.json
+nexural-research academy freshness --json
+```
+
+The Academy is a deterministic scenario/contract lab. The hosted API evaluates constrained JSON
+evidence and does not execute learner-supplied code or plugins.
 
 ---
 
@@ -161,9 +173,9 @@ nexural-research/
 │   │   ├── comparison.py            Multi-strategy ranked matrix
 │   │   ├── improvements.py          Grade engine + recommendations
 │   │   └── ...
-│   ├── api/               Router-based FastAPI (58 endpoints)
+│   ├── api/               Router-based FastAPI (149 registered HTTP paths)
 │   │   ├── app.py                   Slim factory with lifespan
-│   │   ├── routers/                 7 focused routers
+│   │   ├── routers/                 Analysis, Academy, and platform routers
 │   │   ├── middleware/              Rate limiter, request ID, metrics, security headers
 │   │   ├── auth.py                  API key auth (SHA-256)
 │   │   ├── cache.py                 LRU with TTL
@@ -173,16 +185,20 @@ nexural-research/
 │   ├── export/            Excel + PDF report generators
 │   └── ingest/            NinjaTrader CSV parser (50+ column aliases)
 ├── frontend/              Vite React dashboard
-├── tests/                 470 tests at 93% coverage
+├── tests/                 584 collected non-browser tests
 ├── k8s/                   Kubernetes manifests
 ├── OPERATIONS.md          Operations runbook
 ├── DATA_DICTIONARY.md     Every metric explained
 └── docker-compose.yml     App + PostgreSQL + Redis
 ```
 
+`frontend/` is the canonical dashboard and the only frontend built by CI or
+served by the Python API. `frontend-v0/` is an archived design prototype kept
+for reference; do not add production features or deployment configuration to it.
+
 ---
 
-## API (58 Endpoints)
+## API (149 Registered HTTP Paths)
 
 Interactive docs at **http://localhost:8000/api/docs**
 
@@ -196,6 +212,7 @@ Interactive docs at **http://localhost:8000/api/docs**
 | **AI** | 4 | `/api/ai/analyze`, `/api/ai/conversation`, `/api/ai/validate` |
 | **Sessions** | 3 | `/api/upload`, `/api/sessions`, `/api/compare/matrix` |
 | **Health** | 6 | `/api/health`, `/api/health/ready`, `/api/health/deep`, `/metrics` |
+| **Academy** | 14 | `/api/academy/catalog`, `/api/academy/items/{item_id}/submit`, `/api/academy/ledger/{learner_id}` |
 
 All endpoints also available at `/api/v1/` prefix.
 

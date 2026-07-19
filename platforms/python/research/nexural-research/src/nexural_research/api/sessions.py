@@ -6,17 +6,21 @@ On startup, persisted sessions are reloaded automatically.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
+import re
 import time
+import uuid
 from dataclasses import asdict
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 from fastapi import HTTPException
+
+from nexural_research.api.auth import AuthContext, current_auth, is_auth_enabled
 
 _logger = logging.getLogger("nexural_research.sessions")
 
@@ -31,9 +35,12 @@ _redis_client = None
 if _REDIS_URL:
     try:
         import redis
+
         _redis_client = redis.from_url(_REDIS_URL, decode_responses=False)
         _redis_client.ping()
-        _logger.info("Redis connected at %s", _REDIS_URL.split("@")[-1] if "@" in _REDIS_URL else _REDIS_URL)
+        _logger.info(
+            "Redis connected at %s", _REDIS_URL.split("@")[-1] if "@" in _REDIS_URL else _REDIS_URL
+        )
     except Exception as e:
         _logger.warning("Redis connection failed (%s), falling back to in-memory sessions", e)
         _redis_client = None
@@ -43,10 +50,12 @@ START_TIME = time.time()
 MAX_UPLOAD_SIZE = int(os.environ.get("NEXURAL_MAX_UPLOAD_MB", "100")) * 1024 * 1024
 MAX_SESSIONS = int(os.environ.get("NEXURAL_MAX_SESSIONS", "1000"))
 
-_SESSION_DIR = Path(os.environ.get(
-    "NEXURAL_SESSION_DIR",
-    str(Path(__file__).resolve().parent.parent.parent.parent / "data" / "sessions"),
-))
+_SESSION_DIR = Path(
+    os.environ.get(
+        "NEXURAL_SESSION_DIR",
+        str(Path(__file__).resolve().parent.parent.parent.parent / "data" / "sessions"),
+    )
+)
 _SESSION_DIR.mkdir(parents=True, exist_ok=True)
 
 # ---------------------------------------------------------------------------
@@ -54,13 +63,54 @@ _SESSION_DIR.mkdir(parents=True, exist_ok=True)
 # ---------------------------------------------------------------------------
 
 sessions: dict[str, dict[str, Any]] = {}
+_persisted_paths: dict[str, Path] = {}
+
+_SAFE_SESSION_ID = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
+
+
+def new_session_id() -> str:
+    """Issue an opaque server-side identifier for a newly uploaded session."""
+    return str(uuid.uuid4())
+
+
+def _session_path(session_id: str) -> Path:
+    """Map an external session identifier to an opaque storage directory.
+
+    Hashing means a caller-controlled identifier is never used as a filesystem
+    component. The allowlist remains useful for rejecting malformed IDs before
+    any storage operation.
+    """
+    if not _SAFE_SESSION_ID.fullmatch(session_id):
+        raise HTTPException(404, "Session not found")
+    root = _SESSION_DIR.resolve()
+    storage_key = hashlib.sha256(session_id.encode("utf-8")).hexdigest()
+    candidate = (root / storage_key).resolve()
+    if candidate.parent != root:
+        raise HTTPException(404, "Session not found")
+    return candidate
+
+
+def _is_owned(session: dict[str, Any], auth: AuthContext | None = None) -> bool:
+    """Enforce API-key ownership only when authentication is enabled."""
+    if not is_auth_enabled():
+        return True
+    auth = auth or current_auth()
+    return bool(
+        auth and auth.authenticated and auth.key_hash and session.get("owner_hash") == auth.key_hash
+    )
+
+
+def get_session(session_id: str, auth: AuthContext | None = None) -> dict[str, Any]:
+    """Fetch a visible session without revealing cross-owner identifiers."""
+    session = sessions.get(session_id)
+    if session is None or not _is_owned(session, auth):
+        raise HTTPException(404, f"Session not found: {session_id}")
+    return session
 
 
 def get_trades(session_id: str) -> pd.DataFrame:
     """Get trades DataFrame from session, raising HTTPException on failure."""
-    if session_id not in sessions:
-        raise HTTPException(404, f"Session not found: {session_id}. Upload a CSV first.")
-    s = sessions[session_id]
+    s = get_session(session_id)
     if s["kind"] != "trades":
         raise HTTPException(400, f"This endpoint requires Trades data, got {s['kind']}")
     return s["df"]
@@ -68,9 +118,7 @@ def get_trades(session_id: str) -> pd.DataFrame:
 
 def get_executions(session_id: str) -> pd.DataFrame:
     """Get executions DataFrame from session."""
-    if session_id not in sessions:
-        raise HTTPException(404, f"Session not found: {session_id}")
-    s = sessions[session_id]
+    s = get_session(session_id)
     if s["kind"] != "executions":
         raise HTTPException(400, f"This endpoint requires Executions data, got {s['kind']}")
     return s["df"]
@@ -80,12 +128,15 @@ def get_executions(session_id: str) -> pd.DataFrame:
 # Persistence — Parquet on disk
 # ---------------------------------------------------------------------------
 
-def _write_session_to_db(session_id: str, kind: str, filename: str | None, n_rows: int, columns: list[str]) -> None:
+
+def _write_session_to_db(
+    session_id: str, kind: str, filename: str | None, n_rows: int, columns: list[str]
+) -> None:
     """Write session metadata to SQLAlchemy database (if available)."""
     try:
         from nexural_research.db.engine import SessionLocal
         from nexural_research.db.models import AnalysisSession
-        import json
+
         db = SessionLocal()
         try:
             existing = db.query(AnalysisSession).filter_by(session_id=session_id).first()
@@ -93,13 +144,15 @@ def _write_session_to_db(session_id: str, kind: str, filename: str | None, n_row
                 existing.n_rows = n_rows
                 existing.filename = filename
             else:
-                db.add(AnalysisSession(
-                    session_id=session_id,
-                    kind=kind,
-                    filename=filename,
-                    n_rows=n_rows,
-                    columns_json=json.dumps(columns),
-                ))
+                db.add(
+                    AnalysisSession(
+                        session_id=session_id,
+                        kind=kind,
+                        filename=filename,
+                        n_rows=n_rows,
+                        columns_json=json.dumps(columns),
+                    )
+                )
             db.commit()
         finally:
             db.close()
@@ -107,9 +160,15 @@ def _write_session_to_db(session_id: str, kind: str, filename: str | None, n_row
         _logger.debug("DB write skipped: %s", e)
 
 
-def persist_session(session_id: str, df: pd.DataFrame, kind: str, filename: str | None) -> None:
+def persist_session(
+    session_id: str,
+    df: pd.DataFrame,
+    kind: str,
+    filename: str | None,
+    owner_hash: str | None = None,
+) -> None:
     """Save session data to Parquet and metadata to JSON for restart survival."""
-    session_path = _SESSION_DIR / session_id
+    session_path = _session_path(session_id)
     session_path.mkdir(parents=True, exist_ok=True)
 
     # Save data as Parquet
@@ -118,13 +177,16 @@ def persist_session(session_id: str, df: pd.DataFrame, kind: str, filename: str 
 
     # Save metadata
     meta = {
+        "session_id": session_id,
         "kind": kind,
         "filename": filename,
         "n_rows": len(df),
         "columns": list(df.columns),
         "created_at": time.time(),
+        "owner_hash": owner_hash,
     }
     (session_path / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
+    _persisted_paths[session_id] = session_path
     # Also write to DB
     _write_session_to_db(session_id, kind, filename, len(df), list(df.columns))
     _logger.info("Persisted session %s (%d rows)", session_id, len(df))
@@ -137,7 +199,7 @@ def load_persisted_sessions() -> int:
         return 0
 
     for session_path in _SESSION_DIR.iterdir():
-        if not session_path.is_dir():
+        if not session_path.is_dir() or session_path.is_symlink():
             continue
         meta_file = session_path / "meta.json"
         data_file = session_path / "data.parquet"
@@ -146,15 +208,27 @@ def load_persisted_sessions() -> int:
 
         try:
             meta = json.loads(meta_file.read_text(encoding="utf-8"))
+            session_id = str(meta.get("session_id", session_path.name))
+            if not _SAFE_SESSION_ID.fullmatch(session_id):
+                _logger.warning("Ignored invalid persisted session id in %s", session_path.name)
+                continue
+            expected_names = {session_id, hashlib.sha256(session_id.encode("utf-8")).hexdigest()}
+            if session_path.name not in expected_names:
+                _logger.warning(
+                    "Ignored mismatched persisted session directory: %s", session_path.name
+                )
+                continue
             df = pd.read_parquet(data_file)
-            sessions[session_path.name] = {
+            sessions[session_id] = {
                 "df": df,
                 "kind": meta["kind"],
                 "filename": meta.get("filename"),
                 "n_rows": meta["n_rows"],
                 "columns": meta.get("columns", list(df.columns)),
                 "created_at": meta.get("created_at", time.time()),
+                "owner_hash": meta.get("owner_hash"),
             }
+            _persisted_paths[session_id] = session_path
             loaded += 1
         except Exception as e:
             _logger.warning("Failed to load persisted session %s: %s", session_path.name, e)
@@ -166,9 +240,14 @@ def load_persisted_sessions() -> int:
 
 def delete_persisted_session(session_id: str) -> None:
     """Remove persisted session data from disk."""
-    session_path = _SESSION_DIR / session_id
+    session_path = _persisted_paths.pop(session_id, None) or _session_path(session_id)
+    root = _SESSION_DIR.resolve()
+    session_path = session_path.resolve()
+    if session_path.parent != root:
+        raise HTTPException(404, "Session not found")
     if session_path.exists():
         import shutil
+
         shutil.rmtree(session_path, ignore_errors=True)
 
 
@@ -196,6 +275,7 @@ def cleanup_expired_sessions() -> int:
 # ---------------------------------------------------------------------------
 # Serialization utility
 # ---------------------------------------------------------------------------
+
 
 def safe_serialize(obj: Any) -> Any:
     """Recursively convert dataclasses / non-JSON types for JSON output."""

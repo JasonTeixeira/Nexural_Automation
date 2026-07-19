@@ -30,8 +30,9 @@ You don't need to know Python to do this. You don't even need to install Python 
    You'll see something like:
 
    ```
-   Decision: pass | Score: 87 | Passed: True
-   PASS trades_count                 200 / 100
+   Decision: REJECT | Score: 90.0 | Passed: False
+   PASS trade_count                  200 / >= 100
+   FAIL walk_forward_validation      not_evaluated / fitted adapter required
    PASS profit_factor                1.34 / 1.20
    ...
    ```
@@ -98,7 +99,7 @@ python -m nexural_research.cli gauntlet \
   --symbol NQ \
   --min-trades 100 \
   --n-trials 200 \
-  --cost-stress-profile moderate
+  --cost-stress-profile elevated
 ```
 
 Common flags:
@@ -107,14 +108,15 @@ Common flags:
 | ------------------------- | --------------------------------------------------------------------- |
 | `--min-trades`            | Reject runs with fewer than N trades (default 100)                    |
 | `--n-trials`              | Bootstrap trials for robustness check (more = slower, more reliable)  |
-| `--cost-stress-profile`   | `light` / `moderate` / `harsh` — re-prices trades under stressed costs |
+| `--cost-stress-profile`   | `normal` / `elevated` / `crisis` — re-prices trades under stressed costs |
+| `--fail-on-reject`        | Exit non-zero on `REJECT`; use this in CI and smoke tests              |
 | `--symbol`                | NQ / ES / RTY / YM / CL / GC … drives the futures cost model          |
 
 ### 3. Generate an HTML report
 
 ```bash
 cd platforms/python/research/nexural-research
-python -m nexural_research.cli report --input /full/path/to/your_trades.csv --out ./report.html
+python -m nexural_research.cli report --input /full/path/to/your_trades.csv --out-dir ./reports
 ```
 
 The HTML includes equity curve, drawdown, win-rate breakdown, time-of-day heatmap, MAE/MFE distribution, and cost stress overlay.
@@ -122,7 +124,7 @@ The HTML includes equity curve, drawdown, win-rate breakdown, time-of-day heatma
 ### 4. Estimate execution costs
 
 ```bash
-python -m nexural_research.cli costs --symbol NQ --trades 200 --quantity 1 --stress-profile moderate
+python -m nexural_research.cli costs --symbol NQ --trades 200 --quantity 1 --stress-profile elevated
 ```
 
 Returns commissions, slippage, exchange fees, and total cost-per-RT under your chosen stress profile.
@@ -152,13 +154,13 @@ Returns commissions, slippage, exchange fees, and total cost-per-RT under your c
 
 ```bash
 cd platforms/python/research/nexural-research
-python -m nexural_research.cli new-strategy --name MyEdgeStrategy
+python -m nexural_research.cli new-strategy MyEdgeStrategy
 ```
 
 This creates a Strategy SDK skeleton with config schema, signal stubs, and a tests folder. Fill in your logic, then validate:
 
 ```bash
-python -m nexural_research.cli validate-strategy --path ./src/strategies/my_edge_strategy
+python -m nexural_research.cli validate-strategy ./strategies/my_edge_strategy/metadata.yaml
 ```
 
 ### B. Add a NinjaTrader 8 strategy module
@@ -188,11 +190,11 @@ Same shape as the NT8 layout, under `platforms/tradingview/indicators/<Name>/`. 
 ### D. Bridge SDK — connect external data
 
 ```bash
-python -m nexural_research.cli new-bridge --name MyBroker
-python -m nexural_research.cli validate-bridge --path ./src/bridges/my_broker
+python -m nexural_research.cli new-bridge MyBroker
+python -m nexural_research.cli validate-bridge ./bridges/my_broker/bridge_contract.json
 ```
 
-The Bridge SDK normalizes incoming data to the gauntlet's canonical schema. Implement `fetch_trades`, `fetch_fills`, and a `health_check`.
+The Bridge SDK normalizes external execution flows into a safety-first contract. Implement `health`, `send_signal`, `flatten`, `kill_switch`, and `reconcile_fills`.
 
 ### E. Expose tools over MCP
 
@@ -201,7 +203,7 @@ The MCP server (`make mcp-serve`) exposes the gauntlet, cost model, ingest, and 
 To register the server in Claude Desktop:
 
 ```bash
-python -m nexural_research.cli mcp-install --client claude-desktop
+python -m nexural_research.cli mcp-install --host claude-desktop --yes
 ```
 
 This writes the appropriate `mcp.json` entry. Restart your client and the tools appear.
@@ -211,7 +213,7 @@ This writes the appropriate `mcp.json` entry. Restart your client and the tools 
 Every PR runs:
 
 - **`ci.yml`** — lint + fast tests
-- **`python-research-ci.yml`** — package tests on Python 3.11/3.12
+- **`python-research-ci.yml`** — package tests on Python 3.11
 - **`module-catalog.yml`** — validates every module's metadata + structure
 - **`docs-and-metadata.yml`** — link check + docs build
 - **`codeql.yml`** — SAST for Python + JS/TS

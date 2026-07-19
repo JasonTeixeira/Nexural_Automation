@@ -11,5 +11,4 @@ symbols: [ES, NQ]
 instruments: [ES, NQ]
 tags: [tradingview, vwap, mean-reversion, educational]
 lookahead_policy: bar_close_execution
-promotion_gate: PROMOTE_TO_PAPER
-
+promotion_gate: REJECT

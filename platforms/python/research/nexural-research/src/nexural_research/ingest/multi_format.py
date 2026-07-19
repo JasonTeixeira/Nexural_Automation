@@ -14,6 +14,13 @@ import pandas as pd
 from nexural_research.utils.logging import info, warn
 
 
+def _parse_money_series(series: pd.Series) -> pd.Series:
+    """Parse broker currency values, including ``($47.04)`` accounting negatives."""
+    from nexural_research.ingest.nt_csv import parse_money
+
+    return series.map(parse_money).astype(float)
+
+
 def load_tradingview_csv(path: str | Path) -> pd.DataFrame:
     """Parse TradingView Strategy Tester export.
 
@@ -29,7 +36,9 @@ def load_tradingview_csv(path: str | Path) -> pd.DataFrame:
         df = pd.read_csv(p, encoding="latin-1")
 
     # Normalize column names
-    df.columns = [c.strip().lower().replace(" ", "_").replace(".", "").replace("/", "_") for c in df.columns]
+    df.columns = [
+        c.strip().lower().replace(" ", "_").replace(".", "").replace("/", "_") for c in df.columns
+    ]
 
     # Map TradingView columns to standard format
     renames = {}
@@ -60,7 +69,7 @@ def load_tradingview_csv(path: str | Path) -> pd.DataFrame:
 
     # Parse profit
     if "profit" in df.columns:
-        df["profit"] = pd.to_numeric(df["profit"], errors="coerce").fillna(0)
+        df["profit"] = _parse_money_series(df["profit"])
 
     # Parse times
     for col in ["entry_time", "exit_time"]:
@@ -81,7 +90,8 @@ def load_metatrader_csv(path: str | Path) -> pd.DataFrame:
     """Parse MetaTrader 4/5 trade history export.
 
     MT4/MT5 exports with columns like:
-    Ticket, Open Time, Type, Size, Item, Price, S/L, T/P, Close Time, Close Price, Commission, Swap, Profit
+    Ticket, Open Time, Type, Size, Item, Price, S/L, T/P, Close Time,
+    Close Price, Commission, Swap, Profit
     """
     p = Path(path)
     info(f"Loading MetaTrader CSV: {p}")
@@ -105,11 +115,10 @@ def load_metatrader_csv(path: str | Path) -> pd.DataFrame:
     df = df.rename(columns=renames)
 
     if "profit" in df.columns:
-        df["profit"] = pd.to_numeric(df["profit"], errors="coerce").fillna(0)
+        df["profit"] = _parse_money_series(df["profit"])
 
     # Add swap and commission to profit if available
     if "swap" in df.columns and "commission" in df.columns:
-        swap = pd.to_numeric(df["swap"], errors="coerce").fillna(0)
         comm = pd.to_numeric(df["commission"], errors="coerce").fillna(0)
         df["commission"] = comm.abs()
         # MT4/5 profit already includes swap, but commission might be separate
@@ -143,7 +152,9 @@ def load_interactive_brokers_csv(path: str | Path) -> pd.DataFrame:
     except UnicodeDecodeError:
         df = pd.read_csv(p, encoding="latin-1")
 
-    df.columns = [c.strip().lower().replace(" ", "_").replace("/", "_").replace(".", "") for c in df.columns]
+    df.columns = [
+        c.strip().lower().replace(" ", "_").replace("/", "_").replace(".", "") for c in df.columns
+    ]
 
     renames = {}
     col_map = {
@@ -166,7 +177,7 @@ def load_interactive_brokers_csv(path: str | Path) -> pd.DataFrame:
         df = df.rename(columns=renames)
 
     if "profit" in df.columns:
-        df["profit"] = pd.to_numeric(df["profit"], errors="coerce").fillna(0)
+        df["profit"] = _parse_money_series(df["profit"])
 
     if "entry_time" in df.columns:
         df["entry_time"] = pd.to_datetime(df["entry_time"], errors="coerce")
@@ -192,7 +203,9 @@ def load_tradestation_csv(path: str | Path) -> pd.DataFrame:
     except UnicodeDecodeError:
         df = pd.read_csv(p, encoding="latin-1")
 
-    df.columns = [c.strip().lower().replace(" ", "_").replace("/", "_").replace("#", "n") for c in df.columns]
+    df.columns = [
+        c.strip().lower().replace(" ", "_").replace("/", "_").replace("#", "n") for c in df.columns
+    ]
 
     renames = {
         "profit_loss": "profit",
@@ -205,18 +218,22 @@ def load_tradestation_csv(path: str | Path) -> pd.DataFrame:
     # Combine date + time columns if separate
     if "entry_date" in df.columns and "entry_time" not in df.columns:
         if "entry_time_col" in df.columns:
-            df["entry_time"] = pd.to_datetime(df["entry_date"] + " " + df["entry_time_col"], errors="coerce")
+            df["entry_time"] = pd.to_datetime(
+                df["entry_date"] + " " + df["entry_time_col"], errors="coerce"
+            )
         else:
             df["entry_time"] = pd.to_datetime(df["entry_date"], errors="coerce")
 
     if "exit_date" in df.columns and "exit_time" not in df.columns:
         if "exit_time_col" in df.columns:
-            df["exit_time"] = pd.to_datetime(df["exit_date"] + " " + df["exit_time_col"], errors="coerce")
+            df["exit_time"] = pd.to_datetime(
+                df["exit_date"] + " " + df["exit_time_col"], errors="coerce"
+            )
         else:
             df["exit_time"] = pd.to_datetime(df["exit_date"], errors="coerce")
 
     if "profit" in df.columns:
-        df["profit"] = pd.to_numeric(df["profit"], errors="coerce").fillna(0)
+        df["profit"] = _parse_money_series(df["profit"])
 
     return df
 
@@ -234,6 +251,21 @@ def detect_and_load(path: str | Path) -> tuple[pd.DataFrame, str]:
         df_raw = pd.read_csv(p, nrows=5, encoding="latin-1")
 
     cols = set(c.strip().lower() for c in df_raw.columns)
+
+    # NinjaTrader Strategy Analyzer exports overlap with TradeStation on
+    # entry/exit-name columns, so recognize the more specific signature first.
+    ninja_signature = {
+        "trade number",
+        "instrument",
+        "market pos.",
+        "entry time",
+        "exit time",
+        "profit",
+    }
+    if ninja_signature.issubset(cols):
+        from nexural_research.ingest.nt_csv import load_nt_trades_csv
+
+        return load_nt_trades_csv(p), "ninjatrader"
 
     # TradingView: has "Trade #" or "Signal" or "Run-up"
     if any(k in cols for k in ["trade_#", "trade #", "signal", "run-up", "runup"]):
@@ -253,4 +285,5 @@ def detect_and_load(path: str | Path) -> tuple[pd.DataFrame, str]:
 
     # Fall back to NinjaTrader parser
     from nexural_research.ingest.nt_csv import load_nt_trades_csv
+
     return load_nt_trades_csv(p), "ninjatrader"

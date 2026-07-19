@@ -15,11 +15,13 @@ from nexural_research.analyze.advanced_robustness import (
 def _make_trades(profits: list[float]) -> pd.DataFrame:
     n = len(profits)
     base = pd.Timestamp("2025-01-01 09:30:00")
-    return pd.DataFrame({
-        "profit": profits,
-        "exit_time": [base + pd.Timedelta(hours=i) for i in range(n)],
-        "strategy": "Test",
-    })
+    return pd.DataFrame(
+        {
+            "profit": profits,
+            "exit_time": [base + pd.offsets.BDay(i) for i in range(n)],
+            "strategy": "Test",
+        }
+    )
 
 
 class TestParametricMonteCarlo:

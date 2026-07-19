@@ -1,0 +1,5 @@
+id: agent-automation-engineer
+title: Agent Automation Engineer
+description: Constrain agents with permissions, hostile-input defenses, and traces.
+lessons: [agent.permissions, agent.prompt_injection, agent.observability]
+capstones: []

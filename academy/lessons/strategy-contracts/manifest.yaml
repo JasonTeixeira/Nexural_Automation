@@ -1,0 +1,16 @@
+id: strategy.contracts
+track: strategy-builder
+title: Specify the Strategy Contract
+updated_at: "2026-07-19"
+estimated_minutes: 30
+objectives: [Define input and output schemas, Fail closed on invalid data]
+prerequisites: []
+tags: [strategy, contracts]
+translations:
+  en: {title: Specify the Strategy Contract, summary: Make strategy boundaries machine-checkable.}
+  es: {title: Especifica el Contrato de Estrategia, summary: Haz que los límites de la estrategia sean verificables por máquina.}
+hints: [Version both sides of the contract., Reject unknown fields at the boundary., Make invalid input a safe no-action state.]
+rubric:
+  - {id: versioned, metric: contract.versioned, operator: equals, expected: true, weight: 30, message: Add a contract version.}
+  - {id: strict, metric: contract.rejects_unknown_fields, operator: equals, expected: true, weight: 35, message: Reject unknown fields.}
+  - {id: fail_closed, metric: contract.invalid_input_action, operator: equals, expected: no_action, weight: 35, visibility: hidden}

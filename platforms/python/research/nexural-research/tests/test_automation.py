@@ -101,7 +101,7 @@ def test_run_strategy_gauntlet_export_returns_institutional_checks(strategy_csv)
     assert gauntlet["decision"] in {"PROMOTE_TO_PAPER", "REJECT", "TUNE", "REWRITE"}
     assert {check["name"] for check in gauntlet["checks"]} >= {
         "deflated_sharpe",
-        "walk_forward_efficiency",
+        "walk_forward_validation",
         "cost_stress",
     }
 

@@ -16,11 +16,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 
+from nexural_research import __version__
 from nexural_research.api.middleware.metrics import MetricsMiddleware
 from nexural_research.api.middleware.rate_limiter import RateLimiterMiddleware
 from nexural_research.api.middleware.request_id import RequestIDMiddleware
 from nexural_research.api.middleware.security_headers import SecurityHeadersMiddleware
 from nexural_research.api.routers import (
+    academy,
     ai,
     analysis,
     automation,
@@ -42,12 +44,13 @@ _logger = logging.getLogger("nexural_research.api")
 # App creation
 # ---------------------------------------------------------------------------
 
+
 @asynccontextmanager
 async def lifespan(app):
     """Application lifecycle — startup, background tasks, and shutdown."""
     import asyncio
 
-    _logger.info("Nexural Research v2.0.0 starting up")
+    _logger.info("Nexural Research v%s starting up", __version__)
 
     # Background TTL cleanup task
     async def _ttl_cleanup_loop():
@@ -70,7 +73,7 @@ async def lifespan(app):
 app = FastAPI(
     title="Nexural Research API",
     description="Institutional-grade strategy analysis engine for NinjaTrader trade data",
-    version="2.0.0",
+    version=__version__,
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     lifespan=lifespan,
@@ -111,6 +114,7 @@ app.add_middleware(SecurityHeadersMiddleware)
 # Global exception handler
 # ---------------------------------------------------------------------------
 
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     """Log errors securely without exposing internals to clients."""
@@ -137,11 +141,13 @@ for prefix in ["/api", "/api/v1"]:
     app.include_router(charts.router, prefix=prefix)
     app.include_router(export.router, prefix=prefix)
     app.include_router(ai.router, prefix=prefix)
+    app.include_router(academy.router, prefix=prefix)
 
 
 # ---------------------------------------------------------------------------
 # Static frontend serving (production)
 # ---------------------------------------------------------------------------
+
 
 def _find_static_dir() -> Path | None:
     """Locate the built frontend assets."""
@@ -170,6 +176,7 @@ if _static_dir:
 # Demo mode: load built-in sample data on startup
 # ---------------------------------------------------------------------------
 
+
 def _load_demo_data() -> None:
     """Pre-load sample data so the app has something to show on first launch."""
     sample_dir = Path(__file__).resolve().parent.parent.parent.parent / "data" / "exports"
@@ -177,10 +184,14 @@ def _load_demo_data() -> None:
     if sample.exists() and "demo" not in sessions:
         try:
             from nexural_research.ingest.nt_csv import load_nt_trades_csv
+
             df = load_nt_trades_csv(sample)
             sessions["demo"] = {
-                "df": df, "kind": "trades", "filename": "demo_trades.csv",
-                "n_rows": len(df), "columns": list(df.columns),
+                "df": df,
+                "kind": "trades",
+                "filename": "demo_trades.csv",
+                "n_rows": len(df),
+                "columns": list(df.columns),
             }
         except Exception as exc:
             _logger.warning("Demo data load skipped: %s", exc)
@@ -192,6 +203,7 @@ load_persisted_sessions()
 # Initialize database tables
 try:
     from nexural_research.db.init_db import init_database
+
     init_database()
 except Exception:
     _logger.debug("Database init skipped (optional dependency)")
@@ -203,8 +215,10 @@ _load_demo_data()
 # Entry points
 # ---------------------------------------------------------------------------
 
+
 def run_server(host: str = "127.0.0.1", port: int = 8000, reload: bool = False):
     import uvicorn
+
     uvicorn.run("nexural_research.api.app:app", host=host, port=port, reload=reload)
 
 
@@ -217,7 +231,7 @@ def launch(port: int = 8000) -> None:
 
     url = f"http://localhost:{port}"
     threading.Timer(2.0, lambda: webbrowser.open(url)).start()
-    print("\n  Nexural Research v2.0.0")
+    print(f"\n  Nexural Research v{__version__}")
     print(f"  Dashboard:  {url}")
     print(f"  API Docs:   {url}/api/docs")
     print("  Press Ctrl+C to stop\n")

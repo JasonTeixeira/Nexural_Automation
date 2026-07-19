@@ -1,0 +1,17 @@
+id: capstone.automation_incident
+track: bridge-engineer
+title: Automation Incident Simulator
+updated_at: "2026-07-19"
+estimated_minutes: 240
+objectives: [Survive deterministic injected faults, Reconcile final state, Produce an incident trace]
+prerequisites: [bridge.retries, bridge.kill_switch, bridge.reconciliation, agent.observability]
+tags: [capstone, bridge, incident]
+translations:
+  en: {title: Automation Incident Simulator, summary: Handle disconnect duplicate stale-data and partial-fill faults safely.}
+  es: {title: Simulador de Incidentes de Automatización, summary: Gestiona de forma segura desconexiones duplicados datos obsoletos y ejecuciones parciales.}
+hints: [Run each seeded fault independently first., Preserve one idempotency key through the full lifecycle., Require reconciliation and operator acknowledgement before re-arm.]
+rubric:
+  - {id: faults, metric: incident.fault_profiles_passed, operator: gte, expected: 5, weight: 25, message: Pass all five standard fault profiles.}
+  - {id: trace, metric: incident.replayable_trace, operator: equals, expected: true, weight: 25, message: Produce a replayable trace.}
+  - {id: reconcile, metric: incident.final_state_reconciled, operator: equals, expected: true, weight: 25, message: Reconcile final state.}
+  - {id: authority, metric: incident.silent_authority_expansion, operator: equals, expected: false, weight: 25, visibility: hidden}

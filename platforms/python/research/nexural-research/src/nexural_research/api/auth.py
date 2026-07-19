@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import os
+from contextvars import ContextVar
 from dataclasses import dataclass
 
 from fastapi import HTTPException, Security
@@ -43,6 +44,7 @@ class AuthContext:
 
 
 _api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
+_request_auth: ContextVar[AuthContext | None] = ContextVar("nexural_request_auth", default=None)
 
 
 def _hash_key(key: str) -> str:
@@ -63,7 +65,9 @@ async def require_auth(
 ) -> AuthContext:
     """Validate authentication when NEXURAL_AUTH_ENABLED is set."""
     if not _AUTH_ENABLED:
-        return AuthContext(authenticated=False)
+        context = AuthContext(authenticated=False)
+        _request_auth.set(context)
+        return context
 
     key = _extract_key(header)
     if not key:
@@ -76,7 +80,14 @@ async def require_auth(
     if not any(hmac.compare_digest(key_hash, candidate) for candidate in _VALID_KEY_HASHES):
         raise HTTPException(status_code=403, detail="Invalid API key.")
 
-    return AuthContext(authenticated=True, key_hash=key_hash)
+    context = AuthContext(authenticated=True, key_hash=key_hash)
+    _request_auth.set(context)
+    return context
+
+
+def current_auth() -> AuthContext | None:
+    """Return the auth context established by the current request dependency."""
+    return _request_auth.get()
 
 
 def is_auth_enabled() -> bool:

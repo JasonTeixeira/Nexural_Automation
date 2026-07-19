@@ -10,16 +10,15 @@ Cloning into 'Nexural_Automation'...
 $ cd Nexural_Automation
 $ make setup
 cd platforms/python/research/nexural-research && pip install -e ".[dev,mcp]"
-Successfully installed nexural-research-0.2.0
+Successfully installed nexural-research-2.0.0
 
 $ make smoke
-Decision: pass | Score: 87 | Passed: True
-PASS trades_count                 200 / 100
-PASS profit_factor                1.34 / 1.20
-PASS sharpe                       1.61 / 1.00
-PASS max_drawdown_pct            -8.40 / -15.00
-PASS robustness_p_value           0.018 / 0.050
-PASS cost_stress_moderate         pass / pass
+Decision: REJECT | Score: 90.0 | Passed: False
+PASS trade_count                  200 / >= 100
+PASS profit_factor                ... / >= 1.2
+PASS deflated_sharpe              ... / significant
+FAIL walk_forward_validation      not_evaluated / fitted adapter required
+PASS cost_stress                  ... / profitable
 
 $ make report
 📄 Report written to: /tmp/nexural-demo-report.html
@@ -43,16 +42,20 @@ asciinema rec -c "bash -lc 'make smoke && make report'" docs/assets/quickstart.c
 
 Then embed the resulting `.cast` (or its rendered SVG) in `README.md`.
 
+The exact metric values can change as the institutional methodology improves;
+the decision vocabulary and check names are contract-tested.
+
 ## What the gauntlet checks
 
 | Check                  | Why it matters                                                       |
 | ---------------------- | -------------------------------------------------------------------- |
-| `trades_count`         | Avoid drawing conclusions from a too-small sample                     |
+| `trade_count`          | Avoid drawing conclusions from a too-small sample                     |
 | `profit_factor`        | Gross win / gross loss — primary edge signal                          |
 | `sharpe`               | Risk-adjusted return                                                  |
 | `max_drawdown_pct`     | How bad does the worst stretch look?                                  |
-| `robustness_p_value`   | Bootstrap test — could the result come from luck?                     |
-| `cost_stress_moderate` | Re-prices trades under stressed commissions + slippage                |
+| `deflated_sharpe`      | Corrects headline Sharpe for multiple-testing bias                    |
+| `walk_forward_validation` | Requires fit-on-IS, frozen parameters, disjoint OOS folds, and purge/embargo evidence |
+| `cost_stress`          | Re-prices trades under stressed commissions + slippage                |
 
 A run that **passes the gauntlet is not a green light to trade**. It is a
 research artifact saying "this dataset survives the basic skeptic checks."

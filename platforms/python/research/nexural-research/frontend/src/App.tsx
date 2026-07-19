@@ -1,21 +1,24 @@
-import { useState } from "react";
-import { UploadPanel } from "./components/UploadPanel";
-import { Sidebar } from "./components/Sidebar";
-import { MetricsOverview } from "./components/MetricsOverview";
-import { EquityChart } from "./components/EquityChart";
-import { RobustnessPanel } from "./components/RobustnessPanel";
-import { AdvancedMetricsPanel } from "./components/AdvancedMetricsPanel";
-import { DistributionPanel } from "./components/DistributionPanel";
-import { HeatmapPanel } from "./components/HeatmapPanel";
-import { TradesTable } from "./components/TradesTable";
-import { AiAnalyst } from "./components/AiAnalyst";
-import { ImprovementsPanel } from "./components/ImprovementsPanel";
-import { ComparisonPanel } from "./components/ComparisonPanel";
-import { SettingsPanel } from "./components/SettingsPanel";
+import { lazy, Suspense, useState } from "react";
+import { AcademyWorkspace } from "./components/academy/AcademyWorkspace";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import type { UploadResponse } from "./lib/api";
+import { Sidebar } from "./components/Sidebar";
+import { UploadPanel } from "./components/UploadPanel";
+import { setPlatformCredential, type UploadResponse } from "./lib/api";
+
+const AdvancedMetricsPanel = lazy(() => import("./components/AdvancedMetricsPanel").then((module) => ({ default: module.AdvancedMetricsPanel })));
+const AiAnalyst = lazy(() => import("./components/AiAnalyst").then((module) => ({ default: module.AiAnalyst })));
+const ComparisonPanel = lazy(() => import("./components/ComparisonPanel").then((module) => ({ default: module.ComparisonPanel })));
+const DistributionPanel = lazy(() => import("./components/DistributionPanel").then((module) => ({ default: module.DistributionPanel })));
+const EquityChart = lazy(() => import("./components/EquityChart").then((module) => ({ default: module.EquityChart })));
+const HeatmapPanel = lazy(() => import("./components/HeatmapPanel").then((module) => ({ default: module.HeatmapPanel })));
+const ImprovementsPanel = lazy(() => import("./components/ImprovementsPanel").then((module) => ({ default: module.ImprovementsPanel })));
+const MetricsOverview = lazy(() => import("./components/MetricsOverview").then((module) => ({ default: module.MetricsOverview })));
+const RobustnessPanel = lazy(() => import("./components/RobustnessPanel").then((module) => ({ default: module.RobustnessPanel })));
+const SettingsPanel = lazy(() => import("./components/SettingsPanel").then((module) => ({ default: module.SettingsPanel })));
+const TradesTable = lazy(() => import("./components/TradesTable").then((module) => ({ default: module.TradesTable })));
 
 export type View =
+  | "academy"
   | "overview"
   | "improvements"
   | "advanced"
@@ -27,18 +30,30 @@ export type View =
   | "ai"
   | "settings";
 
+const VIEW_TITLES: Record<View, string> = {
+  academy: "Automation Academy",
+  overview: "Performance Overview",
+  improvements: "Strategy Improvements",
+  advanced: "Advanced Analytics",
+  robustness: "Robustness Testing",
+  distribution: "Distribution Analysis",
+  heatmap: "Time & Session Analysis",
+  trades: "Trade Log",
+  compare: "Strategy Comparison",
+  ai: "AI Strategy Analyst",
+  settings: "Settings",
+};
+
 export default function App() {
   const [session, setSession] = useState<UploadResponse | null>(null);
-  const [view, setView] = useState<View>("overview");
+  const [view, setView] = useState<View>("academy");
   const [apiKey, setApiKey] = useState("");
+  const [platformApiKey, setPlatformApiKey] = useState("");
   const [aiProvider, setAiProvider] = useState<"anthropic" | "openai" | "perplexity">("anthropic");
 
-  if (!session) {
-    return <UploadPanel onUpload={setSession} />;
-  }
-
   return (
-    <div className="flex min-h-screen">
+    <div className="min-h-screen">
+      <a href="#main-content" className="skip-link">Skip to workspace</a>
       <Sidebar
         view={view}
         onNavigate={setView}
@@ -46,68 +61,36 @@ export default function App() {
         onReset={() => { setSession(null); setView("overview"); }}
       />
 
-      <main className="ml-[260px] flex-1 min-h-screen">
-        {/* Top bar */}
-        <header className="sticky top-0 z-40 backdrop-blur-2xl bg-[#060a13]/80 border-b border-white/[0.04] px-8 py-4">
-          <div className="flex items-center justify-between">
+      <main id="main-content" className="app-main min-h-screen">
+        {view !== "academy" && (
+          <header className="app-topbar">
             <div>
-              <h1 className="text-lg font-semibold text-white">
-                {view === "overview" && "Performance Overview"}
-                {view === "improvements" && "Strategy Improvements"}
-                {view === "advanced" && "Advanced Analytics"}
-                {view === "robustness" && "Robustness Testing"}
-                {view === "distribution" && "Distribution Analysis"}
-                {view === "heatmap" && "Time & Session Analysis"}
-                {view === "trades" && "Trade Log"}
-                {view === "compare" && "Strategy Comparison"}
-                {view === "ai" && "AI Strategy Analyst"}
-                {view === "settings" && "Settings"}
-              </h1>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {session.filename} &middot; {session.n_rows.toLocaleString()} trades &middot; {session.kind}
-              </p>
+              <h1>{VIEW_TITLES[view]}</h1>
+              <p>{session ? `${session.filename} · ${session.n_rows.toLocaleString()} trades · ${session.kind}` : "Import a validated NinjaTrader export to begin analysis."}</p>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <div className="text-[10px] text-gray-500 uppercase tracking-wider">Session</div>
-                <div className="text-xs font-mono text-gray-400">{session.session_id}</div>
-              </div>
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="API Connected" />
+            <div className="app-session-state">
+              <div><span>Session</span><code>{session?.session_id ?? "NOT LOADED"}</code></div>
+              <i className={session ? "connected" : "idle"} title={session ? "API connected" : "Waiting for data"} />
             </div>
-          </div>
-        </header>
+          </header>
+        )}
 
-        {/* Content */}
-        <div className="p-8 animate-fade-in">
+        <div className={view === "academy" ? "academy-app-content" : "app-content"}>
           <ErrorBoundary key={view}>
-            {view === "overview" && (
-              <div className="space-y-8">
-                <MetricsOverview sessionId={session.session_id} />
-                <EquityChart sessionId={session.session_id} />
-              </div>
-            )}
-            {view === "improvements" && <ImprovementsPanel sessionId={session.session_id} />}
-            {view === "advanced" && <AdvancedMetricsPanel sessionId={session.session_id} />}
-            {view === "robustness" && <RobustnessPanel sessionId={session.session_id} />}
-            {view === "distribution" && <DistributionPanel sessionId={session.session_id} />}
-            {view === "heatmap" && <HeatmapPanel sessionId={session.session_id} />}
-            {view === "trades" && <TradesTable sessionId={session.session_id} />}
-            {view === "compare" && <ComparisonPanel currentSessionId={session.session_id} />}
-            {view === "ai" && (
-              <AiAnalyst
-                sessionId={session.session_id}
-                apiKey={apiKey}
-                provider={aiProvider}
-              />
-            )}
-            {view === "settings" && (
-              <SettingsPanel
-                apiKey={apiKey}
-                onApiKeyChange={setApiKey}
-                provider={aiProvider}
-                onProviderChange={setAiProvider}
-              />
-            )}
+            <Suspense fallback={<div className="academy-state" role="status">Loading workspace…</div>}>
+              {view === "academy" && <AcademyWorkspace />}
+              {view !== "academy" && !session && <UploadPanel onUpload={setSession} />}
+              {session && view === "overview" && <div className="space-y-8"><MetricsOverview sessionId={session.session_id} /><EquityChart sessionId={session.session_id} /></div>}
+              {session && view === "improvements" && <ImprovementsPanel sessionId={session.session_id} />}
+              {session && view === "advanced" && <AdvancedMetricsPanel sessionId={session.session_id} />}
+              {session && view === "robustness" && <RobustnessPanel sessionId={session.session_id} />}
+              {session && view === "distribution" && <DistributionPanel sessionId={session.session_id} />}
+              {session && view === "heatmap" && <HeatmapPanel sessionId={session.session_id} />}
+              {session && view === "trades" && <TradesTable sessionId={session.session_id} />}
+              {session && view === "compare" && <ComparisonPanel currentSessionId={session.session_id} />}
+              {session && view === "ai" && <AiAnalyst sessionId={session.session_id} apiKey={apiKey} provider={aiProvider} />}
+              {view === "settings" && <SettingsPanel platformApiKey={platformApiKey} onPlatformApiKeyChange={(value) => { setPlatformApiKey(value); setPlatformCredential(value); }} apiKey={apiKey} onApiKeyChange={setApiKey} provider={aiProvider} onProviderChange={setAiProvider} />}
+            </Suspense>
           </ErrorBoundary>
         </div>
       </main>

@@ -42,4 +42,5 @@ nexural-research gauntlet --input C:\Exports\nq_strategy.csv --symbol NQ --strat
 - `REJECT`: do not continue.
 - `TUNE`: fix one or two clear weaknesses.
 - `REWRITE`: thesis may be valid but implementation is not.
-- `PROMOTE_TO_PAPER`: paper trade only, with bridge controls still disabled by default.
+- `PROMOTE_TO_PAPER`: paper trade only, and only after the gauntlet receives fitted/frozen,
+  purged walk-forward evidence; bridge controls remain disabled by default.

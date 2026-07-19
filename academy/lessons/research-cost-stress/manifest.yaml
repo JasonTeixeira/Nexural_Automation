@@ -1,0 +1,16 @@
+id: research.cost_stress
+track: research-operator
+title: Stress Every Cost Assumption
+updated_at: "2026-07-19"
+estimated_minutes: 30
+objectives: [Model explicit execution costs, Reject fragile evidence]
+prerequisites: [research.walk_forward]
+tags: [research, costs, robustness]
+translations:
+  en: {title: Stress Every Cost Assumption, summary: Prove the experiment includes adverse cost scenarios.}
+  es: {title: Somete a Estrés Cada Supuesto de Coste, summary: Demuestra que el experimento incluye escenarios de costes adversos.}
+hints: [Include commission and slippage inputs., Add normal elevated and crisis scenarios., Require the evidence package to record all assumptions.]
+rubric:
+  - {id: commission, metric: costs.commission_included, operator: equals, expected: true, weight: 30, message: Include commission explicitly.}
+  - {id: scenarios, metric: costs.scenario_count, operator: gte, expected: 3, weight: 35, message: Exercise at least three cost scenarios.}
+  - {id: lineage, metric: costs.assumptions_recorded, operator: equals, expected: true, weight: 35, visibility: hidden}
