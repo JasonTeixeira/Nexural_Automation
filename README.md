@@ -2,259 +2,284 @@
 
 # Nexural Automation
 
-### A local-first automation lab for futures strategy research
+### The safety-first engineering lab for NinjaTrader 8 automation
 
-**Take any strategy export from backtest to a paper-trading decision through an institutional-grade gauntlet — overfitting checks, cost stress, and promotion gates — before a dollar is ever at risk.**
+Build the strategy. Prove the research. Break the bridge. Recover the state. Promote only the evidence.
 
-<img src="docs/assets/og-card.png" alt="Nexural Automation — local-first automation lab for futures strategy research" width="720" />
+[![Core CI](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/ci.yml)
+[![Research CI](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/python-research-ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/python-research-ci.yml)
+[![NT8 portable CI](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/nt8-portable-ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/nt8-portable-ci.yml)
+[![CodeQL](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/codeql.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/codeql.yml)
+[![Docs](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/docs-pages.yml/badge.svg)](https://jasonteixeira.github.io/Nexural_Automation/)
+[![License](https://img.shields.io/badge/license-Apache--2.0-00b894.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.11-f6c453.svg)](platforms/python/research/nexural-research/pyproject.toml)
+[![Execution](https://img.shields.io/badge/execution-Sim101%20%7C%20Playback101-e85d3f.svg)](platforms/ninjatrader/docs/SAFETY_SPINE.md)
 
-[![CI](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/ci.yml)
-[![python-research-ci](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/python-research-ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/python-research-ci.yml)
-[![docs-and-metadata](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/docs-and-metadata.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/docs-and-metadata.yml)
-[![module-catalog](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/module-catalog.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/module-catalog.yml)
-[![docs-pages](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/docs-pages.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/docs-pages.yml)
-[![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
-[![MCP Smoke](https://img.shields.io/badge/MCP-smoke%20tested-111827.svg)](docs/mcp-contract.md)
-
-[Why](#why-this-exists) · [Architecture](#architecture) · [What it does](#what-it-does) · [Academy](#automation-academy) · [Quickstart](#quickstart) · [MCP server](#mcp-automation-server) · [Proof & evidence](#proof--evidence) · [Docs](#public-docs)
+[Start here](#start-here) · [Academy](#automation-academy) · [NT8 safety spine](#native-nt8-safety-spine) · [Research engine](#research-and-promotion-engine) · [Architecture](#architecture) · [Verification](#verification-contract) · [Docs](#documentation-map)
 
 </div>
 
-> Not financial advice. This project is for research, education, simulation, and paper-first development. See [DISCLAIMER.md](DISCLAIMER.md).
+> [!CAUTION]
+> Research, education, Playback, and simulated execution only. The included bridge has no live-routing mode. This project is not financial advice and passing its tests does not make a strategy safe or profitable. Read the [full disclaimer](DISCLAIMER.md).
 
----
+## What this repository is
 
-## Why this exists
+Nexural Automation is an executable learning and validation system for NT8 automation engineering. It joins four surfaces that usually live in disconnected projects:
 
-Most retail strategy development jumps straight from a curve-fit backtest to live money. The steps a trading desk would never skip — deflated-Sharpe overfitting tests, walk-forward validation, Monte Carlo risk envelopes, realistic commission and slippage stress — are exactly the steps hobby tooling leaves out.
+| Surface | What it gives you | Promotion boundary |
+|---|---|---|
+| **Learn** | 5 tracks, 60 executable labs, bilingual concepts, seeded faults, 5 capstones | Grading is derived from replayed artifacts, never learner-supplied pass flags |
+| **Build** | NinjaScript Strategy/AddOn adapters, strategy scaffolds, bridge contracts, Python SDKs | Live-account routing is absent by design |
+| **Validate** | Deflated Sharpe, cost stress, walk-forward evidence, Monte Carlo, deterministic fault tests | A historical export alone cannot pass promotion |
+| **Operate** | Durable cursor/ACK recovery, reconciliation, risk limits, kill switch, audit journal | Only `Sim101 + Simulator` or `Playback101 + Playback` can pass the native gate |
 
-Nexural Automation packages that due-diligence pipeline as a **local-first lab**: a Python research engine, a deterministic scenario-driven Automation Academy, an MCP server so AI agents can run the same workflow, a Strategy SDK for scaffolding modules across platforms, and a Bridge SDK that defines the safety lifecycle (health, flatten, kill-switch, fill reconciliation) any execution connector must implement. Everything runs on `127.0.0.1`; nothing trades live.
+The goal is not to collect another folder of standalone strategies. The goal is to teach and enforce the engineering discipline needed to make automation observable, reproducible, recoverable, and difficult to misuse.
 
-## Architecture
+## Verified capability status
 
-Verified against the code in `platforms/python/research/nexural-research/src/nexural_research/`.
+This table separates automated evidence from claims that still require a human or external environment.
 
-```mermaid
-flowchart LR
-    subgraph INPUT["Trade exports"]
-        CSV["CSV exports<br/>NinjaTrader · TradingView · IB · MT4 · TradeStation"]
-    end
+| Capability | Current evidence | Status |
+|---|---|---|
+| Portable C# execution/risk kernel | 13 deterministic fault scenarios on .NET 8 | **Automated** |
+| Native NT8 adapter compile | Exact Strategy/AddOn sources compiled against local NT8 `8.1.7.2`: 0 warnings, 0 errors | **Locally verified** |
+| NT8 desktop import and simulated fills | Checklist and evidence contract exist; NinjaTrader exposes no supported headless import command | **Manual gate** |
+| Academy catalog | 5 tracks, 60 lesson manifests, 5 capstone manifests; source/package parity tested | **Automated** |
+| Academy grading | Trusted data-only runner derives source hash, trace, tests, fault evidence, and digest | **Automated** |
+| Python research engine | Cross-platform quality gate, pytest, schema validation, security scans, browser checks | **Automated in CI** |
+| Release artifacts | Wheel/sdist, NT8 archive, SBOM, SHA-256 manifest, keyless Sigstore signing workflow | **Configured; verified on release** |
+| External beta | Pseudonymous evidence schema and promotion thresholds are implemented | **Prepared, not yet completed** |
 
-    subgraph CLIENTS["Entry points"]
-        AGENT["MCP clients<br/>Claude · Codex · Cursor"]
-        CLI["nexural-research CLI"]
-        UI["Local API + dashboard<br/>:8000 · :3010"]
-    end
+## Start here
 
-    subgraph ENGINE["Python research engine"]
-        MCP["MCP server — FastMCP<br/>8 tools · stdio / HTTP :8765<br/>mcp_server.py"]
-        AN["Analysis core<br/>metrics · deflated Sharpe · regime<br/>Monte Carlo · walk-forward"]
-        COST["Cost model — cost_model.py<br/>8 futures symbols · 3 stress profiles"]
-        GAUNT{"Gauntlet — gauntlet.py<br/>10-check promotion gate"}
-    end
+Requirements: Git, Python 3.11, and PowerShell 7 for the NT8 harness. Node.js 22 is needed only for frontend work. NinjaTrader 8 is needed only for the native compile and desktop verification steps.
 
-    subgraph SDKS["SDKs"]
-        SSDK["Strategy SDK — strategy_sdk.py<br/>Python · NinjaScript · Pine v5 scaffolds"]
-        BSDK["Bridge SDK — bridge_sdk.py<br/>health · send_signal · flatten<br/>kill_switch · reconcile_fills"]
-    end
-
-    CSV --> AN
-    AGENT -->|"MCP tool calls"| MCP
-    CLI --> AN
-    UI --> AN
-    MCP --> AN
-    MCP --> SSDK
-    MCP --> BSDK
-    AN --> GAUNT
-    COST --> GAUNT
-    GAUNT -->|"PROMOTE_TO_PAPER<br/>requires fitted walk-forward evidence"| BSDK
-    GAUNT -->|"TUNE / REWRITE"| SSDK
-    GAUNT -->|"REJECT<br/>fails deflated Sharpe, walk-forward, or cost stress"| X["Stop — documented failure"]
-```
-
-The gauntlet's four decisions come straight from `gauntlet.py`: **PROMOTE_TO_PAPER** (zero failed checks, including fitted/frozen walk-forward evidence), **REJECT** (fails deflated Sharpe, fitted walk-forward validation, or cost stress), **TUNE** (score ≥ 70), **REWRITE** (everything else). A trade export by itself is descriptive evidence and cannot pass the fitted walk-forward gate.
-
-## What it does
-
-- **Strategy due diligence** — one command runs metrics, deflated Sharpe ratio, regime analysis, parametric Monte Carlo, and rolling walk-forward on any supported CSV export, then issues a graded decision.
-- **Futures cost reality check** — per-symbol commission + slippage model (ES, NQ, RTY, CL, GC, SI, HG, ZB) with `normal`, `elevated`, and `crisis` stress profiles applied inside the gauntlet.
-- **Strategy SDK** — scaffold documented, schema-validated strategy modules for Python, NinjaTrader (C#), and TradingView (Pine v5), with metadata and no-lookahead policy baked into the templates.
-- **Bridge SDK** — a connector protocol whose lifecycle (`health()`, `send_signal()`, `flatten()`, `kill_switch()`, `reconcile_fills()`) is enforced by contract schema and validated in CI; ships a `CsvSignalBridge` reference implementation.
-- **Agent-ready via MCP** — the entire workflow is callable by AI agents over stdio or streamable HTTP, with a golden contract fixture guarding backward compatibility.
-- **HTML research reports** — local, self-contained report generation for any export.
-- **Automation Academy** — four ordered tracks, 12 safety labs, three capstones, seeded fault scenarios, prerequisite enforcement, escalating trace-aware hints, hash-chained submission evidence, signed local knowledge attestations, cohorts, marketplace packages, and English/Spanish learning content.
-
-## Automation Academy
-
-The dashboard opens on the Academy flight deck. Work is graded on reproducibility, causal timing, bounded authority, idempotency, reconciliation, and safety—not profitability. Hidden grader contracts are never returned to learner clients and passed submissions are copied into a SHA-256 hash chain. The current signed award is explicitly a **knowledge attestation** derived from completed scenario contracts; it does not certify that arbitrary learner code was executed or is safe to trade.
-
-```bash
-cd platforms/python/research/nexural-research
-nexural-research academy catalog --json
-nexural-research academy start research.lookahead --learner jason --json
-nexural-research academy check research.lookahead --learner jason --submission ../../../../academy/fixtures/lookahead-safe-submission.json --json
-nexural-research academy progress --learner jason --json
-nexural-research academy trace --learner jason --json
-```
-
-HTTP clients use `/api/academy/*`; hosted mode namespaces learner state by authenticated API-key owner. See [`academy/README.md`](academy/README.md) for the curriculum and evidence contracts.
-
-## Quickstart
-
-### One-command local stack
-
-macOS/Linux:
-
-```bash
-git clone https://github.com/JasonTeixeira/Nexural_Automation.git
-cd Nexural_Automation
-./scripts/start-local-stack.sh
-```
-
-Windows:
+### Windows
 
 ```powershell
 git clone https://github.com/JasonTeixeira/Nexural_Automation.git
 cd Nexural_Automation
-.\scripts\start-local-stack.ps1
-```
 
-This installs the research package (`pip install -e ".[dev,mcp]"`), then starts the API (`http://127.0.0.1:8000`), MCP HTTP server (`http://127.0.0.1:8765/mcp`), and dashboard UI (`http://127.0.0.1:3010`).
-
-### Zero-config smoke test
-
-Runs the full gauntlet on the bundled demo export — no data or keys needed:
-
-```bash
-make setup
-make smoke     # gauntlet on examples/demo_nq_trades.csv
-make report    # HTML research report from the same demo
-```
-
-### Run the pipeline on your own export
-
-```bash
+$env:SETUPTOOLS_USE_DISTUTILS = "stdlib"
 cd platforms/python/research/nexural-research
-nexural-research gauntlet --input /path/to/nq_strategy.csv --symbol NQ --strategy-name "NQ Research"
+py -3.11 -m pip install -e ".[dev,mcp]"
+py -3.11 -m nexural_research.cli quality-gate --threshold 0.95 --json --fast
+```
+
+Run the native safety checks from the repository root:
+
+```powershell
+cd ../../../..
+./platforms/ninjatrader/scripts/Test-NT8SafetySpine.ps1
+```
+
+If NT8 is not installed, run the portable kernel and fault suite only:
+
+```powershell
+./platforms/ninjatrader/scripts/Test-NT8SafetySpine.ps1 -SkipNativeCompile
+```
+
+### macOS or Linux
+
+```bash
+git clone https://github.com/JasonTeixeira/Nexural_Automation.git
+cd Nexural_Automation
+export SETUPTOOLS_USE_DISTUTILS=stdlib
+python3.11 -m pip install -e "platforms/python/research/nexural-research[dev,mcp]"
+make smoke
+make quality-gate
+```
+
+Launch the local API, MCP server, and dashboard with [`scripts/start-local-stack.ps1`](scripts/start-local-stack.ps1) on Windows or [`scripts/start-local-stack.sh`](scripts/start-local-stack.sh) on macOS/Linux.
+
+## Automation Academy
+
+The Academy is an executable curriculum, not a page of code snippets. Every lab includes:
+
+- English and Spanish concept material
+- a deliberately incomplete starter program and a reference solution
+- visible assertions and withheld learner-facing checks
+- a deterministic expected trace and seeded fault scenario
+- an acceptance rubric tied directly to generated evidence
+
+The hosted grader executes a constrained, data-only trace language. It does not import arbitrary Python or C# from a learner submission. Submitted booleans are ignored; the server replays the source and derives the result.
+
+### Five tracks, sixty labs
+
+| Track | Engineering focus |
+|---|---|
+| **NinjaTrader Foundations** | lifecycle, calculation modes, historical transitions, sessions, DST, multi-series, Playback, rollover, cleanup, diagnostics |
+| **Strategy Builder** | contracts, state machines, managed orders, partial fills, execution updates, brackets, risk limits, multi-instrument safety, paper deployment |
+| **Research Operator** | no-lookahead design, walk-forward validation, cost stress, bootstrap/Monte Carlo, optimization bias, regime segmentation, data contracts, evidence bundles |
+| **Bridge Engineer** | sequence IDs, ACKs, durable outbox, duplicate delivery, stale signals, disconnect recovery, restart replay, account isolation, reconciliation, kill switch |
+| **Agent Automation Engineer** | least privilege, tool allowlists, approval gates, prompt injection, secrets, sandboxes, deterministic plans, timeouts, provenance, audit trails |
+
+```powershell
+nexural-research academy catalog --json
+nexural-research academy start research.lookahead --learner local-operator --json
+nexural-research academy check research.lookahead `
+  --learner local-operator `
+  --submission ../../../../academy/fixtures/lookahead-safe-submission.json `
+  --json
+nexural-research academy progress --learner local-operator --json
+```
+
+Curriculum authors can create and validate packages without enabling arbitrary code execution:
+
+```powershell
+python -m nexural_research.academy.authoring new nt8.example `
+  --root academy/lessons `
+  --track nt8-foundations `
+  --title "Example" `
+  --title-es "Ejemplo"
+python -m nexural_research.academy.authoring validate academy/lessons/nt8-example
+```
+
+Read the [Academy contract](academy/README.md) and [learning-item schema](academy/schema/learning-item.schema.json).
+
+## Native NT8 safety spine
+
+The C# core is platform-portable; the adapters compile against the proprietary NT8 assemblies only in the native harness.
+
+```text
+signal file
+   │
+   ▼
+schema + monotonic sequence + age gate
+   │
+   ▼
+exact account/provider gate ── reject anything except Sim101/Playback101
+   │
+   ▼
+reconciliation + risk engine + persistent kill switch
+   │
+   ▼
+order/execution state machine ── journal ── ACK ── durable cursor
+```
+
+The fault suite covers duplicate and non-monotonic signals, stale/future signals, unreconciled startup, every risk limit, partial fills, overfills, illegal transitions, restart persistence, cursor/ACK crash gaps, live-account rejection, and flatten-only kill-switch behavior.
+
+Build a validated NT8 import archive:
+
+```powershell
+./platforms/ninjatrader/scripts/Build-NinjaTraderArchive.ps1
+```
+
+Then follow the explicit [desktop import and Playback verification procedure](platforms/ninjatrader/docs/IMPORT_AND_VERIFY.md). Native compilation proves API compatibility; it does not prove GUI import, provider behavior, or simulated fill timing.
+
+## Research and promotion engine
+
+The Python engine imports strategy exports from NinjaTrader, TradingView, Interactive Brokers, MT4, and TradeStation. It provides:
+
+- 71+ analysis metrics, deflated Sharpe, regime analysis, and Monte Carlo envelopes
+- rolling walk-forward evaluation with fitted/frozen evidence requirements
+- commission and slippage stress for ES, NQ, RTY, CL, GC, SI, HG, and ZB
+- a ten-check gauntlet that can promote only to paper, tune, rewrite, or reject
+- self-contained HTML reports, CLI/API access, and eight stable MCP tools
+
+```powershell
+nexural-research gauntlet --input path/to/trades.csv --symbol NQ --strategy-name "NQ Research"
 nexural-research costs --symbol NQ --trades 250 --stress-profile elevated
-nexural-research report --input /path/to/nq_strategy.csv
-```
-
-### Scaffold with the SDKs
-
-```bash
-nexural-research new-strategy "Opening Range Failure" --platform python
-nexural-research validate-strategy ../examples/strategies/opening_range_failure/metadata.yaml
-
-nexural-research new-bridge "NinjaTrader CSV"
-nexural-research validate-bridge ../examples/bridges/ninjatrader_csv/bridge_contract.json
-```
-
-Requirements: Python 3.11. Node.js 22 only for frontend development; Docker only for the container path (`docker compose up --build` inside `platforms/python/research/nexural-research`).
-
-## MCP Automation Server
-
-Run stdio mode for desktop MCP clients:
-
-```bash
-cd platforms/python/research/nexural-research
-pip install -e ".[mcp]"
-nexural-mcp
-```
-
-HTTP mode and smoke test:
-
-```bash
-nexural-research mcp --transport streamable-http --host 127.0.0.1 --port 8765
+nexural-research report --input path/to/trades.csv
 nexural-research mcp-smoke
 ```
 
-The 8 stable tools:
+See the [MCP contract](docs/mcp-contract.md), [API examples](docs/mcp-api-examples.md), and [gauntlet failure guide](docs/why-strategies-fail-the-gauntlet.md).
 
-| Tool | Purpose |
-|------|---------|
-| `list_capabilities` | Return supported workflows, imports, and guardrails |
-| `analyze_strategy_csv` | Full strategy due diligence with metrics, DSR, Monte Carlo, walk-forward, grade, and decision gate |
-| `compare_strategy_csvs` | Rank 2–10 strategy exports by composite institutional metrics |
-| `generate_report` | Write a local HTML research report for an export |
-| `run_strategy_gauntlet` | Run the 10-check promotion gate |
-| `estimate_strategy_costs` | Estimate futures commission and slippage |
-| `scaffold_strategy` | Create Python, NinjaTrader, or TradingView strategy starters |
-| `scaffold_bridge` | Create bridge connector starters with required proof contracts |
+## Architecture
 
-Contract details: [MCP Contract](docs/mcp-contract.md) · [MCP/API Examples](docs/mcp-api-examples.md) · [Backward Compatibility](docs/backward-compatibility.md)
+```mermaid
+flowchart LR
+    A[Academy learner] -->|declarative artifact| G[Trusted Academy runner]
+    G --> E[Trace + tests + fault evidence + digest]
 
-## Proof & evidence
+    X[Strategy exports] --> R[Python research engine]
+    M[MCP / CLI / API / UI] --> R
+    R --> Q[Gauntlet promotion gate]
 
-Claims in this README are checkable against artifacts in this repo:
+    S[Signal inbox] --> V[NT8 schema, sequence, age gates]
+    V --> K[C# risk + execution kernel]
+    K --> N[NinjaScript Strategy / AddOn]
+    N --> P[Sim101 or Playback101]
 
-| Claim | Artifact |
-|-------|----------|
-| MCP contract is stable and smoke-tested | Golden fixture: [`platforms/python/research/nexural-research/tests/fixtures/mcp/capabilities.golden.json`](platforms/python/research/nexural-research/tests/fixtures/mcp/capabilities.golden.json) · [docs/mcp-contract.md](docs/mcp-contract.md) |
-| Gauntlet runs end to end with zero config | Bundled demo: [`examples/demo_nq_trades.csv`](examples/demo_nq_trades.csv) — exercised by `make smoke` and in CI |
-| Measured performance | [BENCHMARKS.md](BENCHMARKS.md) — gauntlet ~1.9 s cold / ~0.4 s warm on 200 trades; MCP cold start ~950 ms |
-| Quality gates actually run | Live workflow badges above link to runs: pytest + ruff + mypy + bandit, MCP smoke, schema validation, secret scan, locked dependency audit, Docker build + Trivy, cross-platform (Windows/macOS/Linux) gate |
-| Bridge lifecycle is enforced, not aspirational | Contract schema: [`schemas/bridge-contract.schema.json`](schemas/bridge-contract.schema.json) · example: [NinjaTrader CSV Bridge](platforms/python/research/examples/bridges/ninjatrader_csv) |
-| Public release state | [v0.1.0-public-mvp](RELEASE_NOTES.md) · live docs: <https://jasonteixeira.github.io/Nexural_Automation/> |
-
-Local release checks you can reproduce:
-
-```bash
-python scripts/repo-tools/secret_scan.py
-python scripts/repo-tools/validate_contract_schemas.py
-cd platforms/python/research/nexural-research
-python -m nexural_research.cli quality-gate --threshold 0.95 --json --fast
-python -m pytest tests --ignore=tests/e2e -q
+    E --> Q
+    Q -->|paper evidence only| S
+    Q -->|reject / tune / rewrite| Z[Stop with reasons]
 ```
 
-## Security defaults
+Trust-boundary decisions are recorded in [ADR 0001](docs/adr/0001-simulation-first-trust-boundaries.md) and the [threat model](docs/threat-model.md).
 
-- API and MCP HTTP bind to `127.0.0.1` by default; Docker compose binds public services to localhost.
-- `.mcp.json`, `.env`, local databases, raw exports, and reports are git-ignored.
-- Query-string API keys are not accepted.
-- `NEXURAL_ALLOWED_DATA_DIRS` restricts agent-readable CSV/report paths.
-- Historical analysis only — no live execution path exists in this repo.
+## Verification contract
 
-See [Security Hardening](docs/security-hardening.md) and [Secret Rotation](docs/secret-rotation.md).
+Run the same gates locally that protect the release path:
 
-## Repo layout
+```powershell
+# Repository metadata, schemas, secrets, Academy parity
+py -3.11 scripts/repo-tools/secret_scan.py
+py -3.11 scripts/repo-tools/validate_contract_schemas.py
+py -3.11 scripts/repo-tools/validate_beta_evidence.py
+
+# Python engine and Academy
+cd platforms/python/research/nexural-research
+py -3.11 -m pytest tests --ignore=tests/e2e -q
+py -3.11 -m nexural_research.cli quality-gate --threshold 0.95 --json --fast
+
+# Native/portable NT8 checks
+cd ../../../..
+./platforms/ninjatrader/scripts/Test-NT8SafetySpine.ps1
+```
+
+Releases are built from immutable tags. The release gate builds and tests Python distributions, runs browser/auth/accessibility checks, runs the portable NT8 fault suite, validates the NT8 archive, generates an SPDX SBOM and SHA-256 manifest, signs artifacts through keyless Sigstore, and only then dispatches trusted PyPI and GHCR publication workflows. All third-party GitHub Actions are pinned to immutable commit SHAs.
+
+## Repository map
 
 ```text
 Nexural_Automation/
-├── platforms/
-│   ├── ninjatrader/              # NinjaScript strategies and indicators (C#)
-│   ├── tradingview/              # Pine v5 modules
-│   └── python/research/
-│       ├── examples/             # Public strategy and bridge examples
-│       └── nexural-research/     # Python engine, API, MCP server, dashboard
-├── templates/                    # Strategy and indicator templates
-├── docs/                         # Education, contracts, architecture, launch docs
-├── schemas/                      # Strategy and bridge JSON schemas
-├── scripts/                      # Setup, local stack, validation, security tooling
-└── .github/workflows/            # CI, docs, catalog, and release workflows
+├── academy/                          # 60 labs, 5 tracks, 5 capstones, schemas, tools
+├── platforms/ninjatrader/
+│   ├── src/Nexural.NT8.Core/        # portable risk/execution kernel
+│   ├── adapters/NinjaScript/         # Strategy and AddOn adapters
+│   ├── tests/                        # fault suite and native compile harness
+│   ├── scripts/                      # verify and package commands
+│   └── docs/                         # safety model, fault matrix, import proof
+├── platforms/python/research/
+│   └── nexural-research/             # analysis engine, API, MCP, Academy service, UI
+├── beta/                             # external evidence contract; no fabricated results
+├── schemas/                          # strategy, bridge, beta, and evidence schemas
+├── docs/                             # architecture, tutorials, security, operations
+├── conductor/                        # product, stack, workflow, and track context
+└── .github/workflows/                # CI, native evidence, release, signing, publication
 ```
 
-## Public docs
+## Documentation map
 
-Start here: [Docs Home](docs/index.md) · [Automation Academy](docs/automation-academy.md) · [Build Your First Strategy](docs/build-your-first-strategy.md) · [Build Your First Bridge](docs/build-your-first-bridge.md) · [Why Strategies Fail The Gauntlet](docs/why-strategies-fail-the-gauntlet.md) · [Automation Glossary](docs/automation-glossary.md) · [Example Catalog](docs/example-catalog.md) · [Install Matrix](docs/install-matrix.md) · [Strategy Lab Wiring](docs/strategy-lab-wiring.md)
+| Goal | Start here |
+|---|---|
+| Learn the curriculum | [Automation Academy](academy/README.md) |
+| Understand native safety | [Safety spine](platforms/ninjatrader/docs/SAFETY_SPINE.md) · [fault matrix](platforms/ninjatrader/docs/FAULT_MATRIX.md) |
+| Import into NT8 | [Build, import, and verify](platforms/ninjatrader/docs/IMPORT_AND_VERIFY.md) |
+| Build a strategy | [First strategy](docs/build-your-first-strategy.md) · [strategy framework](docs/strategy-framework.md) |
+| Build a bridge | [First bridge](docs/build-your-first-bridge.md) · [bridge examples](platforms/python/research/examples/bridges) |
+| Validate research | [Gauntlet](docs/why-strategies-fail-the-gauntlet.md) · [benchmarks](BENCHMARKS.md) |
+| Operate securely | [Security hardening](docs/security-hardening.md) · [threat model](docs/threat-model.md) |
+| Contribute | [Contributing guide](CONTRIBUTING.md) · [roadmap](ROADMAP.md) |
 
-Live site: <https://jasonteixeira.github.io/Nexural_Automation/>
+Live documentation: <https://jasonteixeira.github.io/Nexural_Automation/>
 
-## Contributing
+## Contributing and responsible disclosure
 
-1. Read [CONTRIBUTING.md](CONTRIBUTING.md).
-2. Use the templates or SDK scaffolds.
-3. Document parameters, assumptions, failure modes, and no-lookahead policy.
-4. Run validation before opening a PR.
-5. Keep examples paper-first and free of performance claims.
+Contributions must preserve paper-only execution, no-lookahead assumptions, deterministic evidence, and fail-closed behavior. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 
-Roadmap: [ROADMAP.md](ROADMAP.md) · License: [Apache-2.0](LICENSE)
+Report vulnerabilities privately through [GitHub Security Advisories](https://github.com/JasonTeixeira/Nexural_Automation/security/advisories/new). Do not include active credentials, personal trading data, or brokerage identifiers in issues or beta artifacts.
+
+External beta submissions must follow [`beta/README.md`](beta/README.md). The repository includes the validation machinery; it does not invent learners, capstones, or successful broker-environment results.
 
 ---
 
 <div align="center">
 
-**Built by Jason Teixeira** — [agency.sageideas.dev](https://agency.sageideas.dev)
-Part of a proof-driven portfolio: every claim links to an artifact.
+Built by **Jason Teixeira** for the [Nexural](https://www.nexural.io) ecosystem.
+
+**Evidence before promotion. Safety before performance. Simulation before capital.**
 
 </div>

@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from .catalog import CurriculumCatalog
+from .execution import execute_item
 from .grading import grade
 from .ledger import ExperimentLedger
 from .mentor import TraceAwareMentor
@@ -62,7 +63,8 @@ class AcademyService:
         validate_id(learner_id, "learner id")
         item = self.catalog.item(item_id)
         self._require_prerequisites(learner_id, item.prerequisites)
-        result = grade(item, submission)
+        artifact = execute_item(item, submission)
+        result = grade(item, {"artifact": artifact})
         if record:
             current = self.start(learner_id, item_id)
             failures = tuple(row.id for row in result.criteria if not row.passed)
@@ -85,7 +87,8 @@ class AcademyService:
         validate_id(learner_id, "learner id")
         item = self.catalog.item(item_id)
         self._require_prerequisites(learner_id, item.prerequisites)
-        result = grade(item, submission)
+        artifact = execute_item(item, submission)
+        result = grade(item, {"artifact": artifact})
         current = self.start(learner_id, item_id)
         failures = tuple(row.id for row in result.criteria if not row.passed)
         updated = replace(
@@ -103,7 +106,7 @@ class AcademyService:
             {"score": result.score, "failure_count": len(failures)},
         )
         if result.passed:
-            evidence = self._record_evidence(learner_id, item_id, submission)
+            evidence = self._record_evidence(learner_id, item_id, artifact)
             self.store.append_trace(
                 learner_id,
                 "evidence_recorded",

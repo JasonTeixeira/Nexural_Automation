@@ -23,13 +23,21 @@ for (const viewport of viewports) {
   });
 }
 
-test("causal mission submission records tamper-evident evidence", async ({ page }) => {
+test("machine-derived causal mission records tamper-evident evidence", async ({ page }) => {
   await page.goto("/", { waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "Seal the Lookahead Leak" }).click();
+  await page.getByRole("button", { name: "Causal Feature Pipeline" }).click();
   await page.getByLabel("Lab submission JSON").fill(JSON.stringify({
-    split_before_features: true,
-    feature_lag: 1,
-    uses_future_columns: false,
+    source: {
+      program: {
+        operations: [
+          "load_fixture",
+          "split_before_feature_engineering",
+          "reject_stale_timestamp",
+          "emit_evidence",
+        ],
+        settings: { mode: "paper", deterministic: true },
+      },
+    },
     seed: 42,
   }, null, 2));
   await page.getByRole("button", { name: /^Submit/ }).click();
@@ -45,6 +53,8 @@ test("public contracts hide grader internals and extension APIs are live", async
   const catalogText = JSON.stringify(await catalogResponse.json());
   expect(catalogText).not.toContain("future_guard");
   expect(catalogText).not.toContain("uses_future_columns");
+  expect(catalogText).not.toContain('"expected"');
+  expect(catalogText).not.toContain("hidden_tests");
 
   const faultPayload = { profile: "duplicate", seed: 7, events: [{ id: "signal-1" }] };
   const firstFault = await request.post("/api/academy/faults/apply", { data: faultPayload });

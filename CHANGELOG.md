@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on **Keep a Changelog**, and this project intends to follow **Semantic Versioning**.
 
+## [Unreleased]
+
+### Added
+- Native NT8 safety spine with a portable C# risk/execution kernel, strict Sim101/Playback101 provider gates, durable recovery, deterministic fault suite, native compile harness, and validated import archive builder.
+- Executable Automation Academy with five tracks, sixty labs, five capstones, trusted artifact-derived grading, bilingual concepts, and packaged-resource parity checks.
+- External beta evidence schema, validator, contribution template, and quantitative promotion gates.
+- SPDX SBOM, SHA-256 manifests, keyless Sigstore release signing, trusted PyPI publishing, and GHCR provenance.
+
+### Security
+- Hosted filesystem endpoints are opt-in, loopback-only, root-confined, and protected against traversal, symlink, UNC/device, alternate-data-stream, and output-escape attacks.
+- Report titles are HTML escaped and report writes are atomic.
+- Every third-party GitHub Action is pinned to an immutable commit SHA.
+
+### Changed
+- Release automation now validates immutable tag/version alignment before publication.
+- Academy scoring ignores learner-supplied result flags and derives all evidence by replaying the submitted declarative artifact.
+
 ## [1.0.0] - 2026-03-28
 ### Added — Institutional-Grade Analysis Engine
 - **Advanced Metrics Module** (`advanced_metrics.py`)

@@ -1,0 +1,18 @@
+id: nt8-foundations
+title: NinjaTrader Foundations
+description: Master NinjaScript lifecycle, data, analysis, and Playback semantics.
+lessons:
+- nt8.lifecycle
+- nt8.calculate-modes
+- nt8.historical-transition
+- nt8.multi-series
+- nt8.session-boundaries
+- nt8.timezones-dst
+- nt8.contract-rollover
+- nt8.parameters
+- nt8.resource-cleanup
+- nt8.strategy-analyzer
+- nt8.playback
+- nt8.diagnostics
+capstones:
+- capstone.nt8_playback

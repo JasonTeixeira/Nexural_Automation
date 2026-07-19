@@ -4,9 +4,17 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to validate and publish
+        required: true
+        type: string
 
 permissions:
+  actions: write
   contents: write
+  id-token: write
   packages: write
 
 jobs:
@@ -16,23 +24,61 @@ jobs:
       run:
         working-directory: platforms/python/research/nexural-research
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ inputs.tag || github.ref_name }}
 
-      - uses: actions/setup-python@v5
+      - name: Resolve and verify release tag
+        id: release-ref
+        shell: bash
+        run: |
+          tag="${{ inputs.tag || github.ref_name }}"
+          case "$tag" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "Invalid release tag: $tag" >&2; exit 1 ;;
+          esac
+          package_version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          if [ "v${package_version}" != "$tag" ]; then
+            echo "Tag $tag does not match package version v${package_version}" >&2
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.11"
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: platforms/python/research/nexural-research/frontend/package-lock.json
 
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: "8.0.x"
+
       - name: Install and test
         run: |
-          pip install -e ".[dev,mcp]"
+          pip install -e ".[dev,mcp]" build twine
           python -m nexural_research.cli quality-gate --threshold 0.95 --json --fast
           pytest tests/ --ignore=tests/e2e --tb=short -q
+
+      - name: Build and verify Python distributions
+        run: |
+          python -m build
+          python -m twine check dist/*
+          mkdir -p "${{ github.workspace }}/release-artifacts/python"
+          cp dist/* "${{ github.workspace }}/release-artifacts/python/"
+
+      - name: Run portable NT8 fault suite and build import archive
+        working-directory: ${{ github.workspace }}
+        shell: pwsh
+        run: |
+          ./platforms/ninjatrader/scripts/Test-NT8SafetySpine.ps1 -SkipNativeCompile
+          ./platforms/ninjatrader/scripts/Build-NinjaTraderArchive.ps1 `
+            -SkipNativeCompile `
+            -OutputDirectory '${{ github.workspace }}/release-artifacts/nt8'
 
       - name: Install browser gate and build canonical frontend
         run: |
@@ -60,17 +106,41 @@ jobs:
           docker tag nexural-research:${{ github.ref_name }} nexural-research:latest
 
       - name: Generate SBOM (SPDX-JSON)
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
-          path: .
+          path: ${{ github.workspace }}/release-artifacts
           format: spdx-json
-          output-file: ${{ github.workspace }}/sbom.spdx.json
+          output-file: ${{ github.workspace }}/release-artifacts/sbom.spdx.json
           artifact-name: sbom.spdx.json
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Generate release checksums
+        working-directory: ${{ github.workspace }}
+        shell: bash
+        run: |
+          find release-artifacts -type f -print0 \
+            | sort -z \
+            | xargs -0 sha256sum \
+            > release-artifacts/SHA256SUMS
+
+      - name: Sign and verify release artifacts with Sigstore
+        uses: sigstore/gh-action-sigstore-python@5b79a39c381910c090341a2c9b0bf022c8b387e1 # v3.4.0
         with:
+          inputs: ${{ github.workspace }}/release-artifacts/**/*
+          upload-signing-artifacts: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          tag_name: ${{ steps.release-ref.outputs.tag }}
           generate_release_notes: true
           draft: false
           files: |
-            ${{ github.workspace }}/sbom.spdx.json
+            ${{ github.workspace }}/release-artifacts/**/*
+
+      - name: Dispatch verified package publications
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.release-ref.outputs.tag }}
+        run: |
+          gh workflow run pypi-publish.yml --ref main -f tag="$RELEASE_TAG"
+          gh workflow run docker-publish.yml --ref main -f tag="$RELEASE_TAG"

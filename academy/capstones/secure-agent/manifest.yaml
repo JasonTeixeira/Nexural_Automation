@@ -1,0 +1,107 @@
+id: capstone.secure_agent
+track: agent-automation-engineer
+title: Secure Research Agent
+updated_at: '2026-07-19'
+estimated_minutes: 180
+objectives:
+- Integrate the terminal track behaviors into one deterministic replay.
+- Produce a tamper-evident evidence bundle across all five incident profiles.
+prerequisites:
+- agent.permissions
+- agent.prompt_injection
+- agent.observability
+- agent.tool-allowlists
+- agent.human-approval
+- agent.secrets
+- agent.provenance
+- agent.deterministic-plans
+- agent.timeout-budget
+- agent.audit-trails
+- agent.escalation
+- agent.sandbox
+tags:
+- executable
+- capstone
+- paper-only
+- incident-replay
+translations:
+  en:
+    title: Secure Research Agent
+    summary: Integrate the track in a deterministic incident replay.
+  es:
+    title: Agente de investigación seguro
+    summary: Integra el itinerario en una repetición determinista de incidentes.
+hints:
+- Start with the final three track operations in curriculum order.
+- Every fault profile requires a distinct recovery operation.
+- Keep mode paper and seal the final evidence bundle.
+execution:
+  runner: nexural.declarative-trace.v1
+  starter: starter/program.yaml
+  visible_tests: tests/visible.yaml
+  hidden_tests: tests/hidden.yaml
+  solution: solution/program.yaml
+  expected_trace: expected-trace.json
+  fault_profiles:
+  - disconnect
+  - duplicate
+  - latency
+  - partial_fill
+  - stale_data
+rubric:
+- id: trace-complete
+  metric: tests.trace-complete.passed
+  operator: equals
+  expected: true
+  weight: 20
+  visibility: public
+  message: The capstone trace must complete.
+- id: integrated-behavior
+  metric: tests.integrated-behavior.passed
+  operator: equals
+  expected: true
+  weight: 20
+  visibility: public
+  message: The three terminal track behaviors must execute in order.
+- id: paper-boundary
+  metric: tests.paper-boundary.passed
+  operator: equals
+  expected: true
+  weight: 10
+  visibility: hidden
+  message: Capstones remain paper-only.
+- id: fault-disconnect
+  metric: fault_evidence.disconnect.handled
+  operator: equals
+  expected: true
+  weight: 10
+  visibility: hidden
+  message: The capstone failed the disconnect incident replay.
+- id: fault-duplicate
+  metric: fault_evidence.duplicate.handled
+  operator: equals
+  expected: true
+  weight: 10
+  visibility: hidden
+  message: The capstone failed the duplicate incident replay.
+- id: fault-latency
+  metric: fault_evidence.latency.handled
+  operator: equals
+  expected: true
+  weight: 10
+  visibility: hidden
+  message: The capstone failed the latency incident replay.
+- id: fault-partial_fill
+  metric: fault_evidence.partial_fill.handled
+  operator: equals
+  expected: true
+  weight: 10
+  visibility: hidden
+  message: The capstone failed the partial_fill incident replay.
+- id: fault-stale_data
+  metric: fault_evidence.stale_data.handled
+  operator: equals
+  expected: true
+  weight: 10
+  visibility: hidden
+  message: The capstone failed the stale_data incident replay.

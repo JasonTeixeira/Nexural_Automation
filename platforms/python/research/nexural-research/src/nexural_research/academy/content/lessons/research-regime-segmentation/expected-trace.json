@@ -1,0 +1,11 @@
+{
+  "status": "complete",
+  "operations": [
+    "load_fixture",
+    "segment_without_future_labels",
+    "reject_stale_timestamp",
+    "emit_evidence"
+  ],
+  "fault_profile": "stale_data",
+  "deterministic": true
+}

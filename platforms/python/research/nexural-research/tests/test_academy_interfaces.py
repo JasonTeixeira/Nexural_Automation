@@ -3,8 +3,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import yaml
 from fastapi.testclient import TestClient
 
+from nexural_research.academy.catalog import CurriculumCatalog, default_academy_root
 from nexural_research.api.app import app
 from nexural_research.cli import main
 
@@ -15,9 +17,9 @@ def test_academy_http_learning_loop(tmp_path: Path, monkeypatch) -> None:
 
     catalog = client.get("/api/academy/catalog")
     assert catalog.status_code == 200
-    assert len(catalog.json()["tracks"]) == 4
+    assert len(catalog.json()["tracks"]) == 5
     lookahead = catalog.json()["lessons"]["research.lookahead"]
-    assert lookahead["hidden_checks"] == 1
+    assert lookahead["hidden_checks"] == 2
     assert all(row["visibility"] == "public" for row in lookahead["rubric"])
     assert "uses_future_columns" not in lookahead["starter_submission"]
     serialized_catalog = json.dumps(catalog.json())
@@ -31,21 +33,26 @@ def test_academy_http_learning_loop(tmp_path: Path, monkeypatch) -> None:
     assert started.status_code == 200
     assert started.json()["status"] == "in_progress"
 
+    solution = (
+        Path(__file__).resolve().parents[5]
+        / "academy"
+        / "lessons"
+        / "research-lookahead"
+        / "solution"
+        / "program.yaml"
+    )
+    source = yaml.safe_load(solution.read_text())
     checked = client.post(
         "/api/academy/items/research.lookahead/check",
         json={
             "learner_id": "api-learner",
-            "submission": {
-                "split_before_features": True,
-                "feature_lag": 1,
-                "uses_future_columns": False,
-            },
+            "submission": {"source": source},
         },
     )
     assert checked.status_code == 200
     assert checked.json()["passed"] is True
     assert "future_guard" not in json.dumps(checked.json())
-    assert checked.json()["hidden_checks"] == {"count": 1, "passed": True}
+    assert checked.json()["hidden_checks"] == {"count": 2, "passed": True}
     assert all(row["visibility"] == "public" for row in checked.json()["criteria"])
 
     progress = client.get("/api/academy/progress/api-learner")
@@ -56,11 +63,7 @@ def test_academy_http_learning_loop(tmp_path: Path, monkeypatch) -> None:
         "/api/academy/items/research.lookahead/submit",
         json={
             "learner_id": "api-learner",
-            "submission": {
-                "split_before_features": True,
-                "feature_lag": 1,
-                "uses_future_columns": False,
-            },
+            "submission": {"source": source},
         },
     )
     assert submitted.status_code == 200
@@ -108,8 +111,38 @@ def test_academy_cli_catalog_and_progress(tmp_path: Path, monkeypatch, capsys) -
 
     assert main(["academy", "catalog", "--json"]) == 0
     catalog = json.loads(capsys.readouterr().out)
-    assert len(catalog["tracks"]) == 4
+    assert len(catalog["tracks"]) == 5
 
     assert main(["academy", "progress", "--learner", "cli-learner", "--json"]) == 0
     progress = json.loads(capsys.readouterr().out)
     assert progress["learner_id"] == "cli-learner"
+
+
+def test_packaged_academy_content_is_complete() -> None:
+    root = default_academy_root()
+    catalog = CurriculumCatalog.load(root)
+
+    assert root.name == "content"
+    assert len(catalog.tracks) == 5
+    assert len(catalog.lessons) == 60
+    assert len(catalog.capstones) == 5
+    assert all(item.execution is not None for item in catalog.lessons.values())
+    assert all(item.execution is not None for item in catalog.capstones.values())
+    assert (root / "marketplace" / "catalog.yaml").is_file()
+    assert (root / "schema" / "learning-item.schema.json").is_file()
+
+
+def test_packaged_academy_content_matches_repository_source() -> None:
+    packaged = default_academy_root()
+    repository = Path(__file__).resolve().parents[5] / "academy"
+
+    def resources(root: Path) -> dict[str, bytes]:
+        return {
+            path.relative_to(root).as_posix(): path.read_bytes()
+            for path in root.rglob("*")
+            if path.is_file()
+            and path.suffix in {".yaml", ".json", ".md"}
+            and not any(part.startswith(".") for part in path.relative_to(root).parts)
+        }
+
+    assert resources(packaged) == resources(repository)

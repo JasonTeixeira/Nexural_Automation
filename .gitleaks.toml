@@ -1,0 +1,10 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "LocalStorage identifier names, not credential values"
+regexTarget = "match"
+regexes = [
+  '''nexural_api_keys_v[0-9]+''',
+  '''nexural_keys_encrypted_v[0-9]+''',
+]

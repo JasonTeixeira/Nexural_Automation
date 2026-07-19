@@ -17,6 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from nexural_research.academy import AcademyService, CurriculumCatalog
+from nexural_research.academy.catalog import default_academy_root
 from nexural_research.academy.credentials import CredentialIssuer
 from nexural_research.academy.faults import FaultInjector
 from nexural_research.academy.freshness import check_freshness
@@ -69,12 +70,7 @@ def academy_root() -> Path:
         if not (root / "curriculum.yaml").is_file():
             raise RuntimeError("NEXURAL_ACADEMY_ROOT does not contain curriculum.yaml")
         return root
-    here = Path(__file__).resolve()
-    for parent in here.parents:
-        candidate = parent / "academy"
-        if (candidate / "curriculum.yaml").is_file():
-            return candidate
-    raise RuntimeError("Academy curriculum directory could not be located")
+    return default_academy_root()
 
 
 def academy_state_root() -> Path:

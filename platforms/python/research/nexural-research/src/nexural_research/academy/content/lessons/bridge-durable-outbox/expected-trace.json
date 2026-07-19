@@ -1,0 +1,11 @@
+{
+  "status": "complete",
+  "operations": [
+    "load_fixture",
+    "commit_intent_to_outbox",
+    "reconcile_after_disconnect",
+    "emit_evidence"
+  ],
+  "fault_profile": "disconnect",
+  "deterministic": true
+}

@@ -1,0 +1,11 @@
+{
+  "status": "complete",
+  "operations": [
+    "load_fixture",
+    "define_strategy_contract",
+    "reject_stale_timestamp",
+    "emit_evidence"
+  ],
+  "fault_profile": "stale_data",
+  "deterministic": true
+}

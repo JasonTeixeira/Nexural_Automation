@@ -1,0 +1,64 @@
+id: bridge.heartbeat
+track: bridge-engineer
+title: Heartbeat and Liveness
+updated_at: '2026-07-19'
+estimated_minutes: 50
+objectives:
+- Explain how to stop safely when peer liveness becomes uncertain.
+- Produce a deterministic trace and fault-evidence artifact.
+prerequisites:
+- bridge.durable-outbox
+tags:
+- executable
+- paper-only
+- latency
+translations:
+  en:
+    title: Heartbeat and Liveness
+    summary: Implement and prove how to stop safely when peer liveness becomes uncertain.
+  es:
+    title: Heartbeat y disponibilidad
+    summary: Implementa y demuestra cómo detener con seguridad ante disponibilidad incierta.
+hints:
+- Read the visible assertion, then identify how to stop safely when peer liveness becomes uncertain; inspect
+  `expire_missing_heartbeat` as a naming clue.
+- The target behavior is represented by one explicit operation near `expire_missing_heartbeat`.
+- Replay the latency profile and inspect its required recovery operation.
+execution:
+  runner: nexural.declarative-trace.v1
+  starter: starter/program.yaml
+  visible_tests: tests/visible.yaml
+  hidden_tests: tests/hidden.yaml
+  solution: solution/program.yaml
+  expected_trace: expected-trace.json
+  fault_profiles:
+  - latency
+rubric:
+- id: trace-complete
+  metric: tests.trace-complete.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: Replace every TODO so the trusted runner can complete the trace.
+- id: target-behavior
+  metric: tests.target-behavior.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: The trace must implement `expire_missing_heartbeat`.
+- id: paper-boundary
+  metric: tests.paper-boundary.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The hidden safety boundary requires paper-only mode.
+- id: fault-resilience
+  metric: fault_evidence.latency.handled
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The implementation did not safely handle the seeded latency scenario.

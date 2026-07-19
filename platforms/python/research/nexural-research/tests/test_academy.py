@@ -20,12 +20,12 @@ REPO_ROOT = Path(__file__).resolve().parents[5]
 ACADEMY_ROOT = REPO_ROOT / "academy"
 
 
-def test_catalog_loads_four_tracks_twelve_labs_and_three_capstones() -> None:
+def test_catalog_loads_five_tracks_sixty_labs_and_five_capstones() -> None:
     catalog = CurriculumCatalog.load(ACADEMY_ROOT)
 
-    assert len(catalog.tracks) == 4
-    assert len(catalog.lessons) >= 12
-    assert len(catalog.capstones) == 3
+    assert len(catalog.tracks) == 5
+    assert len(catalog.lessons) == 60
+    assert len(catalog.capstones) == 5
     assert all(lesson.objectives and lesson.rubric for lesson in catalog.lessons.values())
     assert all(
         "profit" not in criterion.metric.lower()
@@ -36,12 +36,15 @@ def test_catalog_loads_four_tracks_twelve_labs_and_three_capstones() -> None:
 
 def test_service_runs_learning_loop_and_never_scores_profitability(tmp_path: Path) -> None:
     service = AcademyService.from_paths(ACADEMY_ROOT, tmp_path)
+    item = service.catalog.item("research.lookahead")
+    starter = yaml.safe_load((item.content_root / "starter" / "program.yaml").read_text())
+    solution = yaml.safe_load((item.content_root / "solution" / "program.yaml").read_text())
     started = service.start("alice", "research.lookahead")
     assert started.status == "in_progress"
 
-    bad = service.check("alice", "research.lookahead", {"split_before_features": False})
+    bad = service.check("alice", "research.lookahead", {"source": starter})
     assert not bad.passed
-    assert bad.score == 0
+    assert bad.score < 100
     hint = service.hint("alice", "research.lookahead")
     assert hint.level == 1
     assert "split" in hint.text.lower()
@@ -49,7 +52,7 @@ def test_service_runs_learning_loop_and_never_scores_profitability(tmp_path: Pat
     good = service.submit(
         "alice",
         "research.lookahead",
-        {"split_before_features": True, "feature_lag": 1, "uses_future_columns": False},
+        {"source": solution},
     )
     assert good.passed
     assert good.score == 100
@@ -65,7 +68,10 @@ def test_service_runs_learning_loop_and_never_scores_profitability(tmp_path: Pat
 
 def test_grading_is_deterministic_and_hidden_feedback_is_withheld(tmp_path: Path) -> None:
     service = AcademyService.from_paths(ACADEMY_ROOT, tmp_path)
-    submission = {"split_before_features": True, "feature_lag": 1, "uses_future_columns": True}
+    item = service.catalog.item("research.lookahead")
+    source = yaml.safe_load((item.content_root / "solution" / "program.yaml").read_text())
+    source["program"]["settings"]["mode"] = "live"
+    submission = {"source": source}
     first = service.check("a", "research.lookahead", submission)
     second = service.check("a", "research.lookahead", submission)
     assert first == second
@@ -174,10 +180,12 @@ def test_credentials_are_signed_verifiable_and_tamper_evident() -> None:
 
 def test_marketplace_reviews_and_cohort_summary(tmp_path: Path) -> None:
     service = AcademyService.from_paths(ACADEMY_ROOT, tmp_path / "state")
+    item = service.catalog.item("research.lookahead")
+    solution = yaml.safe_load((item.content_root / "solution" / "program.yaml").read_text())
     service.submit(
         "a",
         "research.lookahead",
-        {"split_before_features": True, "feature_lag": 1, "uses_future_columns": False},
+        {"source": solution},
     )
     service.start("b", "research.lookahead")
     summary = service.cohort_summary("desk", ["a", "b"])

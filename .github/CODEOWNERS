@@ -1,2 +1,11 @@
-# Repo maintainers
+# Default ownership
 * @JasonTeixeira
+
+# Critical trust boundaries. Add a second qualified maintainer before removing the owner bypass
+# from the protected-main ruleset.
+/platforms/ninjatrader/ @JasonTeixeira
+/platforms/python/research/nexural-research/src/nexural_research/api/ @JasonTeixeira
+/platforms/python/research/nexural-research/src/nexural_research/academy/ @JasonTeixeira
+/platforms/python/research/nexural-research/src/nexural_research/bridge_sdk.py @JasonTeixeira
+/.github/workflows/ @JasonTeixeira
+/schemas/ @JasonTeixeira

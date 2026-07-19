@@ -1,0 +1,64 @@
+id: research.session-normalization
+track: research-operator
+title: Session Normalization
+updated_at: '2026-07-19'
+estimated_minutes: 50
+objectives:
+- Explain how to align bars and events to an explicit exchange calendar.
+- Produce a deterministic trace and fault-evidence artifact.
+prerequisites:
+- research.data-contracts
+tags:
+- executable
+- paper-only
+- stale_data
+translations:
+  en:
+    title: Session Normalization
+    summary: Implement and prove how to align bars and events to an explicit exchange calendar.
+  es:
+    title: Normalización de sesiones
+    summary: Implementa y demuestra cómo alinear barras y eventos a un calendario de mercado explícito.
+hints:
+- Read the visible assertion, then identify how to align bars and events to an explicit exchange calendar;
+  inspect `normalize_session_calendar` as a naming clue.
+- The target behavior is represented by one explicit operation near `normalize_session_calendar`.
+- Replay the stale_data profile and inspect its required recovery operation.
+execution:
+  runner: nexural.declarative-trace.v1
+  starter: starter/program.yaml
+  visible_tests: tests/visible.yaml
+  hidden_tests: tests/hidden.yaml
+  solution: solution/program.yaml
+  expected_trace: expected-trace.json
+  fault_profiles:
+  - stale_data
+rubric:
+- id: trace-complete
+  metric: tests.trace-complete.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: Replace every TODO so the trusted runner can complete the trace.
+- id: target-behavior
+  metric: tests.target-behavior.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: The trace must implement `normalize_session_calendar`.
+- id: paper-boundary
+  metric: tests.paper-boundary.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The hidden safety boundary requires paper-only mode.
+- id: fault-resilience
+  metric: fault_evidence.stale_data.handled
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The implementation did not safely handle the seeded stale_data scenario.

@@ -1,0 +1,9 @@
+program:
+  operations:
+  - load_fixture
+  - split_before_feature_engineering
+  - reject_stale_timestamp
+  - emit_evidence
+  settings:
+    mode: paper
+    deterministic: true

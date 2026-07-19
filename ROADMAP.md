@@ -1,55 +1,54 @@
 # Roadmap
 
-This roadmap is the release track for turning Nexural Automation from a static
-strategy repository into a public, agent-callable automation and education
-platform.
+Nexural Automation is being built as a safety-first NT8 automation engineering and learning system. Progress is measured by executable evidence, not feature count.
 
-## Public MVP: Complete
+## 2.0 safety spine
 
-The public MVP gives contributors a usable loop:
+| Workstream | State | Evidence |
+|---|---|---|
+| Filesystem/API confinement | Complete | Traversal, symlink, UNC/device, ADS, invalid-root, and output-escape tests |
+| Academy artifact packaging | Complete | Wheel smoke loads 5 tracks, 60 lessons, and 5 capstones outside the source tree |
+| Release repair | Complete in repository | Immutable action pins, tag/version gate, SBOM, checksums, Sigstore, trusted publishers |
+| Branch protection | Pending repository activation | Required checks must be observed on the 2.0 pull request before locking contexts |
+| Native NT8 compile harness | Complete | Exact adapters compile against local NT8 8.1.7.2 with zero warnings/errors |
+| C# execution/risk kernel | Complete | Portable core plus 13-scenario deterministic fault suite |
+| Sim/Playback bridge | Complete for source and native compile | Strict account/provider pairing; desktop import and fill behavior remain manual gates |
+| Code-derived Academy grading | Complete | Trusted runner derives trace, tests, fault evidence, source hash, and digest |
+| Sixty-lab curriculum | Complete | Five tracks and five capstones, with English/Spanish content and acceptance rubrics |
+| External beta contract | Complete | Pseudonymous schema, validator, issue template, and quantitative promotion gates |
+| External beta evidence | Not yet complete | Requires real learners and real Playback/Sim environments; results will not be fabricated |
 
-1. Build a strategy scaffold with `nexural-research new-strategy`.
-2. Build a connector scaffold with `nexural-research new-bridge`.
-3. Validate a historical export with `nexural-research gauntlet`.
-4. Stress the strategy with realistic futures costs using `nexural-research costs`.
-5. Call the same workflows from MCP, HTTP API, CLI, tests, or Strategy Lab.
-6. Run the repo-local quality gate with `nexural-research quality-gate --threshold 0.95`.
+## Next evidence milestones
 
-## Public Release Phases To 100/100
+### Desktop qualification
 
-### Phase 1: Release Hardening - Complete Locally
+- Import the generated archive through NinjaTrader's desktop UI.
+- Compile the full local NinjaScript library without unrelated pre-existing errors.
+- Run the fault matrix in Playback101 and Sim101.
+- Capture provider identity, NT8 version, scenario logs, ACK journal, recovery timings, and archive hash.
+- Add the proven version to `desktop_import_verified_versions` only after all evidence is reviewed.
 
-- MCP install and `mcp-smoke` are covered by the repo-local quality gate.
-- GitHub Actions runs the public MVP quality gate on Windows, macOS, and Linux.
-- Example Python strategy and CSV bridge fixtures validate through the CLI.
-- Release checklist covers install, smoke, docs, security defaults, and audit status.
+### External beta
 
-### Phase 2: Contributor Experience - Complete For Public MVP
+- At least 100 pseudonymous learners.
+- At least 25 completed capstones.
+- At least 3 distinct provider/environment profiles.
+- At least 95% clean setup completion.
+- Zero critical safety failures.
+- No profit claims, brokerage credentials, account numbers, or raw personal trading data.
 
-- Tutorial walkthroughs cover strategy creation, bridge creation, gauntlet review, and report export.
-- Contributor-facing example catalog documents expected files and validation commands.
-- Strategy metadata and bridge contract schemas are published under `schemas/`.
-- Gauntlet failure docs explain every public rejection gate.
+### Signed ecosystem
 
-### Phase 3: Strategy Lab Product Wiring - MVP Wired
+- Exercise the complete release workflow on an immutable 2.x tag.
+- Verify wheel/sdist attestations, GHCR provenance, SPDX SBOM, checksum manifest, and Sigstore bundle.
+- Publish the signed NT8 archive only after the release gate passes.
+- Require protected-branch checks and critical-path ownership before accepting external code.
 
-- Surface the Nexural Automation gateway inside Strategy Lab UI workflows.
-- Add authenticated UI actions for capabilities, CSV gauntlet, cost estimate, and report generation.
-- Add Strategy Lab E2E tests that mock the Automation server and verify the gateway contract.
-- Add a one-command local stack script for Strategy Lab plus Automation server.
+## Non-goals
 
-### Phase 4: Public Launch Polish - Complete For Release Pack
+- Live-account routing.
+- Profit or performance certification.
+- Arbitrary hosted execution of learner Python or C#.
+- Adding standalone strategies before safety, learning, and evidence gaps are closed.
 
-- Docs site landing page is available at `docs/index.html`.
-- Add issue templates for strategies, bridges, docs, and validation failures.
-- Add release notes and tagged versioning for the MCP/API contract.
-- Add public walkthrough docs, glossary, architecture diagram, install matrix, and Strategy Lab wiring contract.
-
-## Definition Of 100/100
-
-- Quality gate score is 1.0 locally and in CI.
-- Fresh clone install works with Python 3.11.
-- MCP smoke passes without manual import-path fixes.
-- Public docs explain build, validate, export, bridge, and Strategy Lab usage.
-- No committed local secrets, database files, MCP host configs, or generated session artifacts.
-- Strategy examples include explicit no-lookahead and paper-first disclaimers.
+The release is 99+ quality only when automated gates are green and every manual or external claim is explicitly labeled with its evidence state.

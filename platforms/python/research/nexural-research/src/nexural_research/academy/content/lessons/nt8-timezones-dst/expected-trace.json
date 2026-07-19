@@ -1,0 +1,11 @@
+{
+  "status": "complete",
+  "operations": [
+    "load_fixture",
+    "normalize_exchange_timezone",
+    "reject_stale_timestamp",
+    "emit_evidence"
+  ],
+  "fault_profile": "stale_data",
+  "deterministic": true
+}

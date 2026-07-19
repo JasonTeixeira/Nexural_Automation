@@ -1,0 +1,11 @@
+{
+  "status": "complete",
+  "operations": [
+    "load_fixture",
+    "bootstrap_confidence_interval",
+    "reject_late_event",
+    "emit_evidence"
+  ],
+  "fault_profile": "latency",
+  "deterministic": true
+}

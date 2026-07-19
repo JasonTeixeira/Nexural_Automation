@@ -1,0 +1,8 @@
+program:
+  operations:
+  - load_fixture
+  - TODO
+  - seal_evidence_bundle
+  settings:
+    mode: paper
+    deterministic: true

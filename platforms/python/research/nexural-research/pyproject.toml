@@ -70,6 +70,25 @@ package-dir = {'' = 'src'}
 [tool.setuptools.packages.find]
 where = ['src']
 
+[tool.setuptools.package-data]
+"nexural_research.academy" = [
+  "content/*.yaml",
+  "content/*.md",
+  "content/tracks/*.yaml",
+  "content/lessons/*/*.yaml",
+  "content/lessons/*/*.json",
+  "content/lessons/*/*.md",
+  "content/lessons/*/*/*.yaml",
+  "content/capstones/*/*.yaml",
+  "content/capstones/*/*.json",
+  "content/capstones/*/*.md",
+  "content/capstones/*/*/*.yaml",
+  "content/fixtures/*.json",
+  "content/marketplace/*.yaml",
+  "content/marketplace/packages/*/*.yaml",
+  "content/schema/*.json",
+]
+
 [tool.pytest.ini_options]
 testpaths = ['tests']
 addopts = '--tb=short -q -p no:randomly'

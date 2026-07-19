@@ -1,0 +1,11 @@
+tests:
+- id: trace-complete
+  path: trace.status
+  operator: equals
+  expected: complete
+  message: Replace every TODO so the trusted runner can complete the trace.
+- id: target-behavior
+  path: source.program.operations
+  operator: contains
+  expected: enforce_monotonic_sequence
+  message: The trace must implement `enforce_monotonic_sequence`.

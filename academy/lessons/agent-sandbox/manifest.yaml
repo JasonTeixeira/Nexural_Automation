@@ -1,0 +1,64 @@
+id: agent.sandbox
+track: agent-automation-engineer
+title: Sandbox Policy
+updated_at: '2026-07-19'
+estimated_minutes: 50
+objectives:
+- Explain how to execute untrusted workloads without host authority.
+- Produce a deterministic trace and fault-evidence artifact.
+prerequisites:
+- agent.escalation
+tags:
+- executable
+- paper-only
+- disconnect
+translations:
+  en:
+    title: Sandbox Policy
+    summary: Implement and prove how to execute untrusted workloads without host authority.
+  es:
+    title: Política de sandbox
+    summary: Implementa y demuestra cómo ejecutar cargas no confiables sin autoridad del host.
+hints:
+- Read the visible assertion, then identify how to execute untrusted workloads without host authority;
+  inspect `enforce_sandbox_boundary` as a naming clue.
+- The target behavior is represented by one explicit operation near `enforce_sandbox_boundary`.
+- Replay the disconnect profile and inspect its required recovery operation.
+execution:
+  runner: nexural.declarative-trace.v1
+  starter: starter/program.yaml
+  visible_tests: tests/visible.yaml
+  hidden_tests: tests/hidden.yaml
+  solution: solution/program.yaml
+  expected_trace: expected-trace.json
+  fault_profiles:
+  - disconnect
+rubric:
+- id: trace-complete
+  metric: tests.trace-complete.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: Replace every TODO so the trusted runner can complete the trace.
+- id: target-behavior
+  metric: tests.target-behavior.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: The trace must implement `enforce_sandbox_boundary`.
+- id: paper-boundary
+  metric: tests.paper-boundary.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The hidden safety boundary requires paper-only mode.
+- id: fault-resilience
+  metric: fault_evidence.disconnect.handled
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The implementation did not safely handle the seeded disconnect scenario.

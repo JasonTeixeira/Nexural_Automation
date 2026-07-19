@@ -1,0 +1,11 @@
+{
+  "status": "complete",
+  "operations": [
+    "load_fixture",
+    "attach_source_provenance",
+    "reject_stale_timestamp",
+    "emit_evidence"
+  ],
+  "fault_profile": "stale_data",
+  "deterministic": true
+}

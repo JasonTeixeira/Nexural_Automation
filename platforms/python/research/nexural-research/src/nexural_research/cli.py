@@ -30,18 +30,13 @@ from nexural_research.utils.paths import paths
 
 
 def _academy_paths() -> tuple[Path, Path]:
+    from nexural_research.academy.catalog import default_academy_root
+
     configured_root = os.environ.get("NEXURAL_ACADEMY_ROOT")
     if configured_root:
         academy_root = Path(configured_root).expanduser().resolve()
     else:
-        academy_root = next(
-            (
-                parent / "academy"
-                for parent in Path(__file__).resolve().parents
-                if (parent / "academy" / "curriculum.yaml").is_file()
-            ),
-            Path.cwd() / "academy",
-        )
+        academy_root = default_academy_root()
     configured_state = os.environ.get("NEXURAL_ACADEMY_STATE_DIR")
     state_root = (
         Path(configured_state).expanduser().resolve()

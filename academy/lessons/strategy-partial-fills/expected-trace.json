@@ -1,0 +1,11 @@
+{
+  "status": "complete",
+  "operations": [
+    "load_fixture",
+    "aggregate_execution_quantity",
+    "accumulate_partial_fills",
+    "emit_evidence"
+  ],
+  "fault_profile": "partial_fill",
+  "deterministic": true
+}

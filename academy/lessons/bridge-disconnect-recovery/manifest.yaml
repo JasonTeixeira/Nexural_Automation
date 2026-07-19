@@ -1,0 +1,64 @@
+id: bridge.disconnect-recovery
+track: bridge-engineer
+title: Disconnect Recovery
+updated_at: '2026-07-19'
+estimated_minutes: 50
+objectives:
+- Explain how to resume only after checkpoint and state reconciliation.
+- Produce a deterministic trace and fault-evidence artifact.
+prerequisites:
+- bridge.duplicate-delivery
+tags:
+- executable
+- paper-only
+- disconnect
+translations:
+  en:
+    title: Disconnect Recovery
+    summary: Implement and prove how to resume only after checkpoint and state reconciliation.
+  es:
+    title: Recuperación de desconexión
+    summary: Implementa y demuestra cómo reanudar solo tras checkpoint y reconciliación.
+hints:
+- Read the visible assertion, then identify how to resume only after checkpoint and state reconciliation;
+  inspect `recover_from_checkpoint` as a naming clue.
+- The target behavior is represented by one explicit operation near `recover_from_checkpoint`.
+- Replay the disconnect profile and inspect its required recovery operation.
+execution:
+  runner: nexural.declarative-trace.v1
+  starter: starter/program.yaml
+  visible_tests: tests/visible.yaml
+  hidden_tests: tests/hidden.yaml
+  solution: solution/program.yaml
+  expected_trace: expected-trace.json
+  fault_profiles:
+  - disconnect
+rubric:
+- id: trace-complete
+  metric: tests.trace-complete.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: Replace every TODO so the trusted runner can complete the trace.
+- id: target-behavior
+  metric: tests.target-behavior.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: The trace must implement `recover_from_checkpoint`.
+- id: paper-boundary
+  metric: tests.paper-boundary.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The hidden safety boundary requires paper-only mode.
+- id: fault-resilience
+  metric: fault_evidence.disconnect.handled
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The implementation did not safely handle the seeded disconnect scenario.

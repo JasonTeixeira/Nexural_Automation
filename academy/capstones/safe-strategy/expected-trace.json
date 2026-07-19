@@ -1,0 +1,23 @@
+{
+  "status": "complete",
+  "operations": [
+    "load_fixture",
+    "isolate_instrument_state",
+    "enforce_paper_risk_limits",
+    "verify_paper_deployment_gate",
+    "reconcile_after_disconnect",
+    "deduplicate_by_event_id",
+    "reject_late_event",
+    "accumulate_partial_fills",
+    "reject_stale_timestamp",
+    "seal_evidence_bundle"
+  ],
+  "fault_profiles": [
+    "disconnect",
+    "duplicate",
+    "latency",
+    "partial_fill",
+    "stale_data"
+  ],
+  "deterministic": true
+}

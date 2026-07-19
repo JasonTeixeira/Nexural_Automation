@@ -1,0 +1,11 @@
+{
+  "status": "complete",
+  "operations": [
+    "load_fixture",
+    "validate_playback_semantics",
+    "reject_late_event",
+    "emit_evidence"
+  ],
+  "fault_profile": "latency",
+  "deterministic": true
+}

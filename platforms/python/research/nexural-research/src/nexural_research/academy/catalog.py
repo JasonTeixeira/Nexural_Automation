@@ -3,14 +3,24 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+from importlib.resources import files
 from pathlib import Path
 from typing import Any
 
 import yaml  # type: ignore[import-untyped]
 
-from .models import LearningItem, RubricCriterion, Track
+from .models import ExecutableTest, ExecutionSpec, LearningItem, RubricCriterion, Track
 
 FORBIDDEN_SCORE_TERMS = ("profit", "pnl", "sharpe", "return", "win_rate")
+
+
+def default_academy_root() -> Path:
+    """Return the deterministic curriculum bundled with this installation."""
+
+    root = Path(str(files("nexural_research.academy").joinpath("content"))).resolve()
+    if not (root / "curriculum.yaml").is_file():
+        raise RuntimeError("Installed Academy curriculum is incomplete")
+    return root
 
 
 class CurriculumCatalog:
@@ -83,6 +93,16 @@ class CurriculumCatalog:
                     raise ValueError(
                         f"Rubric {item.id}/{criterion.id} attempts to score profitability"
                     )
+            if item.execution is not None:
+                test_ids = {
+                    test.id
+                    for test in (*item.execution.visible_tests, *item.execution.hidden_tests)
+                }
+                rubric_ids = {criterion.id for criterion in item.rubric}
+                if test_ids != rubric_ids:
+                    raise ValueError(f"Executable tests and rubric criteria differ for {item.id}")
+                if not item.execution.hidden_tests:
+                    raise ValueError(f"Executable item {item.id} requires hidden tests")
 
     def item(self, item_id: str) -> LearningItem:
         try:
@@ -97,8 +117,8 @@ class CurriculumCatalog:
             "updated_at": self.updated_at,
             "default_locale": self.default_locale,
             "tracks": {key: asdict(value) for key, value in self.tracks.items()},
-            "lessons": {key: asdict(value) for key, value in self.lessons.items()},
-            "capstones": {key: asdict(value) for key, value in self.capstones.items()},
+            "lessons": {key: _item_dict(value) for key, value in self.lessons.items()},
+            "capstones": {key: _item_dict(value) for key, value in self.capstones.items()},
         }
 
 
@@ -137,6 +157,7 @@ def _load_items(directory: Path, kind: str) -> dict[str, LearningItem]:
             )
             for row in data["rubric"]
         )
+        execution = _parse_execution(path.parent, data.get("execution"))
         item = LearningItem(
             id=str(data["id"]),
             kind=kind,  # type: ignore[arg-type]
@@ -153,8 +174,52 @@ def _load_items(directory: Path, kind: str) -> dict[str, LearningItem]:
             rubric=rubric,
             hints=tuple(map(str, data.get("hints", ()))),
             tags=tuple(map(str, data.get("tags", ()))),
+            execution=execution,
+            content_root=path.parent,
         )
         if item.id in items:
             raise ValueError(f"Duplicate Academy item id: {item.id}")
         items[item.id] = item
     return items
+
+
+def _parse_execution(package: Path, data: Any) -> ExecutionSpec | None:
+    if data is None:
+        return None
+    if not isinstance(data, dict):
+        raise ValueError(f"Execution contract in {package} must be a mapping")
+
+    def load_tests(relative: str, visibility: str) -> tuple[ExecutableTest, ...]:
+        payload = _read_yaml(package / relative)
+        rows = payload.get("tests", ())
+        if not isinstance(rows, list):
+            raise ValueError(f"Executable tests in {package / relative} must be a list")
+        return tuple(
+            ExecutableTest(
+                id=str(row["id"]),
+                path=str(row["path"]),
+                operator=str(row["operator"]),
+                expected=row.get("expected"),
+                visibility=visibility,  # type: ignore[arg-type]
+                message=str(row.get("message", "Executable assertion failed.")),
+            )
+            for row in rows
+        )
+
+    visible_path = str(data["visible_tests"])
+    hidden_path = str(data["hidden_tests"])
+    return ExecutionSpec(
+        runner=str(data["runner"]),
+        starter=str(data["starter"]),
+        solution=str(data["solution"]),
+        expected_trace=str(data["expected_trace"]),
+        visible_tests=load_tests(visible_path, "public"),
+        hidden_tests=load_tests(hidden_path, "hidden"),
+        fault_profiles=tuple(map(str, data.get("fault_profiles", ()))),
+    )
+
+
+def _item_dict(item: LearningItem) -> dict[str, Any]:
+    payload = asdict(item)
+    payload.pop("content_root", None)
+    return payload

@@ -1,0 +1,8 @@
+program:
+  operations:
+  - load_fixture
+  - TODO
+  - emit_evidence
+  settings:
+    mode: paper
+    deterministic: true

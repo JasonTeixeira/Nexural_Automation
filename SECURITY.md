@@ -1,87 +1,55 @@
 # Security Policy
 
-We take the security of Nexural_Automation seriously. This document explains how to
-report a vulnerability and what to expect after you do.
+Security fixes are applied to `main` and the latest 2.x release. Older releases are not actively patched.
 
-## Supported Versions
+| Version | Supported |
+|---|---|
+| `main` | Yes |
+| Latest `2.x` tag | Yes |
+| `< 2.0` | No |
 
-Security fixes are applied to the latest release on `main`. Older tagged releases are
-not actively patched; please upgrade to the latest version.
+## Report a vulnerability
 
-| Version          | Supported          |
-| ---------------- | ------------------ |
-| `main` (latest)  | :white_check_mark: |
-| `v0.2.x`         | :white_check_mark: |
-| `v0.1.x`         | :x:                |
-| `< v0.1`         | :x:                |
+Do not open a public issue. Submit a private report through [GitHub Security Advisories](https://github.com/JasonTeixeira/Nexural_Automation/security/advisories/new).
 
-## Reporting a Vulnerability
+Include:
 
-**Please do not open public GitHub issues for security vulnerabilities.** Public
-disclosure before a fix is available puts users at risk.
+- the affected component, version, and commit SHA
+- minimal reproduction steps or a safe proof of concept
+- the expected impact and required attacker access
+- whether you plan to disclose and your proposed timeline
 
-You have two private channels:
+Never include real brokerage credentials, account identifiers, API keys, or personal trade data.
 
-1. **GitHub Security Advisories (preferred)** — open a private advisory at
-   [github.com/JasonTeixeira/Nexural_Automation/security/advisories/new](https://github.com/JasonTeixeira/Nexural_Automation/security/advisories/new).
-   This creates a private collaboration space with the maintainers and supports
-   coordinated disclosure, CVE requests, and patch review.
+## Response targets
 
-2. **Private email** — send a report to **security@nexural.com**. Use a clear
-   subject line such as `[SECURITY] Nexural_Automation – <short summary>`.
+| Stage | Target |
+|---|---|
+| Acknowledgement | 3 business days |
+| Initial assessment | 7 business days |
+| Fix or mitigation | Normally within 30 days for a confirmed issue |
+| Disclosure | Coordinated after a fix is available |
 
-### What to include
-
-Please provide as much of the following as you can:
-
-- A description of the issue and the affected component (e.g. MCP server,
-  Strategy SDK, Bridge SDK, gauntlet CLI, a specific workflow).
-- Steps to reproduce, ideally with a minimal proof of concept.
-- The version, commit SHA, or release tag where you observed the issue.
-- The impact you believe it has (data exposure, RCE, denial of service, etc.).
-- Whether you intend to disclose publicly, and on what timeline.
-
-## Our Response Process
-
-| Stage              | Target SLA                                   |
-| ------------------ | -------------------------------------------- |
-| Acknowledgement    | within 3 business days                       |
-| Initial assessment | within 7 business days                       |
-| Fix or mitigation  | typically within 30 days for confirmed issues |
-| Public disclosure  | coordinated with reporter after a fix ships  |
-
-We will:
-
-- Confirm receipt and assign an internal tracking identifier.
-- Work with you to validate, reproduce, and scope the issue.
-- Prepare a fix on a private branch, request a CVE if appropriate, and credit
-  you in the release notes (unless you prefer to remain anonymous).
-- Publish a GitHub Security Advisory describing the issue, the fix, and any
-  required user action.
+We will validate and scope the report, prepare a fix privately when appropriate, request a CVE when warranted, and credit the reporter unless anonymity is requested.
 
 ## Scope
 
 In scope:
 
-- Code in this repository (`platforms/`, `scripts/`, `.github/workflows/`, MCP
-  server, Strategy SDK, Bridge SDK, gauntlet, schemas).
-- Supply-chain configuration (`pyproject.toml`, `package.json`, `Dockerfile`,
-  Dependabot, CodeQL, release pipeline, SBOM).
-- Documentation that could lead users into an insecure configuration.
+- Python API, MCP server, Academy service, research engine, and frontend
+- native NT8 safety core, Strategy/AddOn adapters, packaging, and fault harness
+- schemas, release automation, containers, dependency locks, and CI/CD
+- documentation that causes a material insecure configuration
 
 Out of scope:
 
-- Vulnerabilities in third-party brokers, exchanges, or trading platforms
-  (NinjaTrader, TradingView, etc.) — please report those to the vendor.
-- Issues that require physical access to a user's machine.
-- Social engineering of maintainers or users.
+- NinjaTrader, brokers, exchanges, data providers, or other third-party platforms
+- social engineering and physical-access attacks
+- profit, performance, or trading recommendations
+- live-account execution, which the included bridge intentionally does not support
 
-## Safe Harbor
+## Safe harbor
 
-We will not pursue legal action against researchers who:
+We will not pursue legal action against researchers who act in good faith, avoid privacy violations and destructive testing, do not access live brokerage systems, and allow a reasonable remediation window before disclosure.
 
-- Make a good-faith effort to follow this policy.
-- Avoid privacy violations, data destruction, and service disruption.
-- Give us a reasonable window to remediate before public disclosure.
-
-Thank you for helping keep Nexural_Automation and its users safe.
+The repository's automated security checks and threat model are defensive engineering evidence, not a substitute for an independent professional security assessment.

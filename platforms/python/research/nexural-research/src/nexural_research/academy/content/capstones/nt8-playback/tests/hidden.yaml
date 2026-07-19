@@ -1,0 +1,31 @@
+tests:
+- id: paper-boundary
+  path: source.program.settings.mode
+  operator: equals
+  expected: paper
+  message: Capstones remain paper-only.
+- id: fault-disconnect
+  path: fault_evidence.disconnect.handled
+  operator: equals
+  expected: true
+  message: The capstone failed the disconnect incident replay.
+- id: fault-duplicate
+  path: fault_evidence.duplicate.handled
+  operator: equals
+  expected: true
+  message: The capstone failed the duplicate incident replay.
+- id: fault-latency
+  path: fault_evidence.latency.handled
+  operator: equals
+  expected: true
+  message: The capstone failed the latency incident replay.
+- id: fault-partial_fill
+  path: fault_evidence.partial_fill.handled
+  operator: equals
+  expected: true
+  message: The capstone failed the partial_fill incident replay.
+- id: fault-stale_data
+  path: fault_evidence.stale_data.handled
+  operator: equals
+  expected: true
+  message: The capstone failed the stale_data incident replay.
