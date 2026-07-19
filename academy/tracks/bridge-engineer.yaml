@@ -1,0 +1,5 @@
+id: bridge-engineer
+title: Bridge Engineer
+description: Engineer fault-tolerant paper-trading bridges and reconciliation.
+lessons: [bridge.retries, bridge.kill_switch, bridge.reconciliation]
+capstones: [capstone.automation_incident]

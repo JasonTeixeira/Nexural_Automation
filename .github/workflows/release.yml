@@ -22,11 +22,37 @@ jobs:
         with:
           python-version: "3.11"
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: platforms/python/research/nexural-research/frontend/package-lock.json
+
       - name: Install and test
         run: |
           pip install -e ".[dev,mcp]"
           python -m nexural_research.cli quality-gate --threshold 0.95 --json --fast
           pytest tests/ --ignore=tests/e2e --tb=short -q
+
+      - name: Install browser gate and build canonical frontend
+        run: |
+          pip install playwright
+          npm ci --prefix frontend
+          npx --prefix frontend playwright install --with-deps chromium
+          npm run build --prefix frontend
+
+      - name: Run browser, auth, and full Axe release gate
+        run: |
+          PYTHONPATH=src nohup python -m uvicorn nexural_research.api.app:app --host 127.0.0.1 --port 8011 >/tmp/nexural-public.log 2>&1 &
+          NEXURAL_AUTH_ENABLED=true NEXURAL_API_KEYS=e2e-academy-key NEXURAL_ACADEMY_STATE_DIR=/tmp/nexural-auth-state PYTHONPATH=src nohup python -m uvicorn nexural_research.api.app:app --host 127.0.0.1 --port 8012 >/tmp/nexural-auth.log 2>&1 &
+          for port in 8011 8012; do
+            for attempt in {1..30}; do
+              curl --fail --silent "http://127.0.0.1:${port}/api/health" && break
+              sleep 1
+            done
+          done
+          E2E_FRONTEND_URL=http://127.0.0.1:8011 PYTHONPATH=src pytest tests/e2e -v --tb=short
+          E2E_FRONTEND_URL=http://127.0.0.1:8011 E2E_AUTH_URL=http://127.0.0.1:8012 npm run test:e2e --prefix frontend
 
       - name: Build Docker image
         run: |

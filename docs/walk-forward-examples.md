@@ -9,7 +9,9 @@ Walk-forward testing separates in-sample fitting from out-of-sample behavior.
 - Performance is not concentrated in one window.
 - Costs do not flip the result.
 
-Action: consider `PROMOTE_TO_PAPER` only if the rest of the gauntlet passes.
+Action: supply fitted/frozen, purged walk-forward evidence to the gauntlet. Consider
+`PROMOTE_TO_PAPER` only when that evaluation and every other hard gate pass. The descriptive
+rolling walk-forward report generated from a trade export is not promotion evidence.
 
 ## Weak Result
 

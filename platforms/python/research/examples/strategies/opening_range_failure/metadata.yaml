@@ -11,4 +11,4 @@ symbols: [ES, NQ, RTY]
 instruments: [ES, NQ, RTY]
 tags: [opening-range, failure, futures, educational]
 lookahead_policy: next_bar_execution
-promotion_gate: PROMOTE_TO_PAPER
+promotion_gate: REJECT

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
+import subprocess  # nosec B404
 import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -46,7 +46,8 @@ class CheckResult:
 
 
 def _run(command: Sequence[str]) -> CheckResult:
-    completed = subprocess.run(
+    # The caller supplies only module-owned argument arrays; shell expansion is never enabled.
+    completed = subprocess.run(  # nosec B603
         list(command),
         cwd=PROJECT_ROOT,
         capture_output=True,

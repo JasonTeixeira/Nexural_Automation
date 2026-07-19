@@ -1,0 +1,5 @@
+{
+  "split_before_features": true,
+  "feature_lag": 1,
+  "uses_future_columns": false
+}

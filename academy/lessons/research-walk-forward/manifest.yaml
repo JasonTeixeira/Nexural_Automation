@@ -1,0 +1,16 @@
+id: research.walk_forward
+track: research-operator
+title: Freeze Walk-Forward Parameters
+updated_at: "2026-07-19"
+estimated_minutes: 40
+objectives: [Fit only in-sample, Evaluate frozen parameters out-of-sample]
+prerequisites: [research.lookahead]
+tags: [research, validation]
+translations:
+  en: {title: Freeze Walk-Forward Parameters, summary: Build non-overlapping evaluation folds.}
+  es: {title: Congela los Parámetros Walk-Forward, summary: Construye particiones de evaluación sin solapamiento.}
+hints: [Fit each fold only on its training indices., Freeze parameters throughout the test slice., Keep test indices disjoint across folds.]
+rubric:
+  - {id: fit_scope, metric: fit_scope, operator: equals, expected: train_only, weight: 35, message: Fit on the training slice only.}
+  - {id: frozen, metric: refit_during_test, operator: equals, expected: false, weight: 35, message: Do not refit during evaluation.}
+  - {id: disjoint, metric: test_indices_disjoint, operator: equals, expected: true, weight: 30, visibility: hidden}

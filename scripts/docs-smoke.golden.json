@@ -1,0 +1,42 @@
+[
+  {
+    "name": "cli-help",
+    "args": ["--help"],
+    "contains": ["Nexural research utilities", "gauntlet", "new-strategy", "mcp-install"]
+  },
+  {
+    "name": "cost-profile",
+    "args": ["costs", "--symbol", "NQ", "--trades", "25", "--stress-profile", "elevated"],
+    "contains": ["stress_profile: elevated", "estimated_total_cost:"]
+  },
+  {
+    "name": "strategy-scaffold",
+    "args": ["new-strategy", "Docs Smoke Strategy", "--output-dir", "{tmp}/strategies"],
+    "contains": ["strategy scaffold:"]
+  },
+  {
+    "name": "strategy-contract",
+    "args": ["validate-strategy", "{tmp}/strategies/docs_smoke_strategy/metadata.yaml"],
+    "contains": ["\"valid\": true"]
+  },
+  {
+    "name": "bridge-scaffold",
+    "args": ["new-bridge", "Docs Smoke Bridge", "--output-dir", "{tmp}/bridges"],
+    "contains": ["bridge scaffold:"]
+  },
+  {
+    "name": "bridge-contract",
+    "args": ["validate-bridge", "{tmp}/bridges/docs_smoke_bridge/bridge_contract.json"],
+    "contains": ["\"valid\": true"]
+  },
+  {
+    "name": "gauntlet-demo",
+    "args": ["gauntlet", "--input", "{demo}", "--strategy-name", "DocsSmoke", "--symbol", "NQ", "--min-trades", "100"],
+    "contains": ["Decision: REJECT", "walk_forward_validation", "not_evaluated", "cost_stress"]
+  },
+  {
+    "name": "mcp-install-contract",
+    "args": ["mcp-install", "--help"],
+    "contains": ["--host", "claude-desktop", "codex"]
+  }
+]

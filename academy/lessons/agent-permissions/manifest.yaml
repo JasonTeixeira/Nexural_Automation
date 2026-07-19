@@ -1,0 +1,16 @@
+id: agent.permissions
+track: agent-automation-engineer
+title: Minimize Agent Authority
+updated_at: "2026-07-19"
+estimated_minutes: 30
+objectives: [Apply least privilege, Separate read and mutation authority]
+prerequisites: []
+tags: [agent, permissions]
+translations:
+  en: {title: Minimize Agent Authority, summary: Give automation only the authority required for one task.}
+  es: {title: Minimiza la Autoridad del Agente, summary: Otorga a la automatización solo la autoridad necesaria para una tarea.}
+hints: [Start from no permissions., Separate read tools from mutation tools., Require approval for irreversible actions.]
+rubric:
+  - {id: default_deny, metric: permissions.default_deny, operator: equals, expected: true, weight: 35, message: Begin with default deny.}
+  - {id: separated, metric: permissions.read_write_separated, operator: equals, expected: true, weight: 30, message: Separate read and write authority.}
+  - {id: approval, metric: permissions.irreversible_requires_approval, operator: equals, expected: true, weight: 35, visibility: hidden}

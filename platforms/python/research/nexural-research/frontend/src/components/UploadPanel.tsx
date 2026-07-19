@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import { Upload } from "lucide-react";
 import { uploadCsv, getSessions, type UploadResponse } from "../lib/api";
 
 interface Props {
@@ -60,8 +61,8 @@ export function UploadPanel({ onUpload }: Props) {
     <div className="min-h-screen flex items-center justify-center p-8 relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-blue-500/[0.03] rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-purple-500/[0.02] rounded-full blur-[100px]" />
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full blur-[120px] bg-amber-400/[0.025]" />
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full blur-[100px] bg-emerald-400/[0.015]" />
         {/* Grid */}
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
@@ -72,8 +73,8 @@ export function UploadPanel({ onUpload }: Props) {
       <div className="max-w-lg w-full relative z-10">
         {/* Logo */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-2xl shadow-blue-500/25 mb-6">
-            <span className="text-white font-bold text-2xl">N</span>
+          <div className="nexural-mark nexural-mark-large mb-6">
+            <span>N</span>
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight">
             Nexural Research
@@ -88,7 +89,7 @@ export function UploadPanel({ onUpload }: Props) {
           {...getRootProps()}
           className={`glass-card cursor-pointer text-center py-16 px-8 transition-all duration-500 ${
             isDragActive
-              ? "border-blue-500/40 glow-blue scale-[1.02]"
+              ? "border-amber-400/40 scale-[1.02]"
               : "hover:border-white/[0.12]"
           }`}
         >
@@ -96,16 +97,14 @@ export function UploadPanel({ onUpload }: Props) {
 
           {uploading ? (
             <div className="animate-fade-in">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />
-              <div className="text-blue-400 font-medium">Analyzing...</div>
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full border-2 border-amber-400/30 border-t-amber-400 animate-spin" />
+              <div className="text-amber-300 font-medium">Analyzing...</div>
               <p className="text-gray-500 text-xs mt-2">Parsing CSV &middot; Detecting export type &middot; Normalizing data</p>
             </div>
           ) : (
             <div>
               <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center">
-                <svg className="w-7 h-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                </svg>
+                <Upload className="h-7 w-7 text-gray-400" />
               </div>
               <p className="text-white font-medium text-base">
                 {isDragActive ? "Drop your file here" : "Import NinjaTrader Export"}

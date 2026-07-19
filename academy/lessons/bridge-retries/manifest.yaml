@@ -1,0 +1,16 @@
+id: bridge.retries
+track: bridge-engineer
+title: Retry Without Multiplying Orders
+updated_at: "2026-07-19"
+estimated_minutes: 40
+objectives: [Bound retries, Preserve idempotency through reconnects]
+prerequisites: []
+tags: [bridge, retries]
+translations:
+  en: {title: Retry Without Multiplying Orders, summary: Survive transient faults without duplicate actions.}
+  es: {title: Reintenta sin Multiplicar Órdenes, summary: Supera fallos transitorios sin duplicar acciones.}
+hints: [Use exponential backoff with a hard attempt cap., Carry the same idempotency key across retries., Route exhausted work to operator review.]
+rubric:
+  - {id: bounded, metric: retry.max_attempts, operator: lte, expected: 5, weight: 30, message: Bound retry attempts at five or fewer.}
+  - {id: keyed, metric: retry.preserves_idempotency_key, operator: equals, expected: true, weight: 35, message: Preserve the key across retries.}
+  - {id: exhausted, metric: retry.exhausted_action, operator: equals, expected: operator_review, weight: 35, visibility: hidden}

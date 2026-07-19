@@ -8,17 +8,20 @@ institutional quant teams to validate strategy robustness.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass, fields
+from typing import Any, Callable, Sequence
 
 import numpy as np
 import pandas as pd
 from scipy import stats as sp_stats
 
-
+from nexural_research.analyze.annualization import annualized_sharpe, frame_sharpe, periodic_pnl
 
 # ---------------------------------------------------------------------------
 # Parametric Monte Carlo
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class ParametricMonteCarloResult:
@@ -61,7 +64,9 @@ def parametric_monte_carlo(
     pnl = pd.to_numeric(df_trades["profit"], errors="coerce").fillna(0.0).to_numpy()
     n = len(pnl)
     if n == 0:
-        return ParametricMonteCarloResult(**{f.name: 0.0 for f in fields(ParametricMonteCarloResult)},)
+        return ParametricMonteCarloResult(
+            **{f.name: 0.0 for f in fields(ParametricMonteCarloResult)},
+        )
 
     if n_trades_per_sim is None:
         n_trades_per_sim = n
@@ -77,7 +82,13 @@ def parametric_monte_carlo(
             sim_pnl = rng.normal(loc=np.mean(pnl), scale=np.std(pnl, ddof=1), size=n_trades_per_sim)
         elif distribution == "t":
             df_param, loc, scale = sp_stats.t.fit(pnl)
-            sim_pnl = sp_stats.t.rvs(df_param, loc=loc, scale=scale, size=n_trades_per_sim, random_state=rng)
+            sim_pnl = sp_stats.t.rvs(
+                df_param,
+                loc=loc,
+                scale=scale,
+                size=n_trades_per_sim,
+                random_state=rng,
+            )
         else:
             raise ValueError(f"unsupported distribution: {distribution}")
 
@@ -119,6 +130,7 @@ def parametric_monte_carlo(
 # Block Bootstrap Monte Carlo
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class BlockBootstrapResult:
     """Block bootstrap preserves autocorrelation structure."""
@@ -135,6 +147,8 @@ class BlockBootstrapResult:
     net_profit_p95: float
     mdd_p50: float
     mdd_p95: float
+    sufficient_history: bool
+    observation_basis: str
 
 
 def block_bootstrap_monte_carlo(
@@ -143,16 +157,37 @@ def block_bootstrap_monte_carlo(
     n_simulations: int = 2000,
     block_size: int | None = None,
     seed: int = 42,
+    periods_per_year: float | None = None,
 ) -> BlockBootstrapResult:
     """Block bootstrap Monte Carlo that preserves trade autocorrelation.
 
     Useful when trades have serial dependency (momentum/mean-reversion regimes).
     """
 
-    pnl = pd.to_numeric(df_trades["profit"], errors="coerce").fillna(0.0).to_numpy()
+    periodic = periodic_pnl(df_trades, periods_per_year=periods_per_year)
+    pnl = periodic.values
+    bootstrap_periods_per_year = periodic.periods_per_year
     n = len(pnl)
-    if n < 10:
-        return BlockBootstrapResult(**{f.name: 0 if "int" in str(type(getattr(BlockBootstrapResult, f.name, 0))) else 0.0 for f in fields(BlockBootstrapResult)})
+    defensible_frequency = periods_per_year is not None or periodic.basis == (
+        "calendar_complete_trading_day_pnl"
+    )
+    if n < 10 or not defensible_frequency:
+        return BlockBootstrapResult(
+            n_simulations=0,
+            block_size=0,
+            sharpe_mean=0.0,
+            sharpe_std=0.0,
+            sharpe_p05=0.0,
+            sharpe_p95=0.0,
+            sharpe_ci_lower=0.0,
+            sharpe_ci_upper=0.0,
+            net_profit_p05=0.0,
+            net_profit_p95=0.0,
+            mdd_p50=0.0,
+            mdd_p95=0.0,
+            sufficient_history=False,
+            observation_basis=periodic.basis,
+        )
 
     # Auto block size: cube root of n (Politis & Romano)
     if block_size is None:
@@ -176,8 +211,10 @@ def block_bootstrap_monte_carlo(
         eq = np.cumsum(sim_pnl)
         net_profits[i] = eq[-1]
 
-        std = float(np.std(sim_pnl, ddof=1))
-        sharpes[i] = float(np.mean(sim_pnl) / std * np.sqrt(252)) if std > 1e-10 else 0.0
+        sharpes[i] = annualized_sharpe(
+            sim_pnl,
+            periods_per_year=bootstrap_periods_per_year,
+        )
 
         peak = np.maximum.accumulate(eq)
         max_drawdowns[i] = float(np.min(eq - peak))
@@ -198,12 +235,15 @@ def block_bootstrap_monte_carlo(
         net_profit_p95=round(float(p_pcts[1]), 2),
         mdd_p50=round(float(np.percentile(max_drawdowns, 50)), 2),
         mdd_p95=round(float(np.percentile(max_drawdowns, 5)), 2),
+        sufficient_history=True,
+        observation_basis=periodic.basis,
     )
 
 
 # ---------------------------------------------------------------------------
 # Rolling Walk-Forward Analysis
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class WalkForwardWindow:
@@ -221,6 +261,12 @@ class WalkForwardWindow:
     in_sample_sharpe: float
     out_sample_sharpe: float
     efficiency: float  # out-of-sample / in-sample performance ratio
+    in_sample_start_index: int = -1
+    in_sample_end_index: int = -1
+    out_sample_start_index: int = -1
+    out_sample_end_index: int = -1
+    purged_n: int = 0
+    embargo_n: int = 0
 
 
 @dataclass(frozen=True)
@@ -236,7 +282,277 @@ class RollingWalkForwardResult:
     avg_efficiency: float
     efficiency_std: float
     pct_profitable_oos: float
-    walk_forward_efficiency: float  # aggregate OOS / aggregate IS
+    walk_forward_efficiency: float
+    methodology: str = "evaluation_only_no_refit"
+    aggregation_method: str = "non_overlapping_oos_mean_fold_is"
+    parameters_frozen: bool = False
+    purge_size: int = 0
+    embargo_size: int = 0
+    oos_overlap_count: int = 0
+
+
+FitFunction = Callable[[pd.DataFrame], Any]
+EvaluateFunction = Callable[[Any, pd.DataFrame], Sequence[float] | np.ndarray | pd.Series]
+
+
+def _ordered_frame(df: pd.DataFrame, ts_col: str) -> tuple[pd.DataFrame, str | None]:
+    selected = ts_col
+    if selected not in df.columns:
+        selected = "entry_time" if "entry_time" in df.columns else None
+    ordered = df.copy()
+    if selected is not None:
+        ordered[selected] = pd.to_datetime(ordered[selected], errors="coerce")
+        ordered = ordered.dropna(subset=[selected]).sort_values(selected, kind="mergesort")
+    return ordered.reset_index(drop=True), selected
+
+
+def _window_timestamp(frame: pd.DataFrame, ts_col: str | None, position: int) -> str:
+    if ts_col is None or len(frame) == 0:
+        return ""
+    return str(frame[ts_col].iloc[position])
+
+
+def _empty_walk_forward(
+    *,
+    in_sample_pct: float,
+    anchored: bool,
+    methodology: str,
+    parameters_frozen: bool,
+    purge_size: int = 0,
+    embargo_size: int = 0,
+) -> RollingWalkForwardResult:
+    return RollingWalkForwardResult(
+        n_windows=0,
+        in_sample_pct=in_sample_pct,
+        anchored=anchored,
+        windows=[],
+        aggregate_oos_net=0.0,
+        aggregate_oos_sharpe=0.0,
+        avg_efficiency=0.0,
+        efficiency_std=0.0,
+        pct_profitable_oos=0.0,
+        walk_forward_efficiency=0.0,
+        methodology=methodology,
+        parameters_frozen=parameters_frozen,
+        purge_size=purge_size,
+        embargo_size=embargo_size,
+    )
+
+
+def _assemble_walk_forward_result(
+    *,
+    windows: list[WalkForwardWindow],
+    oos_frames: list[pd.DataFrame],
+    oos_positions: list[int],
+    is_means: list[float],
+    in_sample_pct: float,
+    anchored: bool,
+    methodology: str,
+    parameters_frozen: bool,
+    purge_size: int,
+    embargo_size: int,
+    ts_col: str,
+    periods_per_year: float | None,
+) -> RollingWalkForwardResult:
+    if not windows:
+        return _empty_walk_forward(
+            in_sample_pct=in_sample_pct,
+            anchored=anchored,
+            methodology=methodology,
+            parameters_frozen=parameters_frozen,
+            purge_size=purge_size,
+            embargo_size=embargo_size,
+        )
+
+    combined_oos = pd.concat(oos_frames, ignore_index=True)
+    oos_values = pd.to_numeric(combined_oos["profit"], errors="coerce").fillna(0.0)
+    agg_oos = float(oos_values.sum())
+    agg_oos_sharpe = frame_sharpe(
+        combined_oos,
+        ts_col=ts_col,
+        periods_per_year=periods_per_year,
+    )
+    oos_mean = float(oos_values.mean()) if len(oos_values) else 0.0
+    mean_fold_is = float(np.mean(is_means)) if is_means else 0.0
+    efficiency = oos_mean / mean_fold_is if abs(mean_fold_is) > 1e-10 else 0.0
+    fold_efficiencies = [window.efficiency for window in windows]
+    oos_nets = [window.out_sample_net for window in windows]
+    overlap_count = len(oos_positions) - len(set(oos_positions))
+
+    return RollingWalkForwardResult(
+        n_windows=len(windows),
+        in_sample_pct=in_sample_pct,
+        anchored=anchored,
+        windows=windows,
+        aggregate_oos_net=round(agg_oos, 2),
+        aggregate_oos_sharpe=round(agg_oos_sharpe, 4),
+        avg_efficiency=round(float(np.mean(fold_efficiencies)), 4),
+        efficiency_std=(
+            round(float(np.std(fold_efficiencies)), 4) if len(fold_efficiencies) > 1 else 0.0
+        ),
+        pct_profitable_oos=round(float(np.mean([net > 0 for net in oos_nets]) * 100), 1),
+        walk_forward_efficiency=round(efficiency, 4),
+        methodology=methodology,
+        parameters_frozen=parameters_frozen,
+        purge_size=purge_size,
+        embargo_size=embargo_size,
+        oos_overlap_count=overlap_count,
+    )
+
+
+def walk_forward_validate(
+    data: pd.DataFrame,
+    *,
+    fit_fn: FitFunction,
+    evaluate_fn: EvaluateFunction,
+    train_size: int,
+    test_size: int,
+    step_size: int | None = None,
+    n_windows: int | None = None,
+    anchored: bool = False,
+    purge_size: int = 0,
+    embargo_size: int = 0,
+    ts_col: str = "exit_time",
+    label_end_col: str | None = None,
+    periods_per_year: float | None = None,
+) -> RollingWalkForwardResult:
+    """Fit on IS, freeze parameters, and evaluate non-overlapping OOS folds.
+
+    ``fit_fn`` receives only the effective in-sample frame after positional
+    purging and optional interval-label purging.  ``evaluate_fn`` receives a
+    deep copy of the fitted object, preventing evaluator mutation from leaking
+    across IS/OOS calls or folds.  A step shorter than the test window is
+    rejected because it would count OOS observations more than once.
+    """
+
+    if train_size <= 0 or test_size <= 0:
+        raise ValueError("train_size and test_size must be positive")
+    if purge_size < 0 or embargo_size < 0:
+        raise ValueError("purge_size and embargo_size cannot be negative")
+    if purge_size >= train_size:
+        raise ValueError("purge_size must be smaller than train_size")
+    step = test_size if step_size is None else step_size
+    if step < test_size:
+        raise ValueError("step_size must be >= test_size for non-overlapping OOS folds")
+    if n_windows is not None and n_windows <= 0:
+        raise ValueError("n_windows must be positive when supplied")
+
+    frame, selected_ts = _ordered_frame(data, ts_col)
+    n = len(frame)
+    in_sample_pct = train_size / n if n else 0.0
+    if n < train_size + embargo_size + test_size:
+        return _empty_walk_forward(
+            in_sample_pct=in_sample_pct,
+            anchored=anchored,
+            methodology="fit_freeze_evaluate",
+            parameters_frozen=True,
+            purge_size=purge_size,
+            embargo_size=embargo_size,
+        )
+
+    windows: list[WalkForwardWindow] = []
+    oos_frames: list[pd.DataFrame] = []
+    oos_positions: list[int] = []
+    is_means: list[float] = []
+    fold_id = 0
+
+    while True:
+        boundary = train_size + fold_id * step
+        train_start = 0 if anchored else boundary - train_size
+        nominal_train = list(range(train_start, boundary))
+        effective_positions = nominal_train[: len(nominal_train) - purge_size]
+        test_start = boundary + embargo_size
+        test_end = test_start + test_size
+        if test_end > n or (n_windows is not None and fold_id >= n_windows):
+            break
+
+        if label_end_col is not None:
+            if selected_ts is None:
+                raise ValueError("label_end_col requires a valid timestamp column")
+            if label_end_col not in frame.columns:
+                raise ValueError(f"label_end_col not found: {label_end_col}")
+            test_start_time = frame[selected_ts].iloc[test_start]
+            label_ends = pd.to_datetime(
+                frame.iloc[effective_positions][label_end_col],
+                errors="coerce",
+            )
+            effective_positions = [
+                position
+                for position, label_end in zip(effective_positions, label_ends, strict=True)
+                if pd.notna(label_end) and label_end < test_start_time
+            ]
+
+        if not effective_positions:
+            raise ValueError("purging removed the entire in-sample fold")
+
+        train = frame.iloc[effective_positions].copy()
+        test = frame.iloc[test_start:test_end].copy()
+        fitted = fit_fn(train.copy())
+        is_output = np.asarray(evaluate_fn(deepcopy(fitted), train.copy()), dtype=float)
+        oos_output = np.asarray(evaluate_fn(deepcopy(fitted), test.copy()), dtype=float)
+        if is_output.ndim != 1 or len(is_output) != len(train):
+            raise ValueError("evaluate_fn must return one IS value per input row")
+        if oos_output.ndim != 1 or len(oos_output) != len(test):
+            raise ValueError("evaluate_fn must return one OOS value per input row")
+
+        scored_is = train.copy()
+        scored_is["profit"] = is_output
+        scored_oos = test.copy()
+        scored_oos["profit"] = oos_output
+        is_sharpe = frame_sharpe(
+            scored_is,
+            ts_col=selected_ts or ts_col,
+            periods_per_year=periods_per_year,
+        )
+        oos_sharpe = frame_sharpe(
+            scored_oos,
+            ts_col=selected_ts or ts_col,
+            periods_per_year=periods_per_year,
+        )
+        fold_efficiency = oos_sharpe / is_sharpe if abs(is_sharpe) > 1e-10 else 0.0
+        purged_n = len(nominal_train) - len(effective_positions)
+
+        windows.append(
+            WalkForwardWindow(
+                window_id=fold_id,
+                in_sample_start=_window_timestamp(frame, selected_ts, effective_positions[0]),
+                in_sample_end=_window_timestamp(frame, selected_ts, effective_positions[-1]),
+                out_sample_start=_window_timestamp(frame, selected_ts, test_start),
+                out_sample_end=_window_timestamp(frame, selected_ts, test_end - 1),
+                in_sample_n=len(train),
+                out_sample_n=len(test),
+                in_sample_net=round(float(is_output.sum()), 2),
+                out_sample_net=round(float(oos_output.sum()), 2),
+                in_sample_sharpe=round(is_sharpe, 4),
+                out_sample_sharpe=round(oos_sharpe, 4),
+                efficiency=round(fold_efficiency, 4),
+                in_sample_start_index=effective_positions[0],
+                in_sample_end_index=effective_positions[-1],
+                out_sample_start_index=test_start,
+                out_sample_end_index=test_end - 1,
+                purged_n=purged_n,
+                embargo_n=embargo_size,
+            )
+        )
+        oos_frames.append(scored_oos)
+        oos_positions.extend(range(test_start, test_end))
+        is_means.append(float(is_output.mean()))
+        fold_id += 1
+
+    return _assemble_walk_forward_result(
+        windows=windows,
+        oos_frames=oos_frames,
+        oos_positions=oos_positions,
+        is_means=is_means,
+        in_sample_pct=in_sample_pct,
+        anchored=anchored,
+        methodology="fit_freeze_evaluate",
+        parameters_frozen=True,
+        purge_size=purge_size,
+        embargo_size=embargo_size,
+        ts_col=selected_ts or ts_col,
+        periods_per_year=periods_per_year,
+    )
 
 
 def rolling_walk_forward(
@@ -246,28 +562,28 @@ def rolling_walk_forward(
     in_sample_pct: float = 0.7,
     anchored: bool = False,
     ts_col: str = "exit_time",
+    periods_per_year: float | None = None,
 ) -> RollingWalkForwardResult:
-    """Rolling or anchored walk-forward analysis with multiple windows.
+    """Evaluate a fixed historical PnL stream across chronological windows.
 
-    - Rolling: fixed-size IS window slides forward
-    - Anchored: IS window always starts at the beginning, grows
+    This backwards-compatible mode does *not* fit or select parameters and is
+    therefore labeled ``evaluation_only_no_refit``.  Use
+    :func:`walk_forward_validate` for fit/freeze/OOS strategy validation.
     """
 
-    if ts_col not in df_trades.columns:
-        ts_col = "entry_time" if "entry_time" in df_trades.columns else ts_col
-
-    df = df_trades.copy()
-    if ts_col in df.columns:
-        df[ts_col] = pd.to_datetime(df[ts_col], errors="coerce")
-        df = df.dropna(subset=[ts_col]).sort_values(ts_col, kind="mergesort").reset_index(drop=True)
+    if n_windows <= 0:
+        raise ValueError("n_windows must be positive")
+    if not 0.0 < in_sample_pct < 1.0:
+        raise ValueError("in_sample_pct must be between zero and one")
+    df, selected_ts = _ordered_frame(df_trades, ts_col)
 
     n = len(df)
     if n < 20:
-        return RollingWalkForwardResult(
-            n_windows=0, in_sample_pct=in_sample_pct, anchored=anchored,
-            windows=[], aggregate_oos_net=0.0, aggregate_oos_sharpe=0.0,
-            avg_efficiency=0.0, efficiency_std=0.0, pct_profitable_oos=0.0,
-            walk_forward_efficiency=0.0,
+        return _empty_walk_forward(
+            in_sample_pct=in_sample_pct,
+            anchored=anchored,
+            methodology="evaluation_only_no_refit",
+            parameters_frozen=False,
         )
 
     # Calculate window boundaries
@@ -275,8 +591,9 @@ def rolling_walk_forward(
     oos_per_window = max(1, total_oos // n_windows)
 
     windows: list[WalkForwardWindow] = []
-    all_oos_pnl: list[float] = []
-    all_is_pnl: list[float] = []
+    oos_frames: list[pd.DataFrame] = []
+    oos_positions: list[int] = []
+    is_means: list[float] = []
 
     for w in range(n_windows):
         if anchored:
@@ -301,63 +618,64 @@ def rolling_walk_forward(
         is_net = float(np.sum(is_pnl))
         oos_net = float(np.sum(oos_pnl))
 
-        is_std = float(np.std(is_pnl, ddof=1)) if len(is_pnl) > 1 else 1e-10
-        oos_std = float(np.std(oos_pnl, ddof=1)) if len(oos_pnl) > 1 else 1e-10
-
-        is_sharpe = float(np.mean(is_pnl) / is_std) if is_std > 1e-10 else 0.0
-        oos_sharpe = float(np.mean(oos_pnl) / oos_std) if oos_std > 1e-10 else 0.0
+        is_sharpe = frame_sharpe(
+            df_is,
+            ts_col=selected_ts or ts_col,
+            periods_per_year=periods_per_year,
+        )
+        oos_sharpe = frame_sharpe(
+            df_oos,
+            ts_col=selected_ts or ts_col,
+            periods_per_year=periods_per_year,
+        )
 
         efficiency = oos_sharpe / is_sharpe if abs(is_sharpe) > 1e-10 else 0.0
 
-        ts_col_safe = ts_col if ts_col in df.columns else None
-        is_start_ts = str(df_is[ts_col].iloc[0]) if ts_col_safe and len(df_is) > 0 else ""
-        is_end_ts = str(df_is[ts_col].iloc[-1]) if ts_col_safe and len(df_is) > 0 else ""
-        oos_start_ts = str(df_oos[ts_col].iloc[0]) if ts_col_safe and len(df_oos) > 0 else ""
-        oos_end_ts = str(df_oos[ts_col].iloc[-1]) if ts_col_safe and len(df_oos) > 0 else ""
+        windows.append(
+            WalkForwardWindow(
+                window_id=w,
+                in_sample_start=_window_timestamp(df, selected_ts, is_start),
+                in_sample_end=_window_timestamp(df, selected_ts, is_end - 1),
+                out_sample_start=_window_timestamp(df, selected_ts, oos_start),
+                out_sample_end=_window_timestamp(df, selected_ts, oos_end - 1),
+                in_sample_n=len(df_is),
+                out_sample_n=len(df_oos),
+                in_sample_net=round(is_net, 2),
+                out_sample_net=round(oos_net, 2),
+                in_sample_sharpe=round(is_sharpe, 4),
+                out_sample_sharpe=round(oos_sharpe, 4),
+                efficiency=round(efficiency, 4),
+                in_sample_start_index=is_start,
+                in_sample_end_index=is_end - 1,
+                out_sample_start_index=oos_start,
+                out_sample_end_index=oos_end - 1,
+            )
+        )
 
-        windows.append(WalkForwardWindow(
-            window_id=w,
-            in_sample_start=is_start_ts,
-            in_sample_end=is_end_ts,
-            out_sample_start=oos_start_ts,
-            out_sample_end=oos_end_ts,
-            in_sample_n=len(df_is),
-            out_sample_n=len(df_oos),
-            in_sample_net=round(is_net, 2),
-            out_sample_net=round(oos_net, 2),
-            in_sample_sharpe=round(is_sharpe, 4),
-            out_sample_sharpe=round(oos_sharpe, 4),
-            efficiency=round(efficiency, 4),
-        ))
+        oos_frames.append(df_oos)
+        oos_positions.extend(range(oos_start, oos_end))
+        is_means.append(float(np.mean(is_pnl)) if len(is_pnl) else 0.0)
 
-        all_oos_pnl.extend(oos_pnl.tolist())
-        all_is_pnl.extend(is_pnl.tolist())
-
-    efficiencies = [w.efficiency for w in windows]
-    oos_nets = [w.out_sample_net for w in windows]
-
-    agg_oos = sum(all_oos_pnl)
-    agg_is = sum(all_is_pnl)
-    agg_oos_std = float(np.std(all_oos_pnl, ddof=1)) if len(all_oos_pnl) > 1 else 1e-10
-    agg_oos_sharpe = float(np.mean(all_oos_pnl) / agg_oos_std) if agg_oos_std > 1e-10 else 0.0
-
-    return RollingWalkForwardResult(
-        n_windows=len(windows),
+    return _assemble_walk_forward_result(
+        windows=windows,
+        oos_frames=oos_frames,
+        oos_positions=oos_positions,
+        is_means=is_means,
         in_sample_pct=in_sample_pct,
         anchored=anchored,
-        windows=windows,
-        aggregate_oos_net=round(agg_oos, 2),
-        aggregate_oos_sharpe=round(agg_oos_sharpe, 4),
-        avg_efficiency=round(float(np.mean(efficiencies)), 4) if efficiencies else 0.0,
-        efficiency_std=round(float(np.std(efficiencies)), 4) if len(efficiencies) > 1 else 0.0,
-        pct_profitable_oos=round(float(np.mean([n > 0 for n in oos_nets]) * 100), 1) if oos_nets else 0.0,
-        walk_forward_efficiency=round(agg_oos / agg_is, 4) if abs(agg_is) > 1e-10 else 0.0,
+        methodology="evaluation_only_no_refit",
+        parameters_frozen=False,
+        purge_size=0,
+        embargo_size=0,
+        ts_col=selected_ts or ts_col,
+        periods_per_year=periods_per_year,
     )
 
 
 # ---------------------------------------------------------------------------
 # Deflated Sharpe Ratio (overfitting detection)
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class DeflatedSharpeResult:
@@ -371,6 +689,8 @@ class DeflatedSharpeResult:
     n_trials_assumed: int
     expected_max_sharpe: float
     interpretation: str
+    periods_per_year: float = 1.0
+    annualization_basis: str = "unannualized_observation_pnl"
 
 
 def deflated_sharpe_ratio(
@@ -378,6 +698,8 @@ def deflated_sharpe_ratio(
     *,
     n_trials: int = 100,
     risk_free_rate: float = 0.0,
+    periods_per_year: float | None = None,
+    ts_col: str = "exit_time",
 ) -> DeflatedSharpeResult:
     """Compute the Deflated Sharpe Ratio (Bailey & Lopez de Prado, 2014).
 
@@ -390,38 +712,71 @@ def deflated_sharpe_ratio(
     result of overfitting from trying many parameter combinations.
     """
 
-    pnl = pd.to_numeric(df_trades["profit"], errors="coerce").fillna(0.0).to_numpy()
+    if n_trials <= 0:
+        raise ValueError("n_trials must be positive")
+    periodic = periodic_pnl(
+        df_trades,
+        ts_col=ts_col,
+        periods_per_year=periods_per_year,
+    )
+    pnl = periodic.values
+    annualization = periodic.periods_per_year
+    annualization_basis = periodic.basis
     n = len(pnl)
 
-    if n < 10:
+    defensible_frequency = periods_per_year is not None or annualization_basis == (
+        "calendar_complete_trading_day_pnl"
+    )
+    if len(df_trades) < 10 or n < 10 or not defensible_frequency:
         return DeflatedSharpeResult(
-            observed_sharpe=0.0, deflated_sharpe=0.0, p_value=1.0,
-            is_significant=False, n_trials_assumed=n_trials,
+            observed_sharpe=0.0,
+            deflated_sharpe=0.0,
+            p_value=1.0,
+            is_significant=False,
+            n_trials_assumed=n_trials,
             expected_max_sharpe=0.0,
-            interpretation="insufficient data for deflated Sharpe analysis",
+            interpretation=(
+                "insufficient regularly sampled history for deflated Sharpe analysis; "
+                "provide at least 10 daily observations or an explicit defensible frequency"
+            ),
+            periods_per_year=annualization,
+            annualization_basis=annualization_basis,
         )
 
-    mean_ret = float(np.mean(pnl)) - risk_free_rate / 252.0
+    mean_ret = float(np.mean(pnl)) - risk_free_rate / annualization
     std_ret = float(np.std(pnl, ddof=1))
     if std_ret < 1e-10:
-        std_ret = 1e-10
+        return DeflatedSharpeResult(
+            observed_sharpe=0.0,
+            deflated_sharpe=0.0,
+            p_value=1.0,
+            is_significant=False,
+            n_trials_assumed=n_trials,
+            expected_max_sharpe=0.0,
+            interpretation="constant PnL has undefined Sharpe and cannot survive deflation",
+            periods_per_year=annualization,
+            annualization_basis=annualization_basis,
+        )
 
-    observed_sharpe = mean_ret / std_ret * np.sqrt(252)
+    observed_sharpe = mean_ret / std_ret * np.sqrt(annualization)
     skew = float(sp_stats.skew(pnl))
-    kurt = float(sp_stats.kurtosis(pnl))
+    kurt = float(sp_stats.kurtosis(pnl, fisher=False))
 
-    # Expected maximum Sharpe ratio under null (from n_trials independent tests)
-    # E[max(SR)] ≈ sqrt(2 * ln(n_trials)) - (euler_gamma + ln(ln(n_trials))) / (2 * sqrt(2 * ln(n_trials)))
+    # Expected maximum Sharpe under the null across independent trials. Scale
+    # the normal order statistic by the sampling error of a Sharpe estimate.
     euler_gamma = 0.5772156649
     if n_trials > 1:
-        v = np.sqrt(2.0 * np.log(n_trials))
-        expected_max_sr = v - (euler_gamma + np.log(np.log(n_trials))) / (2.0 * v)
+        z_max = (1.0 - euler_gamma) * sp_stats.norm.ppf(
+            1.0 - 1.0 / n_trials
+        ) + euler_gamma * sp_stats.norm.ppf(1.0 - 1.0 / (n_trials * np.e))
+        expected_max_periodic = float(z_max / np.sqrt(n - 1.0))
     else:
-        expected_max_sr = 0.0
+        expected_max_periodic = 0.0
+    expected_max_sr = expected_max_periodic * np.sqrt(annualization)
 
     # Standard error of Sharpe ratio with non-normality adjustment
-    sr = observed_sharpe / np.sqrt(252)  # per-trade Sharpe
-    se_var = (1.0 - skew * sr + (kurt - 1) / 4.0 * sr ** 2) / (n - 1.0)
+    sr = observed_sharpe / np.sqrt(annualization)
+    se_var = (1.0 - skew * sr + (kurt - 1) / 4.0 * sr**2) / (n - 1.0)
     se_sr = np.sqrt(max(se_var, 1e-10))
 
     if se_sr < 1e-10:
@@ -429,15 +784,21 @@ def deflated_sharpe_ratio(
 
     # Deflated Sharpe: test if observed SR > expected max SR under null
     # PSR = Prob[SR* > SR0] where SR0 = expected max
-    psr_stat = (sr - expected_max_sr / np.sqrt(252)) / se_sr
+    psr_stat = (sr - expected_max_periodic) / se_sr
     p_value = 1.0 - float(sp_stats.norm.cdf(psr_stat))
 
     is_sig = p_value < 0.05
 
     if is_sig:
-        interp = f"Strategy Sharpe ({observed_sharpe:.2f}) survives deflation (p={p_value:.4f}). Unlikely to be overfit."
+        interp = (
+            f"Strategy Sharpe ({observed_sharpe:.2f}) survives deflation "
+            f"(p={p_value:.4f}). Unlikely to be overfit."
+        )
     else:
-        interp = f"Strategy Sharpe ({observed_sharpe:.2f}) does NOT survive deflation (p={p_value:.4f}). Potential overfitting from {n_trials} trials."
+        interp = (
+            f"Strategy Sharpe ({observed_sharpe:.2f}) does NOT survive deflation "
+            f"(p={p_value:.4f}). Potential overfitting from {n_trials} trials."
+        )
 
     return DeflatedSharpeResult(
         observed_sharpe=round(float(observed_sharpe), 4),
@@ -447,12 +808,15 @@ def deflated_sharpe_ratio(
         n_trials_assumed=n_trials,
         expected_max_sharpe=round(float(expected_max_sr), 4),
         interpretation=interp,
+        periods_per_year=annualization,
+        annualization_basis=annualization_basis,
     )
 
 
 # ---------------------------------------------------------------------------
 # Regime Detection
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class RegimeAnalysisResult:
@@ -486,8 +850,13 @@ def regime_analysis(
 
     if n < window * 2:
         return RegimeAnalysisResult(
-            n_regimes=0, regime_labels=[], regime_counts=[], regime_avg_pnl=[],
-            regime_sharpe=[], regime_win_rate=[], regime_avg_drawdown=[],
+            n_regimes=0,
+            regime_labels=[],
+            regime_counts=[],
+            regime_avg_pnl=[],
+            regime_sharpe=[],
+            regime_win_rate=[],
+            regime_avg_drawdown=[],
             current_regime="unknown",
             interpretation="insufficient data for regime analysis",
         )
@@ -548,7 +917,10 @@ def regime_analysis(
     if len(sharpes) >= 2:
         best = actual_labels[np.argmax(sharpes)]
         worst = actual_labels[np.argmin(sharpes)]
-        interp = f"Best performance in {best} regime (Sharpe {max(sharpes):.2f}), worst in {worst} (Sharpe {min(sharpes):.2f}). Currently in {current}."
+        interp = (
+            f"Best performance in {best} regime (Sharpe {max(sharpes):.2f}), "
+            f"worst in {worst} (Sharpe {min(sharpes):.2f}). Currently in {current}."
+        )
     else:
         interp = "Insufficient regime diversity for comparison."
 

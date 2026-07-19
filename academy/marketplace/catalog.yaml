@@ -1,0 +1,14 @@
+schema_version: "1.0"
+templates:
+  - name: causal-feature-pipeline
+    version: "1.0.0"
+    publisher: nexural
+    tags: [research, leakage]
+    package: packages/causal-feature-pipeline/template.yaml
+    digest: sha256:0156163ed6b0b907af5225d8222a809cb0b256b0389d789be606efb9dba291fb
+  - name: idempotent-paper-bridge
+    version: "1.0.0"
+    publisher: nexural
+    tags: [bridge, paper]
+    package: packages/idempotent-paper-bridge/template.yaml
+    digest: sha256:a1ce2e8284364752582e9e53b1f86482d1bdb7495e58578cb43821e1d9e2e9d7

@@ -1,0 +1,16 @@
+id: agent.observability
+track: agent-automation-engineer
+title: Trace Every Decision
+updated_at: "2026-07-19"
+estimated_minutes: 35
+objectives: [Create replayable traces, Redact secrets before persistence]
+prerequisites: [agent.prompt_injection]
+tags: [agent, observability]
+translations:
+  en: {title: Trace Every Decision, summary: Produce operator-readable and replayable evidence.}
+  es: {title: Registra Cada Decisión, summary: Produce evidencia legible para operadores y reproducible.}
+hints: [Record inputs decisions tool calls and outcomes., Use stable correlation IDs., Redact before the trace touches storage.]
+rubric:
+  - {id: lifecycle, metric: trace.lifecycle_covered, operator: equals, expected: true, weight: 30, message: Cover the full decision lifecycle.}
+  - {id: correlated, metric: trace.correlation_ids, operator: equals, expected: true, weight: 30, message: Add correlation IDs.}
+  - {id: redacted, metric: trace.secrets_redacted, operator: equals, expected: true, weight: 40, visibility: hidden}

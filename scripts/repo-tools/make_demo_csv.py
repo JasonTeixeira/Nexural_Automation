@@ -2,9 +2,11 @@
 
 Designed to:
 - Pass column-detection in nexural_research.ingest.nt_csv (uses canonical aliases)
-- Look like a believable NQ scalp strategy (not too good, not too bad)
+- Span 40 active days with a nonconstant, positive edge in every chronological segment
+- Clear the public gauntlet comfortably after elevated NQ execution costs
 - Be deterministic (fixed seed) so docs & screenshots stay reproducible
 """
+
 from __future__ import annotations
 
 import csv
@@ -23,26 +25,30 @@ SYMBOL = "NQ 06-26"
 STRATEGY = "DemoNQScalp"
 ACCOUNT = "Sim101"
 
-# Realistic-ish edge: ~52% win rate, avg win $145, avg loss $-115, modest variance.
+# Educational paper-strategy fixture: 60% wins, about $140 avg win / $70 avg loss.
+# Five trades per active day makes annualization and temporal validation explicit.
+# The repeating 20-trade sequence includes realistic loss clusters so the path
+# reshuffle check is meaningful instead of rewarding an artificially smooth curve.
 rows = []
-ts = START
 trade_no = 0
-for _ in range(N):
+day = START
+for i in range(N):
     trade_no += 1
-    # Skip weekends
-    while ts.weekday() >= 5:
-        ts += timedelta(days=1)
-        ts = ts.replace(hour=9, minute=35)
+    if i and i % 5 == 0:
+        day += timedelta(days=1)
+        while day.weekday() >= 5:
+            day += timedelta(days=1)
+    ts = day.replace(hour=9, minute=35) + timedelta(minutes=65 * (i % 5))
     # Trade direction
     side = random.choice(["Long", "Short"])
-    qty = random.choice([1, 1, 1, 2])  # mostly 1-lot
+    qty = 1
     # Entry price near recent NQ levels
     entry_price = round(17500 + random.gauss(0, 60), 2)
-    win = random.random() < 0.52
+    win = (i % 20) in {0, 1, 2, 3, 9, 10, 11, 12, 13, 14, 15, 19}
     if win:
-        ticks = max(1, int(abs(random.gauss(8, 4))))
+        ticks = max(18, int(abs(random.gauss(28, 5))))
     else:
-        ticks = -max(1, int(abs(random.gauss(6, 3))))
+        ticks = -max(8, int(abs(random.gauss(14, 3))))
     # NQ: $5/tick per contract, 0.25 point increments
     pnl_per_contract = ticks * 5.0
     gross = pnl_per_contract * qty
@@ -50,7 +56,9 @@ for _ in range(N):
     commission = round(2.04 * qty, 2)
     net = round(gross - commission, 2)
     # Exit price (4 ticks = 1 point)
-    exit_price = round(entry_price + (ticks * 0.25 if side == "Long" else -ticks * 0.25), 2)
+    exit_price = round(
+        entry_price + (ticks * 0.25 if side == "Long" else -ticks * 0.25), 2
+    )
     # Hold time: 30s..15min
     hold_sec = random.randint(30, 900)
     exit_ts = ts + timedelta(seconds=hold_sec)
@@ -59,31 +67,29 @@ for _ in range(N):
         net_str = f"${net:,.2f}"
     else:
         net_str = f"(${abs(net):,.2f})"
-    rows.append({
-        "Trade number": trade_no,
-        "Instrument": SYMBOL,
-        "Account": ACCOUNT,
-        "Strategy": STRATEGY,
-        "Market pos.": side,
-        "Quantity": qty,
-        "Entry price": f"{entry_price:.2f}",
-        "Exit price": f"{exit_price:.2f}",
-        "Entry time": ts.strftime("%m/%d/%Y %I:%M:%S %p"),
-        "Exit time": exit_ts.strftime("%m/%d/%Y %I:%M:%S %p"),
-        "Entry name": "Entry",
-        "Exit name": "Exit",
-        "Profit": net_str,
-        "Cum. net profit": "",  # filled below
-        "Commission": f"${commission:.2f}",
-        "MAE": f"${random.randint(5, 80):.2f}",
-        "MFE": f"${random.randint(5, 150):.2f}",
-        "ETD": f"${random.randint(0, 60):.2f}",
-        "Bars": random.randint(1, 30),
-    })
-    # Advance time
-    ts = exit_ts + timedelta(minutes=random.randint(2, 25))
-    if ts.hour >= 15:  # roll to next session
-        ts = (ts + timedelta(days=1)).replace(hour=9, minute=35)
+    rows.append(
+        {
+            "Trade number": trade_no,
+            "Instrument": SYMBOL,
+            "Account": ACCOUNT,
+            "Strategy": STRATEGY,
+            "Market pos.": side,
+            "Quantity": qty,
+            "Entry price": f"{entry_price:.2f}",
+            "Exit price": f"{exit_price:.2f}",
+            "Entry time": ts.strftime("%m/%d/%Y %I:%M:%S %p"),
+            "Exit time": exit_ts.strftime("%m/%d/%Y %I:%M:%S %p"),
+            "Entry name": "Entry",
+            "Exit name": "Exit",
+            "Profit": net_str,
+            "Cum. net profit": "",  # filled below
+            "Commission": f"${commission:.2f}",
+            "MAE": f"${random.randint(5, 80):.2f}",
+            "MFE": f"${random.randint(5, 150):.2f}",
+            "ETD": f"${random.randint(0, 60):.2f}",
+            "Bars": random.randint(1, 30),
+        }
+    )
 
 # Cumulative net
 running = 0.0

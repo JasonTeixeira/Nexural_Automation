@@ -1,0 +1,9 @@
+schema_version: "1.0"
+version: "1.0.0"
+updated_at: "2026-07-19"
+default_locale: en
+principles:
+  - Evidence before promotion
+  - Safety and correctness before performance
+  - Deterministic checks with no lookahead
+  - Paper execution before live execution

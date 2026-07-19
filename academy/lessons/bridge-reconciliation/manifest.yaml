@@ -1,0 +1,16 @@
+id: bridge.reconciliation
+track: bridge-engineer
+title: Reconcile the Source of Truth
+updated_at: "2026-07-19"
+estimated_minutes: 45
+objectives: [Detect local-broker drift, Escalate unresolved mismatches]
+prerequisites: [bridge.kill_switch]
+tags: [bridge, reconciliation]
+translations:
+  en: {title: Reconcile the Source of Truth, summary: Compare intent acknowledgements fills and positions.}
+  es: {title: Reconcilia la Fuente de Verdad, summary: Compara intenciones confirmaciones ejecuciones y posiciones.}
+hints: [Model intent acknowledgement fill and position separately., Stop new actions while state disagrees., Escalate when bounded repair fails.]
+rubric:
+  - {id: four_way, metric: reconciliation.state_count, operator: gte, expected: 4, weight: 30, message: Reconcile all four lifecycle states.}
+  - {id: pause, metric: reconciliation.pauses_on_mismatch, operator: equals, expected: true, weight: 35, message: Pause on mismatch.}
+  - {id: escalate, metric: reconciliation.unresolved_action, operator: equals, expected: operator_review, weight: 35, visibility: hidden}

@@ -9,17 +9,19 @@ Features:
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
-from nexural_research.api.sessions import sessions, safe_serialize
+from nexural_research.api.auth import require_auth
+from nexural_research.api.sessions import get_session
 
-router = APIRouter(tags=["ai"])
+router = APIRouter(tags=["ai"], dependencies=[Depends(require_auth)])
 
 
 # ---------------------------------------------------------------------------
 # Request/Response models
 # ---------------------------------------------------------------------------
+
 
 class AiRequest(BaseModel):
     api_key: str
@@ -31,7 +33,9 @@ class AiRequest(BaseModel):
 class AiMultiTurnRequest(BaseModel):
     api_key: str
     provider: str = "anthropic"
-    messages: list[dict[str, str]]  # [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}, ...]
+    messages: list[
+        dict[str, str]
+    ]  # [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}, ...]
     session_id: str = "default"
 
 
@@ -52,6 +56,7 @@ class AiValidatedResponse(BaseModel):
 # Single-shot analysis
 # ---------------------------------------------------------------------------
 
+
 @router.post("/ai/analyze", response_model=AiResponse)
 async def ai_analyze(req: AiRequest):
     """Send trade data to AI for natural-language analysis."""
@@ -62,9 +67,7 @@ async def ai_analyze(req: AiRequest):
         query_perplexity,
     )
 
-    if req.session_id not in sessions:
-        raise HTTPException(404, f"Session not found: {req.session_id}")
-    s = sessions[req.session_id]
+    s = get_session(req.session_id)
     if s["kind"] != "trades":
         raise HTTPException(400, "AI analysis requires Trades data")
 
@@ -99,6 +102,7 @@ async def ai_analyze(req: AiRequest):
 # Multi-turn conversation
 # ---------------------------------------------------------------------------
 
+
 @router.post("/ai/conversation")
 async def ai_conversation(req: AiMultiTurnRequest):
     """Multi-turn AI conversation with persistent strategy context.
@@ -106,15 +110,14 @@ async def ai_conversation(req: AiMultiTurnRequest):
     Send the full conversation history. The strategy context is automatically
     injected into the first message. Follow-ups reference the same data.
     """
-    from nexural_research.api.ai_analyst import (
-        build_strategy_context,
-        SYSTEM_PROMPT,
-    )
     import httpx
 
-    if req.session_id not in sessions:
-        raise HTTPException(404, f"Session not found: {req.session_id}")
-    s = sessions[req.session_id]
+    from nexural_research.api.ai_analyst import (
+        SYSTEM_PROMPT,
+        build_strategy_context,
+    )
+
+    s = get_session(req.session_id)
     if s["kind"] != "trades":
         raise HTTPException(400, "AI analysis requires Trades data")
 
@@ -126,10 +129,12 @@ async def ai_conversation(req: AiMultiTurnRequest):
     context_injected = False
     for msg in req.messages:
         if msg["role"] == "user" and not context_injected:
-            api_messages.append({
-                "role": "user",
-                "content": f"{context}\n\n---\n\nTrader's question: {msg['content']}",
-            })
+            api_messages.append(
+                {
+                    "role": "user",
+                    "content": f"{context}\n\n---\n\nTrader's question: {msg['content']}",
+                }
+            )
             context_injected = True
         else:
             api_messages.append(msg)
@@ -159,7 +164,10 @@ async def ai_conversation(req: AiMultiTurnRequest):
             async with httpx.AsyncClient(timeout=60.0) as client:
                 resp = await client.post(
                     "https://api.openai.com/v1/chat/completions",
-                    headers={"Authorization": f"Bearer {req.api_key}", "Content-Type": "application/json"},
+                    headers={
+                        "Authorization": f"Bearer {req.api_key}",
+                        "Content-Type": "application/json",
+                    },
                     json={"model": "gpt-4o", "max_tokens": 4096, "messages": messages_with_system},
                 )
                 resp.raise_for_status()
@@ -170,8 +178,15 @@ async def ai_conversation(req: AiMultiTurnRequest):
             async with httpx.AsyncClient(timeout=60.0) as client:
                 resp = await client.post(
                     "https://api.perplexity.ai/chat/completions",
-                    headers={"Authorization": f"Bearer {req.api_key}", "Content-Type": "application/json"},
-                    json={"model": "sonar-pro", "max_tokens": 4096, "messages": messages_with_system},
+                    headers={
+                        "Authorization": f"Bearer {req.api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": "sonar-pro",
+                        "max_tokens": 4096,
+                        "messages": messages_with_system,
+                    },
                 )
                 resp.raise_for_status()
                 response = resp.json()["choices"][0]["message"]["content"]
@@ -188,6 +203,7 @@ async def ai_conversation(req: AiMultiTurnRequest):
 
     # Validate the AI response against actual data
     from nexural_research.api.ai_validator import validate_ai_response
+
     validation = validate_ai_response(response, df)
 
     return {
@@ -220,6 +236,7 @@ async def ai_conversation(req: AiMultiTurnRequest):
 # Validate existing response
 # ---------------------------------------------------------------------------
 
+
 @router.post("/ai/validate")
 async def ai_validate_response(session_id: str = Query(default="default"), response_text: str = ""):
     """Validate an AI response against actual metric data.
@@ -228,9 +245,7 @@ async def ai_validate_response(session_id: str = Query(default="default"), respo
     """
     from nexural_research.api.ai_validator import validate_ai_response
 
-    if session_id not in sessions:
-        raise HTTPException(404, f"Session not found: {session_id}")
-    s = sessions[session_id]
+    s = get_session(session_id)
     if s["kind"] != "trades":
         raise HTTPException(400, "Validation requires Trades data")
 
@@ -259,14 +274,13 @@ async def ai_validate_response(session_id: str = Query(default="default"), respo
 # Context preview
 # ---------------------------------------------------------------------------
 
+
 @router.post("/ai/context-preview")
 async def ai_context_preview(session_id: str = Query(default="default")):
     """Preview the context that would be sent to the AI."""
     from nexural_research.api.ai_analyst import build_strategy_context
 
-    if session_id not in sessions:
-        raise HTTPException(404, f"Session not found: {session_id}")
-    s = sessions[session_id]
+    s = get_session(session_id)
     if s["kind"] != "trades":
         raise HTTPException(400, "Context preview requires Trades data")
 

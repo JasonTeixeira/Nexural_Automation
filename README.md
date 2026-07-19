@@ -16,7 +16,7 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 [![MCP Smoke](https://img.shields.io/badge/MCP-smoke%20tested-111827.svg)](docs/mcp-contract.md)
 
-[Why](#why-this-exists) · [Architecture](#architecture) · [What it does](#what-it-does) · [Quickstart](#quickstart) · [MCP server](#mcp-automation-server) · [Proof & evidence](#proof--evidence) · [Docs](#public-docs)
+[Why](#why-this-exists) · [Architecture](#architecture) · [What it does](#what-it-does) · [Academy](#automation-academy) · [Quickstart](#quickstart) · [MCP server](#mcp-automation-server) · [Proof & evidence](#proof--evidence) · [Docs](#public-docs)
 
 </div>
 
@@ -28,7 +28,7 @@
 
 Most retail strategy development jumps straight from a curve-fit backtest to live money. The steps a trading desk would never skip — deflated-Sharpe overfitting tests, walk-forward validation, Monte Carlo risk envelopes, realistic commission and slippage stress — are exactly the steps hobby tooling leaves out.
 
-Nexural Automation packages that due-diligence pipeline as a **local-first lab**: a Python research engine, an MCP server so AI agents can run the same workflow, a Strategy SDK for scaffolding modules across platforms, and a Bridge SDK that defines the safety lifecycle (health, flatten, kill-switch, fill reconciliation) any execution connector must implement. Everything runs on `127.0.0.1`; nothing trades live.
+Nexural Automation packages that due-diligence pipeline as a **local-first lab**: a Python research engine, a deterministic scenario-driven Automation Academy, an MCP server so AI agents can run the same workflow, a Strategy SDK for scaffolding modules across platforms, and a Bridge SDK that defines the safety lifecycle (health, flatten, kill-switch, fill reconciliation) any execution connector must implement. Everything runs on `127.0.0.1`; nothing trades live.
 
 ## Architecture
 
@@ -67,12 +67,12 @@ flowchart LR
     MCP --> BSDK
     AN --> GAUNT
     COST --> GAUNT
-    GAUNT -->|"PROMOTE_TO_PAPER<br/>all 10 checks pass"| BSDK
+    GAUNT -->|"PROMOTE_TO_PAPER<br/>requires fitted walk-forward evidence"| BSDK
     GAUNT -->|"TUNE / REWRITE"| SSDK
     GAUNT -->|"REJECT<br/>fails deflated Sharpe, walk-forward, or cost stress"| X["Stop — documented failure"]
 ```
 
-The gauntlet's four decisions come straight from `gauntlet.py`: **PROMOTE_TO_PAPER** (zero failed checks), **REJECT** (fails deflated Sharpe, walk-forward efficiency, or cost stress), **TUNE** (score ≥ 70), **REWRITE** (everything else).
+The gauntlet's four decisions come straight from `gauntlet.py`: **PROMOTE_TO_PAPER** (zero failed checks, including fitted/frozen walk-forward evidence), **REJECT** (fails deflated Sharpe, fitted walk-forward validation, or cost stress), **TUNE** (score ≥ 70), **REWRITE** (everything else). A trade export by itself is descriptive evidence and cannot pass the fitted walk-forward gate.
 
 ## What it does
 
@@ -82,6 +82,22 @@ The gauntlet's four decisions come straight from `gauntlet.py`: **PROMOTE_TO_PAP
 - **Bridge SDK** — a connector protocol whose lifecycle (`health()`, `send_signal()`, `flatten()`, `kill_switch()`, `reconcile_fills()`) is enforced by contract schema and validated in CI; ships a `CsvSignalBridge` reference implementation.
 - **Agent-ready via MCP** — the entire workflow is callable by AI agents over stdio or streamable HTTP, with a golden contract fixture guarding backward compatibility.
 - **HTML research reports** — local, self-contained report generation for any export.
+- **Automation Academy** — four ordered tracks, 12 safety labs, three capstones, seeded fault scenarios, prerequisite enforcement, escalating trace-aware hints, hash-chained submission evidence, signed local knowledge attestations, cohorts, marketplace packages, and English/Spanish learning content.
+
+## Automation Academy
+
+The dashboard opens on the Academy flight deck. Work is graded on reproducibility, causal timing, bounded authority, idempotency, reconciliation, and safety—not profitability. Hidden grader contracts are never returned to learner clients and passed submissions are copied into a SHA-256 hash chain. The current signed award is explicitly a **knowledge attestation** derived from completed scenario contracts; it does not certify that arbitrary learner code was executed or is safe to trade.
+
+```bash
+cd platforms/python/research/nexural-research
+nexural-research academy catalog --json
+nexural-research academy start research.lookahead --learner jason --json
+nexural-research academy check research.lookahead --learner jason --submission ../../../../academy/fixtures/lookahead-safe-submission.json --json
+nexural-research academy progress --learner jason --json
+nexural-research academy trace --learner jason --json
+```
+
+HTTP clients use `/api/academy/*`; hosted mode namespaces learner state by authenticated API-key owner. See [`academy/README.md`](academy/README.md) for the curriculum and evidence contracts.
 
 ## Quickstart
 

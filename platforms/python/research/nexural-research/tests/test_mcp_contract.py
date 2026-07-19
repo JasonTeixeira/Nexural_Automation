@@ -39,7 +39,9 @@ def _registered_mcp_tools() -> set[str]:
 
 def test_mcp_contract_versioned_and_complete():
     assert CAPABILITIES["name"] == "Nexural Automation"
-    assert CAPABILITIES["version"] == "2.1.0"
+    from nexural_research import __version__
+
+    assert CAPABILITIES["version"] == __version__
     assert "institutional_gauntlet" in CAPABILITIES["automation_workflows"]
     assert "bridge_scaffolding" in CAPABILITIES["automation_workflows"]
 

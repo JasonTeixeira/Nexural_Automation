@@ -7,21 +7,20 @@ the analysis engine and sends it to the AI for interpretation.
 
 from __future__ import annotations
 
-
 import pandas as pd
 
-from nexural_research.analyze.metrics import metrics_from_trades
 from nexural_research.analyze.advanced_metrics import (
-    risk_return_metrics,
-    expectancy_metrics,
-    trade_dependency_analysis,
     distribution_metrics,
+    expectancy_metrics,
+    risk_return_metrics,
     time_decay_analysis,
+    trade_dependency_analysis,
 )
 from nexural_research.analyze.advanced_robustness import (
     deflated_sharpe_ratio,
     regime_analysis,
 )
+from nexural_research.analyze.metrics import metrics_from_trades
 from nexural_research.analyze.portfolio import benchmark_comparison
 
 
@@ -37,20 +36,35 @@ def build_strategy_context(df_trades: pd.DataFrame) -> str:
     dsr = deflated_sharpe_ratio(df_trades, n_trials=100)
     regime = regime_analysis(df_trades)
     bench = benchmark_comparison(df_trades, n_random_sims=500)
+    regime_rows = ", ".join(
+        f"{label} (n={count}, avg=${average:.2f}, Sharpe={sharpe:.2f})"
+        for label, count, average, sharpe in zip(
+            regime.regime_labels,
+            regime.regime_counts,
+            regime.regime_avg_pnl,
+            regime.regime_sharpe,
+        )
+    )
 
-    instruments = df_trades["instrument"].unique().tolist() if "instrument" in df_trades.columns else ["unknown"]
-    strategies = df_trades["strategy"].unique().tolist() if "strategy" in df_trades.columns else ["unknown"]
+    instruments = (
+        df_trades["instrument"].unique().tolist()
+        if "instrument" in df_trades.columns
+        else ["unknown"]
+    )
+    strategies = (
+        df_trades["strategy"].unique().tolist() if "strategy" in df_trades.columns else ["unknown"]
+    )
 
     context = f"""## Strategy Analysis Data
 
-### Instruments: {', '.join(str(i) for i in instruments)}
-### Strategies: {', '.join(str(s) for s in strategies)}
+### Instruments: {", ".join(str(i) for i in instruments)}
+### Strategies: {", ".join(str(s) for s in strategies)}
 ### Total Trades: {core.n_trades}
 
 ### Core Performance Metrics
 - Net Profit: ${core.net_profit:,.2f}
 - Gross Profit: ${core.gross_profit:,.2f} | Gross Loss: ${core.gross_loss:,.2f}
-- Win Rate: {core.win_rate*100:.1f}%
+- Win Rate: {core.win_rate * 100:.1f}%
 - Profit Factor: {core.profit_factor:.4f}
 - Average Trade: ${core.avg_trade:,.2f}
 - Average Win: ${core.avg_win:,.2f} | Average Loss: ${core.avg_loss:,.2f}
@@ -58,13 +72,13 @@ def build_strategy_context(df_trades: pd.DataFrame) -> str:
 - Ulcer Index: {core.ulcer_index:.4f}
 
 ### Risk-Adjusted Returns
-- Sharpe Ratio: {rr.sharpe_ratio} (annualized)
+- Sharpe Ratio: {rr.sharpe_ratio} ({rr.annualization_basis}; periods/year={rr.periods_per_year})
 - Sortino Ratio: {rr.sortino_ratio}
 - Calmar Ratio: {rr.calmar_ratio}
 - Omega Ratio: {rr.omega_ratio}
 - Tail Ratio: {rr.tail_ratio}
 - Gain-to-Pain Ratio: {rr.gain_to_pain_ratio}
-- Risk of Ruin: {rr.risk_of_ruin*100:.2f}%
+- Risk of Ruin: {rr.risk_of_ruin * 100:.2f}%
 
 ### Expectancy & Position Sizing
 - Expectancy per trade: ${exp.expectancy:,.4f}
@@ -94,7 +108,7 @@ def build_strategy_context(df_trades: pd.DataFrame) -> str:
 
 ### Regime Analysis
 - {regime.interpretation}
-- Regimes: {', '.join(f'{label} (n={cnt}, avg=${avg:.2f}, Sharpe={sr:.2f})' for label, cnt, avg, sr in zip(regime.regime_labels, regime.regime_counts, regime.regime_avg_pnl, regime.regime_sharpe))}
+- Regimes: {regime_rows}
 
 ### Benchmark Comparison
 - Strategy Net: ${bench.strategy_net:,.2f} | Sharpe: {bench.strategy_sharpe}
@@ -105,7 +119,8 @@ def build_strategy_context(df_trades: pd.DataFrame) -> str:
     return context
 
 
-SYSTEM_PROMPT = """You are an elite quantitative strategy analyst working at an institutional trading firm. You analyze NinjaTrader backtesting results with the rigor of a prop desk quant.
+SYSTEM_PROMPT = """You are an elite quantitative strategy analyst working at an institutional
+trading firm. You analyze NinjaTrader backtesting results with the rigor of a prop desk quant.
 
 Your role:
 1. Provide brutally honest assessment — never sugarcoat bad results
@@ -117,7 +132,9 @@ Your role:
 7. Flag any signs of overfitting, curve-fitting, or data mining bias
 8. Consider market microstructure and execution realism
 
-Format your responses with clear sections, bullet points, and specific numbers. Be the analyst that helps traders build genuinely profitable automation systems, not one that tells them what they want to hear."""
+Format your responses with clear sections, bullet points, and specific numbers. Be the analyst
+that helps traders build genuinely profitable automation systems, not one that tells them what
+they want to hear."""
 
 
 async def query_anthropic(api_key: str, context: str, user_message: str) -> str:
@@ -183,8 +200,16 @@ async def query_perplexity(api_key: str, context: str, user_message: str) -> str
     """
     import httpx
 
+    web_context = (
+        "\n\nYou also have web access. When relevant, cross-reference current market conditions, "
+        "recent news about the traded instruments, and known quantitative research to enhance "
+        "your analysis."
+    )
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT + "\n\nYou also have web access. When relevant, cross-reference current market conditions, recent news about the traded instruments, and known quantitative research to enhance your analysis."},
+        {
+            "role": "system",
+            "content": SYSTEM_PROMPT + web_context,
+        },
         {"role": "user", "content": f"{context}\n\n---\n\nTrader's question: {user_message}"},
     ]
 

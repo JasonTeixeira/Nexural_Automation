@@ -1,0 +1,5 @@
+id: strategy-builder
+title: Strategy Builder
+description: Define deterministic strategies with explicit contracts and regimes.
+lessons: [strategy.contracts, strategy.idempotency, strategy.regime]
+capstones: [capstone.safe_strategy]

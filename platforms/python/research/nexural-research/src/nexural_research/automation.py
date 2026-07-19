@@ -16,6 +16,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from nexural_research import __version__
 from nexural_research.analyze.advanced_metrics import comprehensive_analysis
 from nexural_research.analyze.advanced_robustness import (
     deflated_sharpe_ratio,
@@ -35,7 +36,7 @@ from nexural_research.strategy_sdk import scaffold_strategy
 
 CAPABILITIES: dict[str, Any] = {
     "name": "Nexural Automation",
-    "version": "2.1.0",
+    "version": __version__,
     "purpose": "Agent-ready strategy analysis, robustness validation, and report automation.",
     "supported_imports": [
         "NinjaTrader Strategy Analyzer CSV",
@@ -91,6 +92,14 @@ def _json_safe(value: Any) -> Any:
     return value
 
 
+def _json_dict(value: Any) -> dict[str, Any]:
+    """Normalize and assert the mapping shape promised by public workflows."""
+    normalized = _json_safe(value)
+    if not isinstance(normalized, dict):
+        raise TypeError("Expected a JSON object from workflow result")
+    return normalized
+
+
 def _allowed_roots() -> list[Path]:
     raw = os.environ.get("NEXURAL_ALLOWED_DATA_DIRS", "").strip()
     if not raw:
@@ -144,6 +153,8 @@ def _decision(summary: dict[str, Any]) -> dict[str, Any]:
     profit_factor = float(summary.get("profit_factor") or 0.0)
     survives_deflation = bool(summary.get("survives_deflation"))
     walk_forward_efficiency = float(summary.get("walk_forward_efficiency") or 0.0)
+    walk_forward_methodology = str(summary.get("walk_forward_methodology") or "unknown")
+    parameters_frozen = bool(summary.get("walk_forward_parameters_frozen"))
 
     blockers: list[str] = []
     if grade in {"D", "F"}:
@@ -154,8 +165,10 @@ def _decision(summary: dict[str, Any]) -> dict[str, Any]:
         blockers.append("Sharpe ratio is below 0.50")
     if not survives_deflation:
         blockers.append("deflated Sharpe does not pass overfitting threshold")
-    if walk_forward_efficiency < 0.35:
-        blockers.append("walk-forward efficiency is below 0.35")
+    if walk_forward_methodology != "fit_freeze_evaluate" or not parameters_frozen:
+        blockers.append("fitted walk-forward validation was not executed")
+    elif walk_forward_efficiency < 0.35:
+        blockers.append("fitted walk-forward efficiency is below 0.35")
 
     if blockers:
         status = "reject_for_live_trading"
@@ -215,6 +228,9 @@ def analyze_strategy_export(
         "current_regime": regime.current_regime,
         "walk_forward_efficiency": walk_forward.walk_forward_efficiency,
         "walk_forward_oos_net": walk_forward.aggregate_oos_net,
+        "walk_forward_methodology": walk_forward.methodology,
+        "walk_forward_parameters_frozen": walk_forward.parameters_frozen,
+        "walk_forward_oos_overlap_count": walk_forward.oos_overlap_count,
         "monte_carlo_profitability_pct": monte_carlo.prob_profitable,
         "monte_carlo_mdd_p95": monte_carlo.mdd_p95,
     }
@@ -272,7 +288,7 @@ def analyze_strategy_export(
             ),
         ],
     }
-    return _json_safe(result)
+    return _json_dict(result)
 
 
 def compare_strategy_exports(csv_paths: list[str | Path]) -> dict[str, Any]:
@@ -291,7 +307,7 @@ def compare_strategy_exports(csv_paths: list[str | Path]) -> dict[str, Any]:
         sources.append({"session_id": session_id, **source})
 
     matrix = compare_strategies(strategy_data)
-    return _json_safe({"sources": sources, "comparison": matrix})
+    return _json_dict({"sources": sources, "comparison": matrix})
 
 
 def generate_strategy_report(
@@ -315,7 +331,7 @@ def generate_strategy_report(
     out_path.write_text(build_trades_report_html(df, title=report_title), encoding="utf-8")
 
     core = metrics_from_trades(df)
-    return _json_safe(
+    return _json_dict(
         {
             "report_path": out_path,
             "source": source,
@@ -349,7 +365,7 @@ def run_strategy_gauntlet_export(
         n_trials=n_trials,
         cost_stress_profile=cost_stress_profile,
     )
-    return _json_safe({"source": source, "gauntlet": report})
+    return _json_dict({"source": source, "gauntlet": report})
 
 
 def estimate_strategy_costs(
@@ -361,7 +377,7 @@ def estimate_strategy_costs(
     stress_profile: str = "normal",
 ) -> dict[str, Any]:
     """Estimate realistic futures round-turn costs for strategy planning."""
-    return _json_safe(
+    return _json_dict(
         estimate_costs(
             symbol,
             trades=trades,
@@ -380,7 +396,7 @@ def create_strategy_scaffold(
     overwrite: bool = False,
 ) -> dict[str, Any]:
     """Create a public strategy SDK scaffold."""
-    return _json_safe(
+    return _json_dict(
         scaffold_strategy(
             name=name,
             platform=platform,  # type: ignore[arg-type]
@@ -397,4 +413,4 @@ def create_bridge_scaffold(
     overwrite: bool = False,
 ) -> dict[str, Any]:
     """Create a bridge SDK scaffold."""
-    return _json_safe(scaffold_bridge(name=name, output_dir=output_dir, overwrite=overwrite))
+    return _json_dict(scaffold_bridge(name=name, output_dir=output_dir, overwrite=overwrite))

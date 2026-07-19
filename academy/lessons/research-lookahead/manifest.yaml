@@ -1,0 +1,19 @@
+id: research.lookahead
+track: research-operator
+title: Seal the Lookahead Leak
+updated_at: "2026-07-19"
+estimated_minutes: 35
+objectives: [Split data before feature fitting, Lag signals before execution]
+prerequisites: []
+tags: [research, leakage, temporal]
+translations:
+  en: {title: Seal the Lookahead Leak, summary: Repair a contaminated temporal pipeline.}
+  es: {title: Sella la Fuga de Información Futura, summary: Repara un pipeline temporal contaminado.}
+hints:
+  - Split the timeline before fitting features; the test partition must remain unseen.
+  - Apply at least one-bar lag between the computed feature and an actionable signal.
+  - Remove every column derived from timestamps later than the decision timestamp.
+rubric:
+  - {id: temporal_split, metric: split_before_features, operator: equals, expected: true, weight: 40, message: Split before fitting any feature transform.}
+  - {id: execution_lag, metric: feature_lag, operator: gte, expected: 1, weight: 30, message: Signals need at least a one-bar lag.}
+  - {id: future_guard, metric: uses_future_columns, operator: equals, expected: false, weight: 30, visibility: hidden}

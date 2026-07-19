@@ -1,0 +1,5 @@
+id: research-operator
+title: Research Operator
+description: Build reproducible, leakage-resistant research evidence.
+lessons: [research.lookahead, research.walk_forward, research.cost_stress]
+capstones: [capstone.research_evidence]

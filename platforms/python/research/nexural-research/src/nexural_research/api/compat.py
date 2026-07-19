@@ -6,9 +6,6 @@ by the v0 Next.js frontend TypeScript interfaces.
 
 from __future__ import annotations
 
-from typing import Any
-
-import numpy as np
 import pandas as pd
 
 
@@ -45,6 +42,7 @@ def adapt_metrics(raw: dict, df: pd.DataFrame) -> dict:
 def adapt_sessions(raw: dict, sessions_store: dict | None = None) -> dict:
     """Adapt sessions dict to v0 sessions array format."""
     from datetime import datetime, timezone
+
     sessions_list = []
     for sid, info in raw.items():
         # Get created_at from the full session store if available
@@ -53,13 +51,15 @@ def adapt_sessions(raw: dict, sessions_store: dict | None = None) -> dict:
             ts = sessions_store[sid].get("created_at")
             if ts:
                 created_at = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
-        sessions_list.append({
-            "session_id": sid,
-            "kind": info.get("kind", "trades"),
-            "filename": info.get("filename", ""),
-            "n_rows": info.get("n_rows", 0),
-            "created_at": created_at or datetime.now(timezone.utc).isoformat(),
-        })
+        sessions_list.append(
+            {
+                "session_id": sid,
+                "kind": info.get("kind", "trades"),
+                "filename": info.get("filename", ""),
+                "n_rows": info.get("n_rows", 0),
+                "created_at": created_at or datetime.now(timezone.utc).isoformat(),
+            }
+        )
     return {"sessions": sessions_list}
 
 
@@ -96,18 +96,20 @@ def adapt_improvements(raw: dict) -> dict:
     recs = raw.get("recommendations", [])
     adapted_recs = []
     for r in recs:
-        adapted_recs.append({
-            "category": r.get("category", ""),
-            "priority": r.get("priority", "medium"),
-            "title": r.get("title", ""),
-            "description": r.get("description", ""),
-            "current_value": r.get("current_value", ""),
-            "target_value": r.get("suggested_value", ""),
-            "suggested_value": r.get("suggested_value", ""),
-            "impact": r.get("expected_impact", ""),
-            "expected_impact": r.get("expected_impact", ""),
-            "confidence": r.get("confidence", "medium"),
-        })
+        adapted_recs.append(
+            {
+                "category": r.get("category", ""),
+                "priority": r.get("priority", "medium"),
+                "title": r.get("title", ""),
+                "description": r.get("description", ""),
+                "current_value": r.get("current_value", ""),
+                "target_value": r.get("suggested_value", ""),
+                "suggested_value": r.get("suggested_value", ""),
+                "impact": r.get("expected_impact", ""),
+                "expected_impact": r.get("expected_impact", ""),
+                "confidence": r.get("confidence", "medium"),
+            }
+        )
 
     return {
         "grade": raw.get("overall_grade", "C"),
@@ -143,15 +145,19 @@ def adapt_regime(raw: dict) -> dict:
 
     regimes = []
     for i in range(len(labels)):
-        regimes.append({
-            "regime": labels[i] if i < len(labels) else "",
-            "n_trades": counts[i] if i < len(counts) else 0,
-            "total_pnl": round(avg_pnls[i] * counts[i], 2) if i < len(avg_pnls) and i < len(counts) else 0,
-            "avg_pnl": avg_pnls[i] if i < len(avg_pnls) else 0,
-            "win_rate": win_rates[i] if i < len(win_rates) else 0,
-            "sharpe": sharpes[i] if i < len(sharpes) else 0,
-            "max_drawdown": drawdowns[i] if i < len(drawdowns) else 0,
-        })
+        regimes.append(
+            {
+                "regime": labels[i] if i < len(labels) else "",
+                "n_trades": counts[i] if i < len(counts) else 0,
+                "total_pnl": round(avg_pnls[i] * counts[i], 2)
+                if i < len(avg_pnls) and i < len(counts)
+                else 0,
+                "avg_pnl": avg_pnls[i] if i < len(avg_pnls) else 0,
+                "win_rate": win_rates[i] if i < len(win_rates) else 0,
+                "sharpe": sharpes[i] if i < len(sharpes) else 0,
+                "max_drawdown": drawdowns[i] if i < len(drawdowns) else 0,
+            }
+        )
 
     return {
         "regimes": regimes,
@@ -203,6 +209,8 @@ def adapt_deflated_sharpe(raw: dict) -> dict:
         "survives_deflation": raw.get("is_significant", False),
         "is_significant": raw.get("is_significant", False),
         "interpretation": raw.get("interpretation", ""),
+        "periods_per_year": raw.get("periods_per_year", 1.0),
+        "annualization_basis": raw.get("annualization_basis", "unannualized_observation_pnl"),
     }
 
 
@@ -215,25 +223,28 @@ def adapt_walk_forward(raw: dict) -> dict:
     windows = raw.get("windows", [])
     folds = []
     for w in windows:
-        folds.append({
-            "window_id": w.get("window_id", 0),
-            "is_start": w.get("in_sample_start", ""),
-            "is_end": w.get("in_sample_end", ""),
-            "oos_start": w.get("out_sample_start", ""),
-            "oos_end": w.get("out_sample_end", ""),
-            "is_n": w.get("in_sample_n", 0),
-            "oos_n": w.get("out_sample_n", 0),
-            "is_profit": w.get("in_sample_net", 0),
-            "oos_profit": w.get("out_sample_net", 0),
-            "is_sharpe": w.get("in_sample_sharpe", 0),
-            "oos_sharpe": w.get("out_sample_sharpe", 0),
-            "is_return": w.get("in_sample_net", 0),
-            "oos_return": w.get("out_sample_net", 0),
-            "efficiency": w.get("efficiency", 0),
-            # Keep original fields too
-            **w,
-        })
+        folds.append(
+            {
+                "window_id": w.get("window_id", 0),
+                "is_start": w.get("in_sample_start", ""),
+                "is_end": w.get("in_sample_end", ""),
+                "oos_start": w.get("out_sample_start", ""),
+                "oos_end": w.get("out_sample_end", ""),
+                "is_n": w.get("in_sample_n", 0),
+                "oos_n": w.get("out_sample_n", 0),
+                "is_profit": w.get("in_sample_net", 0),
+                "oos_profit": w.get("out_sample_net", 0),
+                "is_sharpe": w.get("in_sample_sharpe", 0),
+                "oos_sharpe": w.get("out_sample_sharpe", 0),
+                "is_return": w.get("in_sample_net", 0),
+                "oos_return": w.get("out_sample_net", 0),
+                "efficiency": w.get("efficiency", 0),
+                # Keep original fields too
+                **w,
+            }
+        )
 
+    is_total = sum(float(window.get("in_sample_net", 0)) for window in windows)
     return {
         "n_windows": raw.get("n_windows", 0),
         "in_sample_pct": raw.get("in_sample_pct", 0.7),
@@ -246,11 +257,21 @@ def adapt_walk_forward(raw: dict) -> dict:
         "efficiency_std": raw.get("efficiency_std", 0),
         "aggregate_oos_net": raw.get("aggregate_oos_net", 0),
         "aggregate_oos_sharpe": raw.get("aggregate_oos_sharpe", 0),
-        "is_total_profit": raw.get("aggregate_oos_net", 0),  # v0 alias
+        "is_total_profit": is_total,
         "oos_total_profit": raw.get("aggregate_oos_net", 0),
         "pct_profitable_oos": raw.get("pct_profitable_oos", 0),
-        "interpretation": f"Walk-forward efficiency: {raw.get('walk_forward_efficiency', 0):.2%}. "
-                          f"{raw.get('pct_profitable_oos', 0):.0f}% of OOS windows profitable.",
+        "methodology": raw.get("methodology", "unknown"),
+        "parameters_frozen": raw.get("parameters_frozen", False),
+        "aggregation_method": raw.get("aggregation_method", "unknown"),
+        "purge_size": raw.get("purge_size", 0),
+        "embargo_size": raw.get("embargo_size", 0),
+        "oos_overlap_count": raw.get("oos_overlap_count", 0),
+        "interpretation": (
+            f"{raw.get('methodology', 'unknown')}: efficiency "
+            f"{raw.get('walk_forward_efficiency', 0):.2%}; "
+            f"{raw.get('pct_profitable_oos', 0):.0f}% of OOS windows profitable; "
+            f"parameters frozen={raw.get('parameters_frozen', False)}."
+        ),
     }
 
 
@@ -279,6 +300,8 @@ def adapt_block_bootstrap(raw: dict) -> dict:
         "net_profit_p95": raw.get("net_profit_p95", 0),
         "mdd_p50": raw.get("mdd_p50", 0),
         "mdd_p95": raw.get("mdd_p95", 0),
+        "sufficient_history": raw.get("sufficient_history", False),
+        "observation_basis": raw.get("observation_basis", "unknown"),
     }
 
 

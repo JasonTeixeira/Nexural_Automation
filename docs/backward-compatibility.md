@@ -7,7 +7,7 @@ The public MCP tool contract is versioned by `CAPABILITIES.version`.
 Current version:
 
 ```text
-2.1.0
+2.0.0
 ```
 
 Stable tools:

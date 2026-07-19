@@ -22,6 +22,7 @@ __all__ = [
     "parametric_monte_carlo",
     "block_bootstrap_monte_carlo",
     "rolling_walk_forward",
+    "walk_forward_validate",
     "deflated_sharpe_ratio",
     "regime_analysis",
     # Portfolio & benchmark
@@ -45,6 +46,7 @@ from .advanced_metrics import time_decay_analysis as time_decay_analysis
 from .advanced_robustness import parametric_monte_carlo as parametric_monte_carlo
 from .advanced_robustness import block_bootstrap_monte_carlo as block_bootstrap_monte_carlo
 from .advanced_robustness import rolling_walk_forward as rolling_walk_forward
+from .advanced_robustness import walk_forward_validate as walk_forward_validate
 from .advanced_robustness import deflated_sharpe_ratio as deflated_sharpe_ratio
 from .advanced_robustness import regime_analysis as regime_analysis
 from .portfolio import portfolio_analysis as portfolio_analysis

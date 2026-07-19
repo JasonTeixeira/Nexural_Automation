@@ -19,10 +19,14 @@ def _make_trades(profits: list[float], n_days: int = 5) -> pd.DataFrame:
     """Helper to create a trades DataFrame from a list of profits."""
     n = len(profits)
     base = pd.Timestamp("2025-01-01 09:30:00")
+    timestamps = [
+        base + pd.offsets.BDay(int(index * n_days / max(n, 1))) + pd.Timedelta(minutes=index)
+        for index in range(n)
+    ]
     return pd.DataFrame({
         "profit": profits,
-        "entry_time": [base + pd.Timedelta(hours=i) for i in range(n)],
-        "exit_time": [base + pd.Timedelta(hours=i, minutes=15) for i in range(n)],
+        "entry_time": timestamps,
+        "exit_time": [timestamp + pd.Timedelta(minutes=15) for timestamp in timestamps],
         "instrument": "NQ",
         "strategy": "Test",
     })

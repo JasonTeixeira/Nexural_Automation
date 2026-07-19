@@ -1,0 +1,16 @@
+id: agent.prompt_injection
+track: agent-automation-engineer
+title: Contain Hostile Instructions
+updated_at: "2026-07-19"
+estimated_minutes: 40
+objectives: [Treat retrieved text as data, Prevent authority escalation]
+prerequisites: [agent.permissions]
+tags: [agent, security]
+translations:
+  en: {title: Contain Hostile Instructions, summary: Resist instructions embedded in untrusted content.}
+  es: {title: Contén Instrucciones Hostiles, summary: Resiste instrucciones incrustadas en contenido no confiable.}
+hints: [Tag external content as untrusted., Keep tool policy outside retrieved context., Never expand authority from document text.]
+rubric:
+  - {id: tagged, metric: defense.untrusted_content_tagged, operator: equals, expected: true, weight: 30, message: Tag untrusted content.}
+  - {id: isolated, metric: defense.policy_isolated, operator: equals, expected: true, weight: 35, message: Isolate tool policy.}
+  - {id: no_escalation, metric: defense.content_can_expand_authority, operator: equals, expected: false, weight: 35, visibility: hidden}

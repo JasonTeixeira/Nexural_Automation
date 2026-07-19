@@ -1,14 +1,16 @@
 import type { View } from "../App";
 import type { UploadResponse } from "../lib/api";
+import { GraduationCap } from "lucide-react";
 
 interface Props {
   view: View;
   onNavigate: (v: View) => void;
-  session: UploadResponse;
+  session: UploadResponse | null;
   onReset: () => void;
 }
 
 const NAV_ITEMS: { id: View; label: string; icon: string; section?: string }[] = [
+  { id: "academy", label: "Automation Academy", icon: "", section: "Learn" },
   { id: "overview", label: "Overview", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6", section: "Analysis" },
   { id: "improvements", label: "Improvements", icon: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" },
   { id: "advanced", label: "Advanced Metrics", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
@@ -37,8 +39,8 @@ export function Sidebar({ view, onNavigate, session, onReset }: Props) {
       {/* Brand */}
       <div className="px-6 py-6 border-b border-white/[0.04]">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <span className="text-white font-bold text-sm">N</span>
+          <div className="nexural-mark">
+            <span>N</span>
           </div>
           <div>
             <div className="text-sm font-semibold text-white tracking-tight">Nexural Research</div>
@@ -66,8 +68,9 @@ export function Sidebar({ view, onNavigate, session, onReset }: Props) {
                 aria-current={view === item.id ? "page" : undefined}
                 className={`sidebar-item w-full text-left ${view === item.id ? "active" : ""}`}
               >
-                <NavIcon d={item.icon} />
+                {item.id === "academy" ? <GraduationCap className="h-[18px] w-[18px] shrink-0" /> : <NavIcon d={item.icon} />}
                 <span>{item.label}</span>
+                {item.id === "academy" && <span className="ml-auto badge-amber">LAB</span>}
                 {item.id === "ai" && (
                   <span className="ml-auto badge-blue">AI</span>
                 )}
@@ -80,10 +83,10 @@ export function Sidebar({ view, onNavigate, session, onReset }: Props) {
       {/* Footer */}
       <div className="p-4 border-t border-white/[0.04]">
         <button onClick={onReset} className="btn-secondary w-full text-xs py-2">
-          New Analysis
+          {session ? "New Analysis" : "Import Data"}
         </button>
         <div className="text-center mt-3 text-[10px] text-gray-600">
-          v1.0.0 &middot; Open Source
+          v2.0.0 &middot; Open Source
         </div>
       </div>
     </nav>

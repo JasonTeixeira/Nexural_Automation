@@ -1,5 +1,8 @@
 # Nexural Research — Frontend Blueprint for v0
 
+> Archived reference only. The supported production dashboard lives in
+> `frontend/`; `frontend-v0/` is not built, tested, served, or deployed.
+
 > **Purpose:** Complete specification for rebuilding the frontend as a world-class, institutional-grade strategy analysis dashboard. This document contains everything needed — API contracts, data shapes, UX requirements, and visual design direction.
 
 ---

@@ -6,8 +6,6 @@ import io
 
 import pandas as pd
 from fastapi import APIRouter, Depends, Query
-
-from nexural_research.api.auth import require_auth
 from fastapi.responses import HTMLResponse, Response, StreamingResponse
 
 from nexural_research.analyze.advanced_metrics import comprehensive_analysis
@@ -16,7 +14,8 @@ from nexural_research.analyze.equity import equity_curve_from_trades
 from nexural_research.analyze.improvements import generate_improvement_report
 from nexural_research.analyze.metrics import metrics_from_trades
 from nexural_research.analyze.portfolio import benchmark_comparison
-from nexural_research.api.sessions import get_trades, safe_serialize, sessions
+from nexural_research.api.auth import require_auth
+from nexural_research.api.sessions import get_session, get_trades, safe_serialize
 from nexural_research.report.html import build_trades_report_html
 
 router = APIRouter(tags=["export"], dependencies=[Depends(require_auth)])
@@ -60,7 +59,9 @@ def export_csv(session_id: str = Query(default="default"), filtered: bool = Quer
             ts_col = "exit_time" if "exit_time" in df.columns else "entry_time"
             if ts_col in df.columns:
                 ts = pd.to_datetime(df[ts_col], errors="coerce")
-                mask = ~(ts.dt.hour.isin(tf.hours_to_remove) | ts.dt.day_name().isin(tf.days_to_remove))
+                mask = ~(
+                    ts.dt.hour.isin(tf.hours_to_remove) | ts.dt.day_name().isin(tf.days_to_remove)
+                )
                 df = df[mask].copy()
 
     buf = io.StringIO()
@@ -91,7 +92,12 @@ def export_comparison(session_a: str = Query(...), session_b: str = Query(...)):
     def delta(a: float, b: float) -> dict:
         diff = b - a
         pct = (diff / abs(a) * 100) if abs(a) > 1e-10 else 0.0
-        return {"a": round(a, 4), "b": round(b, 4), "delta": round(diff, 4), "pct_change": round(pct, 2)}
+        return {
+            "a": round(a, 4),
+            "b": round(b, 4),
+            "delta": round(diff, 4),
+            "pct_change": round(pct, 2),
+        }
 
     return {
         "session_a": session_a,
@@ -113,26 +119,28 @@ def export_comparison(session_a: str = Query(...), session_b: str = Query(...)):
 
 
 @router.get("/compare/matrix")
-def compare_matrix(session_ids: str = Query(..., description="Comma-separated session IDs to compare")):
+def compare_matrix(
+    session_ids: str = Query(..., description="Comma-separated session IDs to compare"),
+):
     """Compare 2-10 strategies side-by-side with ranked composite scoring."""
     from nexural_research.analyze.comparison import compare_strategies
 
     ids = [s.strip() for s in session_ids.split(",") if s.strip()]
     if len(ids) < 2:
         from fastapi import HTTPException
+
         raise HTTPException(400, "Need at least 2 session IDs to compare (comma-separated)")
     if len(ids) > 10:
         from fastapi import HTTPException
+
         raise HTTPException(400, "Maximum 10 strategies for comparison")
 
     strategy_data = []
     for sid in ids:
-        if sid not in sessions:
-            from fastapi import HTTPException
-            raise HTTPException(404, f"Session not found: {sid}")
-        s = sessions[sid]
+        s = get_session(sid)
         if s["kind"] != "trades":
             from fastapi import HTTPException
+
             raise HTTPException(400, f"Session {sid} is not trades data")
         strategy_data.append((sid, s.get("filename", sid), s["df"]))
 
@@ -145,6 +153,7 @@ def export_excel(session_id: str = Query(default="default")):
     """Export multi-sheet Excel workbook with full analysis."""
     df = get_trades(session_id)
     from nexural_research.export.excel import generate_excel_report
+
     content = generate_excel_report(df)
     return Response(
         content=content,
@@ -154,16 +163,23 @@ def export_excel(session_id: str = Query(default="default")):
 
 
 @router.get("/export/pdf-report", response_class=HTMLResponse)
-def export_pdf_report(session_id: str = Query(default="default"), title: str = Query(default="Strategy Analysis Report")):
-    """Generate professional PDF-ready HTML report with executive summary, metrics, recommendations, and stress tests."""
+def export_pdf_report(
+    session_id: str = Query(default="default"),
+    title: str = Query(default="Strategy Analysis Report"),
+):
+    """Generate a PDF-ready HTML report with metrics, recommendations, and stress tests."""
     df = get_trades(session_id)
     from nexural_research.export.pdf import generate_pdf_report_html
+
     html = generate_pdf_report_html(df, title=title)
     return HTMLResponse(content=html)
 
 
 @router.get("/report/html", response_class=HTMLResponse)
-def generate_html_report(session_id: str = Query(default="default"), title: str = Query(default="Nexural Research Report")):
+def generate_html_report(
+    session_id: str = Query(default="default"),
+    title: str = Query(default="Nexural Research Report"),
+):
     """Generate a full HTML report."""
     df = get_trades(session_id)
     return HTMLResponse(content=build_trades_report_html(df, title=title))

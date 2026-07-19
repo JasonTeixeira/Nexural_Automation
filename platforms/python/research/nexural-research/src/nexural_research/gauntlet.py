@@ -10,9 +10,11 @@ import pandas as pd
 from scipy import stats as scipy_stats
 
 from nexural_research.analyze.advanced_robustness import (
+    RollingWalkForwardResult,
     deflated_sharpe_ratio,
     rolling_walk_forward,
 )
+from nexural_research.analyze.annualization import annualized_sharpe
 from nexural_research.cost_model import CostModel
 
 
@@ -28,15 +30,15 @@ class GauntletReport:
 
 
 def _pnl(df: pd.DataFrame) -> np.ndarray:
-    return pd.to_numeric(df["profit"], errors="coerce").fillna(0.0).to_numpy(dtype=float)
+    return np.asarray(
+        pd.to_numeric(df["profit"], errors="coerce").fillna(0.0).to_numpy(dtype=float),
+        dtype=float,
+    )
 
 
 def _sharpe(values: np.ndarray) -> float:
-    values = np.asarray(values, dtype=float)
-    if len(values) < 2:
-        return 0.0
-    std = float(values.std(ddof=1))
-    return float(values.mean() / std * np.sqrt(252)) if std > 0 else 0.0
+    """Unannualized observation Sharpe for timestamp-free bootstrap samples."""
+    return annualized_sharpe(np.asarray(values, dtype=float), periods_per_year=1.0)
 
 
 def _profit_factor(values: np.ndarray) -> float:
@@ -87,6 +89,7 @@ def run_trade_gauntlet(
     n_trials: int = 100,
     seed: int = 42,
     cost_stress_profile: str = "elevated",
+    fitted_walk_forward: RollingWalkForwardResult | None = None,
 ) -> GauntletReport:
     """Run a 10-check gauntlet on normalized trade PnL."""
     values = _pnl(df_trades)
@@ -124,7 +127,7 @@ def run_trade_gauntlet(
         bool(dsr.is_significant),
         float(dsr.p_value),
         "< 0.05 p-value",
-        dsr.interpretation,
+        f"{dsr.interpretation} Basis: {dsr.annualization_basis}.",
     )
 
     pf = _profit_factor(values)
@@ -136,14 +139,42 @@ def run_trade_gauntlet(
         "Gross profit must materially exceed gross loss.",
     )
 
-    wf = rolling_walk_forward(df_trades, n_windows=5)
-    add(
-        "walk_forward_efficiency",
-        wf.walk_forward_efficiency >= 0.50 and wf.aggregate_oos_net > 0,
-        wf.walk_forward_efficiency,
-        ">= 0.50 and OOS net > 0",
-        f"OOS net={wf.aggregate_oos_net}, OOS Sharpe={wf.aggregate_oos_sharpe}",
-    )
+    temporal_stability = rolling_walk_forward(df_trades, n_windows=5)
+    if fitted_walk_forward is None:
+        add(
+            "walk_forward_validation",
+            False,
+            "not_evaluated",
+            "fit on IS, freeze parameters, evaluate disjoint OOS folds",
+            (
+                "Trade exports cannot prove fitted walk-forward validity. The descriptive "
+                f"temporal stability result ({temporal_stability.walk_forward_efficiency:.4f}) "
+                "is not a promotion gate. Supply a trusted fit/evaluate adapter."
+            ),
+        )
+    else:
+        valid_method = (
+            fitted_walk_forward.parameters_frozen
+            and fitted_walk_forward.methodology == "fit_freeze_evaluate"
+            and fitted_walk_forward.oos_overlap_count == 0
+        )
+        add(
+            "walk_forward_validation",
+            bool(
+                valid_method
+                and fitted_walk_forward.walk_forward_efficiency >= 0.50
+                and fitted_walk_forward.aggregate_oos_net > 0
+            ),
+            fitted_walk_forward.walk_forward_efficiency,
+            ">= 0.50, OOS net > 0, frozen parameters, zero OOS overlap",
+            (
+                f"{fitted_walk_forward.methodology}; frozen="
+                f"{fitted_walk_forward.parameters_frozen}; OOS overlap="
+                f"{fitted_walk_forward.oos_overlap_count}; purge="
+                f"{fitted_walk_forward.purge_size}; embargo="
+                f"{fitted_walk_forward.embargo_size}."
+            ),
+        )
 
     lower = _bootstrap_sharpe_lower(values, seed=seed)
     add(
@@ -216,7 +247,7 @@ def run_trade_gauntlet(
     hard_failures = {item["name"] for item in checks if not item["passed"]}
     if n_failed == 0:
         decision = "PROMOTE_TO_PAPER"
-    elif hard_failures.intersection({"deflated_sharpe", "walk_forward_efficiency", "cost_stress"}):
+    elif hard_failures.intersection({"deflated_sharpe", "walk_forward_validation", "cost_stress"}):
         decision = "REJECT"
     elif score >= 70:
         decision = "TUNE"

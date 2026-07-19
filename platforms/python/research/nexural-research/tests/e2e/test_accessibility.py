@@ -1,138 +1,77 @@
-"""Accessibility audit — axe-core scan on every dashboard page.
+"""Responsive and keyboard-semantic browser checks for the canonical Academy UI.
 
-Run with both servers active:
-  pytest tests/e2e/test_accessibility.py -v
+The DesignLab visual gate runs full Axe analysis (including color contrast) at these same widths.
+These repo-local tests protect navigation semantics and overflow without a CDN dependency.
 """
 
+from __future__ import annotations
+
 import os
-import time
-import json
+
 import pytest
 
 try:
-    from playwright.sync_api import sync_playwright
+    from playwright.sync_api import expect, sync_playwright
+
     HAS_PLAYWRIGHT = True
-except ImportError:
+except ImportError:  # pragma: no cover - optional browser dependency
     HAS_PLAYWRIGHT = False
 
-pytestmark = pytest.mark.skipif(not HAS_PLAYWRIGHT, reason="Playwright not installed")
-
-FRONTEND_URL = os.environ.get("E2E_FRONTEND_URL", "http://localhost:3000")
-
-PAGES = [
-    ("/dashboard", "Overview"),
-    ("/dashboard/advanced", "Advanced Metrics"),
-    ("/dashboard/distribution", "Distribution"),
-    ("/dashboard/desk-analytics", "Desk Analytics"),
-    ("/dashboard/improvements", "Improvements"),
-    ("/dashboard/monte-carlo", "Monte Carlo"),
-    ("/dashboard/walk-forward", "Walk-Forward"),
-    ("/dashboard/overfitting", "Overfitting"),
-    ("/dashboard/regime", "Regime"),
-    ("/dashboard/stress-testing", "Stress Testing"),
-    ("/dashboard/trades", "Trade Log"),
-    ("/dashboard/heatmap", "Heatmap"),
-    ("/dashboard/equity", "Equity Curve"),
-    ("/dashboard/rolling", "Rolling Metrics"),
-    ("/dashboard/compare", "Compare"),
-    ("/dashboard/ai-analyst", "AI Analyst"),
-    ("/dashboard/export", "Export"),
-    ("/dashboard/settings", "Settings"),
-]
+pytestmark = pytest.mark.skipif(not HAS_PLAYWRIGHT, reason="Playwright is not installed")
+FRONTEND_URL = os.environ.get("E2E_FRONTEND_URL", "http://127.0.0.1:8011")
 
 
-@pytest.fixture(scope="module")
-def browser_context():
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        context = browser.new_context(viewport={"width": 1440, "height": 900})
-
-        # Set session in localStorage
+@pytest.mark.parametrize("width,height", [(375, 900), (768, 1024), (1024, 900), (1440, 1100)])
+def test_responsive_shell_has_no_horizontal_overflow(width: int, height: int) -> None:
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        context = browser.new_context(viewport={"width": width, "height": height})
         page = context.new_page()
-        page.goto(FRONTEND_URL, timeout=15000)
-        page.wait_for_load_state("networkidle", timeout=10000)
-        page.evaluate("""() => {
-            localStorage.setItem('nexural_session_id', 'demo');
-            localStorage.setItem('nexural_current_session', JSON.stringify({
-                sessionId: 'demo', filename: 'demo_trades.csv', kind: 'trades', nRows: 214
-            }));
-        }""")
-        page.close()
-
-        yield context
+        page.goto(FRONTEND_URL, wait_until="networkidle")
+        expect(page.get_by_role("heading", name="Research flight deck")).to_be_visible()
+        dimensions = page.evaluate(
+            "() => ({ viewport: document.documentElement.clientWidth, "
+            "content: document.documentElement.scrollWidth })"
+        )
+        assert dimensions["content"] <= dimensions["viewport"]
         context.close()
         browser.close()
 
 
-def run_axe(page) -> dict:
-    """Inject axe-core and run accessibility scan."""
-    # Inject axe-core from CDN
-    page.add_script_tag(url="https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.10.2/axe.min.js")
-    time.sleep(1)
+def test_lab_tabs_use_roving_keyboard_focus() -> None:
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        context = browser.new_context(viewport={"width": 375, "height": 900})
+        page = context.new_page()
+        page.goto(FRONTEND_URL, wait_until="networkidle")
+        page.get_by_role("button", name="Seal the Lookahead Leak").click()
 
-    # Run axe
-    results = page.evaluate("""async () => {
-        if (typeof axe === 'undefined') return { violations: [], error: 'axe not loaded' };
-        try {
-            const results = await axe.run();
-            return {
-                violations: results.violations.map(v => ({
-                    id: v.id,
-                    impact: v.impact,
-                    description: v.description,
-                    nodes: v.nodes.length,
-                    help: v.help,
-                })),
-                passes: results.passes.length,
-                incomplete: results.incomplete.length,
-            };
-        } catch(e) {
-            return { violations: [], error: e.message };
-        }
-    }""")
-    return results
+        brief = page.locator('[role="tab"]').filter(has_text="brief")
+        expect(brief).to_be_visible()
+        expect(brief).to_have_attribute("aria-selected", "true")
+        brief.focus()
+        brief.press("ArrowRight")
+        workbench = page.locator('[role="tab"]').filter(has_text="workbench")
+        expect(workbench).to_have_attribute("aria-selected", "true")
+        expect(workbench).to_be_focused()
+        expect(page.get_by_role("tabpanel")).to_be_visible()
+
+        context.close()
+        browser.close()
 
 
-class TestAccessibility:
-    @pytest.mark.parametrize("path,name", PAGES)
-    def test_page_accessibility(self, browser_context, path, name):
-        """Run axe-core accessibility scan on each page."""
-        page = browser_context.new_page()
-        page.goto(f"{FRONTEND_URL}{path}", timeout=15000)
-        page.wait_for_load_state("networkidle", timeout=10000)
-        time.sleep(2)
-
-        results = run_axe(page)
-
-        # Log all violations for review
-        violations = results.get("violations", [])
-        if violations:
-            for v in violations:
-                print(f"  [{v['impact']}] {v['id']}: {v['description']} ({v['nodes']} nodes)")
-
-        # Count by severity
-        critical = [v for v in violations if v["impact"] == "critical"]
-        serious = [v for v in violations if v["impact"] == "serious"]
-
-        # Known v0 issues we accept (form labels in generated UI components)
-        known_ids = {"label", "color-contrast", "heading-order", "region"}
-        unknown_critical = [v for v in critical if v["id"] not in known_ids]
-
-        # Fail only on unexpected critical violations
-        assert len(unknown_critical) == 0, f"{name} has {len(unknown_critical)} unexpected critical a11y violations: {[v['id'] for v in unknown_critical]}"
-
-        page.close()
-
-    def test_landing_page_accessibility(self, browser_context):
-        """Test the landing/upload page."""
-        page = browser_context.new_page()
-        page.goto(FRONTEND_URL, timeout=15000)
-        page.wait_for_load_state("networkidle", timeout=10000)
-        time.sleep(2)
-
-        results = run_axe(page)
-        violations = results.get("violations", [])
-        known_ids = {"label", "color-contrast", "heading-order", "region"}
-        unknown_critical = [v for v in violations if v["impact"] == "critical" and v["id"] not in known_ids]
-        assert len(unknown_critical) == 0, f"Landing page has unexpected critical a11y violations: {[v['id'] for v in unknown_critical]}"
-        page.close()
+def test_reduced_motion_preference_is_respected() -> None:
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        context = browser.new_context(
+            viewport={"width": 1024, "height": 900}, reduced_motion="reduce"
+        )
+        page = context.new_page()
+        page.goto(FRONTEND_URL, wait_until="networkidle")
+        durations = page.evaluate(
+            "() => [...document.querySelectorAll('*')].map((node) => "
+            "getComputedStyle(node).animationDuration).filter(Boolean)"
+        )
+        assert all(value in {"0s", "0.001s", "0.01ms", "1e-05s"} for value in durations)
+        context.close()
+        browser.close()

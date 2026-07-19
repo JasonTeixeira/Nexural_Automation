@@ -1,0 +1,16 @@
+id: strategy.regime
+track: strategy-builder
+title: Make Regime Rules Causal
+updated_at: "2026-07-19"
+estimated_minutes: 40
+objectives: [Use causal regime inputs, Specify unknown-regime behavior]
+prerequisites: [strategy.idempotency]
+tags: [strategy, regime]
+translations:
+  en: {title: Make Regime Rules Causal, summary: Constrain regime selection to available information.}
+  es: {title: Haz Causales las Reglas de Régimen, summary: Limita la selección del régimen a la información disponible.}
+hints: [Timestamp every regime input., Lag the classification before acting., Unknown regimes should reduce authority.]
+rubric:
+  - {id: timestamped, metric: regime.inputs_timestamped, operator: equals, expected: true, weight: 30, message: Timestamp each regime input.}
+  - {id: causal, metric: regime.signal_lag, operator: gte, expected: 1, weight: 35, message: Lag the regime signal.}
+  - {id: unknown, metric: regime.unknown_action, operator: equals, expected: no_action, weight: 35, visibility: hidden}
