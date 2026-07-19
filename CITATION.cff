@@ -6,7 +6,6 @@ authors:
   - given-names: Jason
     family-names: Teixeira
     affiliation: Sage Ideas LLC
-    orcid: "https://orcid.org/0000-0000-0000-0000"
 url: "https://github.com/JasonTeixeira/Nexural_Automation"
 repository-code: "https://github.com/JasonTeixeira/Nexural_Automation"
 license: Apache-2.0
@@ -21,10 +20,10 @@ keywords:
   - python
   - futures
 abstract: >
-  Nexural Automation is a local-first automation lab for futures
-  strategy research. It combines an MCP server, Strategy & Bridge SDKs,
-  a validation gauntlet with 10 promotion gates, a futures cost model,
-  and multi-platform support (NinjaTrader 8, TradingView, Python) into
-  a single, paper-first, agent-callable workflow.
-version: 0.1.0
-date-released: "2026-05-22"
+  Nexural Automation is a safety-first engineering lab for learning,
+  building, validating, and operating NinjaTrader 8 automation. It combines
+  an executable Academy, a simulation-only execution and risk kernel,
+  deterministic fault testing, a quantitative research engine, and
+  evidence-gated release automation.
+version: 2.0.0
+date-released: "2026-07-19"

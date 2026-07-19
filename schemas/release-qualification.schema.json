@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/JasonTeixeira/Nexural_Automation/schemas/release-qualification.schema.json",
+  "title": "Reproducible signed release evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "tag", "tested_commit", "release_commit", "workflow_run", "reproducible", "artifacts", "sbom", "sigstore", "generated_at"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "tag": {"type": "string", "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$"},
+    "tested_commit": {"type": "string", "pattern": "^[a-f0-9]{40}$"},
+    "release_commit": {"type": "string", "pattern": "^[a-f0-9]{40}$"},
+    "workflow_run": {"type": "string", "format": "uri"},
+    "reproducible": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["independent_builds", "matching"],
+      "properties": {
+        "independent_builds": {"type": "integer", "minimum": 2},
+        "matching": {"const": true}
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "sha256"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1, "maxLength": 200},
+          "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+        }
+      }
+    },
+    "sbom": {"type": "object", "additionalProperties": false, "required": ["format", "sha256"], "properties": {"format": {"const": "SPDX-2.3"}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}},
+    "sigstore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signed", "verified", "oidc_issuer", "certificate_identity", "bundles"],
+      "properties": {
+        "signed": {"const": true},
+        "verified": {"const": true},
+        "oidc_issuer": {"const": "https://token.actions.githubusercontent.com"},
+        "certificate_identity": {"type": "string", "pattern": "^https://github.com/JasonTeixeira/Nexural_Automation/.github/workflows/release\\.yml@refs/(?:heads/main|tags/v[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?)$"},
+        "bundles": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["artifact", "artifact_sha256", "bundle", "bundle_sha256"],
+            "properties": {
+              "artifact": {"type": "string", "minLength": 1, "maxLength": 300},
+              "artifact_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+              "bundle": {"type": "string", "pattern": "\\.sigstore\\.json$", "maxLength": 320},
+              "bundle_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+            }
+          }
+        }
+      }
+    },
+    "generated_at": {"type": "string", "format": "date-time"}
+  }
+}

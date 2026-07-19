@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import os
+import secrets
 from contextvars import ContextVar
 from dataclasses import dataclass
 
@@ -25,13 +26,22 @@ _AUTH_ENABLED = os.environ.get("NEXURAL_AUTH_ENABLED", "false").lower() in {
     "yes",
 }
 _API_KEYS_RAW = os.environ.get("NEXURAL_API_KEYS", "")
+_KEY_HASH_PEPPER = os.environ.get(
+    "NEXURAL_API_KEY_HASH_PEPPER", ""
+).encode() or secrets.token_bytes(32)
 _VALID_KEY_HASHES: set[str] = set()
+
+
+def _hash_key(key: str) -> str:
+    """Create a keyed, comparison-safe identifier without retaining the API key."""
+    return hmac.new(_KEY_HASH_PEPPER, key.encode(), hashlib.sha256).hexdigest()
+
 
 if _API_KEYS_RAW:
     for key in _API_KEYS_RAW.split(","):
         key = key.strip()
         if key:
-            _VALID_KEY_HASHES.add(hashlib.sha256(key.encode()).hexdigest())
+            _VALID_KEY_HASHES.add(_hash_key(key))
 
 
 @dataclass
@@ -45,10 +55,6 @@ class AuthContext:
 
 _api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
 _request_auth: ContextVar[AuthContext | None] = ContextVar("nexural_request_auth", default=None)
-
-
-def _hash_key(key: str) -> str:
-    return hashlib.sha256(key.encode()).hexdigest()
 
 
 def _extract_key(header_val: str | None, legacy_query_val: str | None = None) -> str | None:

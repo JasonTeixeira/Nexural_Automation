@@ -1,0 +1,92 @@
+name: Promote qualified release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact package version on protected main, without the v prefix
+        required: true
+        type: string
+      tested_commit:
+        description: Frozen release-candidate SHA used by desktop, learner and security evidence
+        required: true
+        type: string
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  promote:
+    name: Pre-release world-class gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.11"
+
+      - name: Verify requested version and immutable target
+        id: release
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+          TESTED_COMMIT: ${{ inputs.tested_commit }}
+        run: |
+          if [[ ! "$REQUESTED_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version: $REQUESTED_VERSION" >&2
+            exit 1
+          fi
+          package_version=$(python -c "import tomllib; print(tomllib.load(open('platforms/python/research/nexural-research/pyproject.toml','rb'))['project']['version'])")
+          test "$package_version" = "$REQUESTED_VERSION"
+          if [[ ! "$TESTED_COMMIT" =~ ^[a-f0-9]{40}$ ]]; then
+            echo "Invalid tested commit: $TESTED_COMMIT" >&2
+            exit 1
+          fi
+          python scripts/repo-tools/verify_qualification_delta.py \
+            --tested-commit "$TESTED_COMMIT" \
+            --release-commit "$GITHUB_SHA"
+          tag="v${REQUESTED_VERSION}"
+          if git rev-parse "$tag" >/dev/null 2>&1; then
+            echo "Tag already exists: $tag" >&2
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "tested_commit=$TESTED_COMMIT" >> "$GITHUB_OUTPUT"
+
+      - name: Download automation evidence for this exact commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TESTED_COMMIT: ${{ steps.release.outputs.tested_commit }}
+        run: |
+          run_id=$(gh run list \
+            --workflow world-class-qualification.yml \
+            --commit "$TESTED_COMMIT" \
+            --status success \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')
+          test -n "$run_id"
+          gh run download "$run_id" --name world-class-qualification-evidence --dir artifacts/qualification
+          mkdir -p qualification/evidence/automation
+          cp artifacts/qualification/automation.json qualification/evidence/automation/ci.json
+
+      - name: Require every pre-release human and automated gate
+        env:
+          TESTED_COMMIT: ${{ steps.release.outputs.tested_commit }}
+        run: python scripts/repo-tools/verify_world_class_gate.py --commit "$TESTED_COMMIT" --stage pre-release --require-complete --format markdown
+
+      - name: Create the immutable release tag and dispatch signed build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          TESTED_COMMIT: ${{ steps.release.outputs.tested_commit }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$RELEASE_TAG" -m "Qualified release $RELEASE_TAG"
+          git push origin "$RELEASE_TAG"
+          gh workflow run release.yml --ref "$RELEASE_TAG" -f tag="$RELEASE_TAG" -f tested_commit="$TESTED_COMMIT"

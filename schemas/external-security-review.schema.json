@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/JasonTeixeira/Nexural_Automation/schemas/external-security-review.schema.json",
+  "title": "Independent security review attestation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "reviewer_id", "independent", "reviewed_commit", "scope", "report_sha256", "unresolved", "completed_at"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "reviewer_id": {"type": "string", "pattern": "^reviewer-[a-f0-9]{12}$"},
+    "independent": {"const": true},
+    "reviewed_commit": {"type": "string", "pattern": "^[a-f0-9]{40}$"},
+    "scope": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": {"enum": ["filesystem-api", "academy-execution", "nt8-bridge", "execution-risk-kernel", "ci-cd", "supply-chain"]}
+    },
+    "report_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "unresolved": {"type": "object", "additionalProperties": false, "required": ["critical", "high"], "properties": {"critical": {"const": 0}, "high": {"const": 0}}},
+    "completed_at": {"type": "string", "format": "date-time"}
+  }
+}

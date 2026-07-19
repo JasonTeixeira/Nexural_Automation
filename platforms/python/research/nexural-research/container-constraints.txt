@@ -1,0 +1,3 @@
+# Latest DuckDB release with a CPython 3.11 musllinux wheel.
+# Keep this explicit so the zero-high/critical Alpine image never compiles DuckDB in CI.
+duckdb==1.3.2

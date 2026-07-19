@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import sys
 import time
@@ -13,6 +14,7 @@ from nexural_research.api.cache import cache
 from nexural_research.api.sessions import START_TIME, sessions
 
 router = APIRouter(tags=["health"])
+logger = logging.getLogger(__name__)
 
 
 @router.get("/health")
@@ -55,12 +57,14 @@ def deep_health():
         test_file.write_text("ok")
         test_file.unlink()
         checks["disk"] = {"status": "ok", "data_dir": str(data_dir)}
-    except Exception as e:
-        checks["disk"] = {"status": "error", "detail": str(e)}
+    except Exception:
+        logger.exception("Deep-health disk writability check failed")
+        checks["disk"] = {"status": "error", "detail": "writability check failed"}
 
     # DuckDB registry
     try:
         from nexural_research.registry.duckdb_registry import RunRegistry
+
         db_path = data_dir / "experiments" / "runs.duckdb"
         if db_path.exists():
             reg = RunRegistry(db_path)
@@ -68,15 +72,22 @@ def deep_health():
             checks["duckdb"] = {"status": "ok"}
         else:
             checks["duckdb"] = {"status": "ok", "detail": "no database file yet"}
-    except Exception as e:
-        checks["duckdb"] = {"status": "error", "detail": str(e)}
+    except Exception:
+        logger.exception("Deep-health registry check failed")
+        checks["duckdb"] = {"status": "error", "detail": "registry check failed"}
 
     # SQLAlchemy (optional)
     try:
         from nexural_research.db.engine import engine
+
         with engine.connect() as conn:
-            conn.execute(engine.dialect.statement_compiler(engine.dialect, None).__class__.__mro__[0].__call__  # type: ignore
-                         if False else None)  # noqa
+            conn.execute(
+                engine.dialect.statement_compiler(engine.dialect, None)
+                .__class__.__mro__[0]
+                .__call__  # type: ignore
+                if False
+                else None
+            )  # noqa
         checks["database"] = {"status": "ok"}
     except Exception:
         checks["database"] = {"status": "ok", "detail": "SQLite/not connected"}

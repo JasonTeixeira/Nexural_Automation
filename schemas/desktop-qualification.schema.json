@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/JasonTeixeira/Nexural_Automation/schemas/desktop-qualification.schema.json",
+  "title": "Independent NinjaTrader desktop qualification evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "tester_id", "machine_id", "tested_commit", "archive_sha256", "environment", "desktop", "account_mode", "scenarios", "recovery", "attestation"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "tester_id": {"type": "string", "pattern": "^tester-[a-f0-9]{12}$"},
+    "machine_id": {"type": "string", "pattern": "^win-[a-f0-9]{12}$"},
+    "tested_commit": {"type": "string", "pattern": "^[a-f0-9]{40}$"},
+    "archive_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["windows_version", "nt8_version", "provider_profile"],
+      "properties": {
+        "windows_version": {"type": "string", "minLength": 3, "maxLength": 80},
+        "nt8_version": {"type": "string", "pattern": "^8\\.1\\.[0-9]+\\.[0-9]+$"},
+        "provider_profile": {"type": "string", "pattern": "^provider-[a-f0-9]{12}$"}
+      }
+    },
+    "desktop": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["archive_imported", "global_compile_passed", "preexisting_errors", "evidence_sha256"],
+      "properties": {
+        "archive_imported": {"const": true},
+        "global_compile_passed": {"const": true},
+        "preexisting_errors": {"const": 0},
+        "evidence_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "account_mode": {"enum": ["Playback101", "Sim101"]},
+    "scenarios": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "result", "evidence_sha256"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+          "result": {"const": "pass"},
+          "evidence_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+        }
+      }
+    },
+    "recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["disconnect_detected_seconds", "restart_reconciled_seconds", "evidence_sha256"],
+      "properties": {
+        "disconnect_detected_seconds": {"type": "number", "minimum": 0, "maximum": 5},
+        "restart_reconciled_seconds": {"type": "number", "minimum": 0, "maximum": 30},
+        "evidence_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "attestation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["independent", "paper_only", "submitted_at"],
+      "properties": {
+        "independent": {"const": true},
+        "paper_only": {"const": true},
+        "submitted_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  }
+}

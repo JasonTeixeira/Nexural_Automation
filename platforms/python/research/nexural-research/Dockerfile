@@ -7,23 +7,26 @@ COPY frontend/ ./
 RUN npm run build
 
 # --- Stage 2: Python backend + serve static frontend ---
-FROM python:3.11-slim@sha256:db3ff2e1800a8581e2c48a27c3995339d47bdf046da21c7627accd3d51053a93 AS production
+FROM python:3.11-alpine@sha256:25976e9d34a0fab1f278cae931f34c8303d97bf0c0d7f85b6b4dcf641d7702a4 AS production
 WORKDIR /app
 
 # Python package metadata and source
-COPY README.md pyproject.toml requirements.txt ./
+COPY README.md pyproject.toml requirements.txt container-constraints.txt ./
 COPY src/ ./src/
 RUN test -f src/nexural_research/academy/content/curriculum.yaml
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel jaraco.context
-RUN pip install --no-cache-dir .
+RUN apk add --no-cache libgomp openblas \
+    && apk add --no-cache --virtual .build-deps build-base gfortran openblas-dev \
+    && pip install --no-cache-dir --upgrade pip setuptools wheel jaraco.context \
+    && pip install --no-cache-dir --constraint container-constraints.txt . \
+    && apk del .build-deps
 RUN python -c "from nexural_research.academy.catalog import CurriculumCatalog, default_academy_root; catalog = CurriculumCatalog.load(default_academy_root()); assert catalog.lessons and catalog.capstones"
 
 # Copy built frontend
 COPY --from=frontend-build /app/frontend/dist ./static/
 
 # Data directories
-RUN groupadd --system nexural \
-    && useradd --system --gid nexural --home-dir /app --shell /usr/sbin/nologin nexural \
+RUN addgroup -S nexural \
+    && adduser -S -G nexural -h /app -s /sbin/nologin nexural \
     && mkdir -p data/exports data/processed reports experiments \
     && chown -R nexural:nexural data reports experiments
 

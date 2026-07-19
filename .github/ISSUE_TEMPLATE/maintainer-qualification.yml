@@ -1,0 +1,27 @@
+name: Critical-path maintainer qualification
+description: Nominate and attest a second qualified reviewer for execution, risk and release code.
+title: "[MAINTAINER] "
+labels: ["maintainer-qualification", "governance"]
+body:
+  - type: input
+    id: login
+    attributes:
+      label: GitHub login
+    validations:
+      required: true
+  - type: textarea
+    id: competencies
+    attributes:
+      label: Demonstrated competencies
+      description: Provide reviewed evidence for NinjaTrader, execution, risk and release engineering; C# and security are strongly encouraged.
+    validations:
+      required: true
+  - type: checkboxes
+    id: attestation
+    attributes:
+      label: Qualification attestation
+      options:
+        - label: This maintainer can independently review critical execution/risk/release changes.
+          required: true
+        - label: This maintainer is not the repository owner.
+          required: true

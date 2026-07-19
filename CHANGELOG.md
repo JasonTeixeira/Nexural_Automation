@@ -11,14 +11,23 @@ The format is based on **Keep a Changelog**, and this project intends to follow 
 - Executable Automation Academy with five tracks, sixty labs, five capstones, trusted artifact-derived grading, bilingual concepts, and packaged-resource parity checks.
 - External beta evidence schema, validator, contribution template, and quantitative promotion gates.
 - SPDX SBOM, SHA-256 manifests, keyless Sigstore release signing, trusted PyPI publishing, and GHCR provenance.
+- Policy-driven world-class qualification with schema-validated desktop, automated, release, external-security, maintainer, learner, and capstone evidence.
+- NT8 adversarial harness with 50,000 property cases, 50,000 fuzz cases, explicit execution/risk mutation testing, and disconnect/restart RTO measurement.
 
 ### Security
 - Hosted filesystem endpoints are opt-in, loopback-only, root-confined, and protected against traversal, symlink, UNC/device, alternate-data-stream, and output-escape attacks.
 - Report titles are HTML escaped and report writes are atomic.
 - Every third-party GitHub Action is pinned to an immutable commit SHA.
+- Removed the unsupported Next.js prototype and its vulnerable dependency tree.
+- API-key identifiers now use per-process keyed HMAC-SHA-256, and deep-health responses no longer expose exception details.
+- Updated the optional Electron shell to patched Electron 39 and electron-builder 26 lines.
+- Rebased the production runtime on a digest-pinned Alpine image and constrained DuckDB to a musllinux wheel; the complete image currently scans at zero high/critical findings.
 
 ### Changed
 - Release automation now validates immutable tag/version alignment before publication.
+- Stable releases now require exact-run promotion, reproducible Python and NT8 artifacts, post-signing bundle evidence with artifact/bundle digests, zero high/critical container findings, and a complete aggregate qualification report.
+- Python source distributions are normalized to `SOURCE_DATE_EPOCH` before byte-for-byte release comparison.
+- Standalone strategy additions are blocked for the qualification cycle.
 - Academy scoring ignores learner-supplied result flags and derives all evidence by replaying the submitted declarative artifact.
 
 ## [1.0.0] - 2026-03-28
