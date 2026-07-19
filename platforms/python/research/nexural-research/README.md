@@ -177,7 +177,7 @@ nexural-research/
 │   │   ├── app.py                   Slim factory with lifespan
 │   │   ├── routers/                 Analysis, Academy, and platform routers
 │   │   ├── middleware/              Rate limiter, request ID, metrics, security headers
-│   │   ├── auth.py                  API key auth (SHA-256)
+│   │   ├── auth.py                  API key auth (keyed HMAC-SHA-256)
 │   │   ├── cache.py                 LRU with TTL
 │   │   ├── ai_validator.py          Cross-reference AI claims vs data
 │   │   └── sessions.py             Persistent sessions (Parquet)
@@ -193,8 +193,9 @@ nexural-research/
 ```
 
 `frontend/` is the canonical dashboard and the only frontend built by CI or
-served by the Python API. `frontend-v0/` is an archived design prototype kept
-for reference; do not add production features or deployment configuration to it.
+served by the Python API. The obsolete Next.js design prototype was removed so
+dead dependencies and browser-side credential experiments cannot expand the
+supported attack surface.
 
 ---
 

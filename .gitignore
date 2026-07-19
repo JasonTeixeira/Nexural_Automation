@@ -11,6 +11,7 @@ Thumbs.db
 !.env.example
 
 # Build artifacts / temp
+/artifacts/
 bin/
 obj/
 .vs/
@@ -23,6 +24,10 @@ obj/
 __pycache__/
 *.pyc
 .pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
 .venv/
 venv/
 

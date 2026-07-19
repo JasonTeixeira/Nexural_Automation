@@ -1,0 +1,33 @@
+name: Independent NT8 desktop qualification
+description: Submit a sanitized GUI import, compile, Playback101 or Sim101 evidence bundle.
+title: "[NT8 DESKTOP] "
+labels: ["nt8-qualification", "evidence"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use `New-NT8DesktopEvidence.ps1`. Never attach account identifiers, credentials, order IDs, machine names, proprietary data, or live-account evidence.
+  - type: input
+    id: commit
+    attributes:
+      label: Tested commit SHA
+    validations:
+      required: true
+  - type: input
+    id: record
+    attributes:
+      label: Evidence record path or pull request
+      description: Link to the schema-valid JSON record and its reviewed evidence hashes.
+    validations:
+      required: true
+  - type: checkboxes
+    id: attestation
+    attributes:
+      label: Independent qualification attestation
+      options:
+        - label: I used an independent Windows machine and an exact supported NT8 patch version.
+          required: true
+        - label: I tested only Playback101 or Sim101 and removed all sensitive data.
+          required: true
+        - label: GUI import, global compile, all scenarios and both RTO measurements passed.
+          required: true

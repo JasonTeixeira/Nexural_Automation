@@ -10,6 +10,7 @@
     "tested_commit",
     "environment",
     "setup",
+    "learning",
     "scenarios",
     "attestation"
   ],
@@ -40,6 +41,26 @@
         "clean_machine": { "type": "boolean" },
         "minutes_to_first_compile": { "type": "number", "minimum": 0, "maximum": 240 },
         "minutes_to_first_playback": { "type": "number", "minimum": 0, "maximum": 480 }
+      }
+    },
+    "learning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["completed_labs", "completed_capstones", "code_derived_grading", "grading_digest"],
+      "properties": {
+        "completed_labs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{2,79}$"}
+        },
+        "completed_capstones": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{2,79}$"}
+        },
+        "code_derived_grading": {"const": true},
+        "grading_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
       }
     },
     "scenarios": {

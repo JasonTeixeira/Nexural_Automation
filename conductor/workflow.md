@@ -15,12 +15,14 @@
 - Portable NT8 core tests on every PR touching `platforms/ninjatrader`.
 - Windows/NT8 compile/import and Playback/Sim101 evidence before a NinjaScript package is released.
 - Machine-derived proof for every Academy credential or package promotion.
+- At least 50,000 property cases, 50,000 fuzz cases, 85% mutation score, and measured recovery RTOs for the execution/risk kernel.
+- A complete policy-derived qualification report before any stable release is published.
 
 ## Review policy
 
 - Pull requests are mandatory for `main`.
-- Execution, risk, authentication, filesystem, and release changes require independent review when
-  another qualified maintainer is available; emergency owner bypass must be documented.
+- Execution, risk, authentication, filesystem, and release changes require a second qualified
+  maintainer. No owner-only self-approval qualifies a stable release.
 - Never suppress a required gate with `|| true`, `continue-on-error`, `--no-verify`, or equivalent.
 - Every release includes rollback instructions and an evidence manifest.
 

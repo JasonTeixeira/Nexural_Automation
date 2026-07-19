@@ -1,10 +1,10 @@
 {
   "name": "nexural-research",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Institutional-grade strategy analysis for NinjaTrader",
   "main": "main.js",
   "author": "Nexural",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "scripts": {
     "start": "electron .",
     "build-win": "electron-builder --win",
@@ -63,7 +63,7 @@
     "electron-store": "^8.2.0"
   },
   "devDependencies": {
-    "electron": "^31.0.0",
-    "electron-builder": "^24.13.3"
+    "electron": "39.8.10",
+    "electron-builder": "26.15.3"
   }
 }

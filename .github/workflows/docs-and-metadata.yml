@@ -77,3 +77,6 @@ jobs:
 
       - name: Validate external beta evidence
         run: python scripts/repo-tools/validate_beta_evidence.py
+
+      - name: Validate world-class evidence and report current state
+        run: python scripts/repo-tools/verify_world_class_gate.py --format markdown

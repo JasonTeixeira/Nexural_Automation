@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/JasonTeixeira/Nexural_Automation/schemas/automation-qualification.schema.json",
+  "title": "CI-generated kernel and security evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "tested_commit", "workflow_run", "kernel", "recovery", "vulnerabilities", "generated_at"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "tested_commit": {"type": "string", "pattern": "^[a-f0-9]{40}$"},
+    "workflow_run": {"type": "string", "format": "uri"},
+    "kernel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["property_cases", "fuzz_cases", "mutation_score_percent", "surviving_critical_mutants"],
+      "properties": {
+        "property_cases": {"type": "integer", "minimum": 0},
+        "fuzz_cases": {"type": "integer", "minimum": 0},
+        "mutation_score_percent": {"type": "number", "minimum": 0, "maximum": 100},
+        "surviving_critical_mutants": {"type": "integer", "minimum": 0}
+      }
+    },
+    "recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["disconnect_rto_seconds", "restart_rto_seconds"],
+      "properties": {
+        "disconnect_rto_seconds": {"type": "number", "minimum": 0},
+        "restart_rto_seconds": {"type": "number", "minimum": 0}
+      }
+    },
+    "vulnerabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["critical", "high", "scanners"],
+      "properties": {
+        "critical": {"type": "integer", "minimum": 0},
+        "high": {"type": "integer", "minimum": 0},
+        "scanners": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"type": "string", "minLength": 2}}
+      }
+    },
+    "generated_at": {"type": "string", "format": "date-time"}
+  }
+}

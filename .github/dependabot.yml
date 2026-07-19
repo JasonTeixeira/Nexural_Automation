@@ -76,6 +76,20 @@ updates:
           - "vitest*"
           - "typescript"
 
+  # Optional Electron desktop shell
+  - package-ecosystem: "npm"
+    directory: "/platforms/python/research/nexural-research/desktop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "build(deps-desktop)"
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "desktop"
+
   # Docker base images for the dashboard container
   - package-ecosystem: "docker"
     directory: "/platforms/python/research/nexural-research"
