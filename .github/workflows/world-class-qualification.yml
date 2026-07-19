@@ -53,7 +53,10 @@ jobs:
         run: |
           bandit -r platforms/python/research/nexural-research/src -ll -ii
           pip-audit -r platforms/python/research/nexural-research/requirements/py311-ci-lock.txt
-          pip-audit -r platforms/python/research/nexural-research/requirements-dev.lock.txt
+          (
+            cd platforms/python/research/nexural-research
+            pip-audit -r requirements-dev.lock.txt
+          )
 
       - name: Audit every supported JavaScript dependency tree
         run: |
