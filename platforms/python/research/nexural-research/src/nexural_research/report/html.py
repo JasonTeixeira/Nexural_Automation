@@ -1,15 +1,20 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+from html import escape
 
 import pandas as pd
 import plotly.graph_objects as go
 
-from nexural_research.analyze.equity import equity_curve_from_trades, drawdown_from_equity
+from nexural_research.analyze.advanced_metrics import (
+    distribution_metrics,
+    expectancy_metrics,
+    risk_return_metrics,
+)
+from nexural_research.analyze.advanced_robustness import deflated_sharpe_ratio
+from nexural_research.analyze.equity import drawdown_from_equity, equity_curve_from_trades
 from nexural_research.analyze.heatmap import time_heatmap
 from nexural_research.analyze.metrics import metrics_by, metrics_from_trades
-from nexural_research.analyze.advanced_metrics import risk_return_metrics, expectancy_metrics, distribution_metrics
-from nexural_research.analyze.advanced_robustness import deflated_sharpe_ratio
 from nexural_research.analyze.portfolio import benchmark_comparison
 
 
@@ -24,12 +29,15 @@ def _df_to_html_table(df: pd.DataFrame, *, max_rows: int = 50) -> str:
     if df is None:
         return ""
     d = df.head(max_rows).copy()
-    return d.to_html(index=False, escape=True)
+    return str(d.to_html(index=False, escape=True))
 
 
-def build_trades_report_html(df_trades: pd.DataFrame, *, title: str = "Nexural Research Report") -> str:
+def build_trades_report_html(
+    df_trades: pd.DataFrame, *, title: str = "Nexural Research Report"
+) -> str:
     """Generate a single-file HTML report for a trades dataset."""
 
+    safe_title = escape(str(title), quote=True)
     m = metrics_from_trades(df_trades)
     eq = equity_curve_from_trades(df_trades)
     dd = drawdown_from_equity(eq.equity)
@@ -42,7 +50,9 @@ def build_trades_report_html(df_trades: pd.DataFrame, *, title: str = "Nexural R
     fig_dd.add_trace(go.Scatter(x=eq.ts, y=dd, mode="lines", name="Drawdown"))
     fig_dd.update_layout(title="Drawdown", xaxis_title="Time", yaxis_title="Drawdown")
 
-    heat = time_heatmap(df_trades, ts_col="exit_time" if "exit_time" in df_trades.columns else "entry_time")
+    heat = time_heatmap(
+        df_trades, ts_col="exit_time" if "exit_time" in df_trades.columns else "entry_time"
+    )
     fig_heat = go.Figure(
         data=go.Heatmap(
             z=heat.to_numpy(),
@@ -52,11 +62,15 @@ def build_trades_report_html(df_trades: pd.DataFrame, *, title: str = "Nexural R
             colorbar=dict(title="PnL"),
         )
     )
-    fig_heat.update_layout(title="PnL Heatmap (Day-of-week x Hour)", xaxis_title="Hour", yaxis_title="Day")
+    fig_heat.update_layout(
+        title="PnL Heatmap (Day-of-week x Hour)", xaxis_title="Hour", yaxis_title="Day"
+    )
 
     # Breakdown tables
     strat = metrics_by(df_trades, "strategy") if "strategy" in df_trades.columns else pd.DataFrame()
-    inst = metrics_by(df_trades, "instrument") if "instrument" in df_trades.columns else pd.DataFrame()
+    inst = (
+        metrics_by(df_trades, "instrument") if "instrument" in df_trades.columns else pd.DataFrame()
+    )
 
     # Advanced metrics
     rr = risk_return_metrics(df_trades)
@@ -66,11 +80,20 @@ def build_trades_report_html(df_trades: pd.DataFrame, *, title: str = "Nexural R
     bm = benchmark_comparison(df_trades, n_random_sims=500)
 
     def _section_table(title: str, data: dict) -> str:
-        rows = "".join(
-            f"<tr><td>{k.replace('_', ' ')}</td><td>{_fmt_money(v) if isinstance(v, (int, float)) and ('profit' in k or 'drawdown' in k or 'net' in k or 'equity' in k or k in ('expectancy', 'var_95', 'cvar_95', 'mean', 'median', 'std')) else v}</td></tr>"
-            for k, v in data.items()
+        money_names = {"expectancy", "var_95", "cvar_95", "mean", "median", "std"}
+        rows = []
+        for key, value in data.items():
+            is_money = isinstance(value, (int, float)) and (
+                any(term in key for term in ("profit", "drawdown", "net", "equity"))
+                or key in money_names
+            )
+            rendered = _fmt_money(value) if is_money else value
+            rows.append(f"<tr><td>{key.replace('_', ' ')}</td><td>{rendered}</td></tr>")
+        table = "".join(rows)
+        return (
+            f"<h2>{title}</h2><table><thead><tr><th>Metric</th>"
+            f"<th>Value</th></tr></thead><tbody>{table}</tbody></table>"
         )
-        return f"<h2>{title}</h2><table><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>{rows}</tbody></table>"
 
     metrics_html = "".join(
         f"<tr><td>{k}</td><td>{_fmt_money(v) if 'profit' in k or 'drawdown' in k else v}</td></tr>"
@@ -82,9 +105,10 @@ def build_trades_report_html(df_trades: pd.DataFrame, *, title: str = "Nexural R
         "<html>",
         "<head>",
         "<meta charset='utf-8' />",
-        f"<title>{title}</title>",
+        f"<title>{safe_title}</title>",
         "<style>",
-        "body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:20px;background:#0a0e17;color:#f3f4f6;}",
+        "body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;"
+        "margin:20px;background:#0a0e17;color:#f3f4f6;}",
         ".grid{display:grid;grid-template-columns:1fr;gap:18px;}",
         ".grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}",
         "table{border-collapse:collapse;width:100%;margin-bottom:20px;}",
@@ -95,7 +119,7 @@ def build_trades_report_html(df_trades: pd.DataFrame, *, title: str = "Nexural R
         "</style>",
         "</head>",
         "<body>",
-        f"<h1>{title}</h1>",
+        f"<h1>{safe_title}</h1>",
         "<h2>Core Metrics</h2>",
         "<table>",
         "<thead><tr><th>Metric</th><th>Value</th></tr></thead>",

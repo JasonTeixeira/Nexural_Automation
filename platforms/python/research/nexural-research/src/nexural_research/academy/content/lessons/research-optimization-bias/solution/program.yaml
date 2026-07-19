@@ -1,0 +1,9 @@
+program:
+  operations:
+  - load_fixture
+  - measure_selection_bias
+  - deduplicate_by_event_id
+  - emit_evidence
+  settings:
+    mode: paper
+    deterministic: true

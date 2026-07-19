@@ -39,17 +39,25 @@ def test_academy_shell_and_live_catalog_load(page: Page) -> None:
     response = page.goto(FRONTEND_URL, wait_until="networkidle")
     assert response is not None and response.ok
     expect(page.get_by_role("heading", name="Research flight deck")).to_be_visible()
-    expect(page.get_by_text("Four operating tracks")).to_be_visible()
-    expect(page.get_by_role("button", name="Seal the Lookahead Leak")).to_be_enabled()
+    expect(page.get_by_text("Five operating tracks")).to_be_visible()
+    expect(page.get_by_role("button", name="Causal Feature Pipeline")).to_be_enabled()
 
 
 def test_mission_submission_creates_evidence_ledger_record(page: Page) -> None:
     page.goto(FRONTEND_URL, wait_until="networkidle")
-    page.get_by_role("button", name="Seal the Lookahead Leak").click()
+    page.get_by_role("button", name="Causal Feature Pipeline").click()
     submission = {
-        "split_before_features": True,
-        "feature_lag": 1,
-        "uses_future_columns": False,
+        "source": {
+            "program": {
+                "operations": [
+                    "load_fixture",
+                    "split_before_feature_engineering",
+                    "reject_stale_timestamp",
+                    "emit_evidence",
+                ],
+                "settings": {"mode": "paper", "deterministic": True},
+            }
+        },
         "seed": 42,
     }
     page.get_by_label("Lab submission JSON").fill(json.dumps(submission, indent=2))
@@ -66,17 +74,25 @@ def test_mission_submission_creates_evidence_ledger_record(page: Page) -> None:
 
 def test_hidden_safety_contract_does_not_leak_internal_identifier(page: Page) -> None:
     page.goto(FRONTEND_URL, wait_until="networkidle")
-    page.get_by_role("button", name="Seal the Lookahead Leak").click()
+    page.get_by_role("button", name="Causal Feature Pipeline").click()
     unsafe = {
-        "split_before_features": True,
-        "feature_lag": 1,
-        "uses_future_columns": True,
+        "source": {
+            "program": {
+                "operations": [
+                    "load_fixture",
+                    "split_before_feature_engineering",
+                    "emit_evidence",
+                ],
+                "settings": {"mode": "paper", "deterministic": True},
+            }
+        },
+        "seed": 42,
     }
     page.get_by_label("Lab submission JSON").fill(json.dumps(unsafe))
     page.get_by_role("button", name="Check", exact=False).click()
 
     expect(page.get_by_text("REVISE", exact=True)).to_be_visible()
-    assert "future_guard" not in page.locator("main").inner_text()
+    assert "hidden_tests" not in page.locator("main").inner_text()
 
 
 def test_analysis_workspace_remains_reachable(page: Page) -> None:

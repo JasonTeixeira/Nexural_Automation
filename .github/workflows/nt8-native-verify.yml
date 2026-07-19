@@ -1,0 +1,56 @@
+name: NT8 native compile evidence
+
+on:
+  workflow_dispatch:
+    inputs:
+      evidence_note:
+        description: Operator note identifying the clean NT8 verification environment
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  native-verify:
+    runs-on: [self-hosted, Windows, X64, nt8]
+    environment: nt8-verification
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          clean: true
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Verify native references and compile adapters
+        shell: pwsh
+        run: ./platforms/ninjatrader/scripts/Test-NT8SafetySpine.ps1
+      - name: Build verified NinjaScript archive
+        shell: pwsh
+        run: ./platforms/ninjatrader/scripts/Build-NinjaTraderArchive.ps1 -OutputDirectory artifacts/nt8
+      - name: Record immutable environment evidence
+        shell: pwsh
+        env:
+          EVIDENCE_NOTE: ${{ inputs.evidence_note }}
+        run: |
+          $exe = Get-Item 'C:\Program Files\NinjaTrader 8\bin\NinjaTrader.exe'
+          $record = [ordered]@{
+            commit = '${{ github.sha }}'
+            ninja_trader_version = $exe.VersionInfo.FileVersion
+            windows = [Environment]::OSVersion.VersionString
+            runner = $env:RUNNER_NAME
+            note = $env:EVIDENCE_NOTE
+            recorded_at = [DateTimeOffset]::UtcNow.ToString('O')
+          }
+          $record | ConvertTo-Json | Set-Content artifacts/nt8/native-environment.json -Encoding UTF8
+          Get-ChildItem artifacts/nt8 -File | ForEach-Object {
+            "{0}  {1}" -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(), $_.Name
+          } | Set-Content artifacts/nt8/SHA256SUMS -Encoding ASCII
+      - name: Upload native verification evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: nt8-native-verification-${{ github.sha }}
+          path: artifacts/nt8/*
+          if-no-files-found: error
+          retention-days: 90

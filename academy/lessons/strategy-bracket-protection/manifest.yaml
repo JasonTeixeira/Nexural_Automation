@@ -1,0 +1,64 @@
+id: strategy.bracket-protection
+track: strategy-builder
+title: Protective Bracket Lifecycle
+updated_at: '2026-07-19'
+estimated_minutes: 50
+objectives:
+- Explain how to create and amend protective orders without orphaning exposure.
+- Produce a deterministic trace and fault-evidence artifact.
+prerequisites:
+- strategy.execution-updates
+tags:
+- executable
+- paper-only
+- partial_fill
+translations:
+  en:
+    title: Protective Bracket Lifecycle
+    summary: Implement and prove how to create and amend protective orders without orphaning exposure.
+  es:
+    title: Ciclo de brackets protectores
+    summary: Implementa y demuestra cómo crear y modificar protección sin dejar exposición huérfana.
+hints:
+- Read the visible assertion, then identify how to create and amend protective orders without orphaning
+  exposure; inspect `maintain_protective_bracket` as a naming clue.
+- The target behavior is represented by one explicit operation near `maintain_protective_bracket`.
+- Replay the partial_fill profile and inspect its required recovery operation.
+execution:
+  runner: nexural.declarative-trace.v1
+  starter: starter/program.yaml
+  visible_tests: tests/visible.yaml
+  hidden_tests: tests/hidden.yaml
+  solution: solution/program.yaml
+  expected_trace: expected-trace.json
+  fault_profiles:
+  - partial_fill
+rubric:
+- id: trace-complete
+  metric: tests.trace-complete.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: Replace every TODO so the trusted runner can complete the trace.
+- id: target-behavior
+  metric: tests.target-behavior.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: The trace must implement `maintain_protective_bracket`.
+- id: paper-boundary
+  metric: tests.paper-boundary.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The hidden safety boundary requires paper-only mode.
+- id: fault-resilience
+  metric: fault_evidence.partial_fill.handled
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The implementation did not safely handle the seeded partial_fill scenario.

@@ -1,0 +1,11 @@
+{
+  "status": "complete",
+  "operations": [
+    "load_fixture",
+    "ack_after_durable_commit",
+    "reconcile_after_disconnect",
+    "emit_evidence"
+  ],
+  "fault_profile": "disconnect",
+  "deterministic": true
+}

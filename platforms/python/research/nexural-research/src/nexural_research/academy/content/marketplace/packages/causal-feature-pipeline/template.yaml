@@ -1,0 +1,13 @@
+schema_version: "1.0"
+name: causal-feature-pipeline
+kind: lesson-template
+entrypoint: research.lookahead
+controls:
+  split_before_features: false
+  feature_lag: 0
+  reject_future_columns: false
+scenario:
+  fixture: academy/fixtures/lookahead-safe-submission.json
+  seed: 42
+promotion:
+  requires: [temporal_split, execution_lag, hidden_safety_check]

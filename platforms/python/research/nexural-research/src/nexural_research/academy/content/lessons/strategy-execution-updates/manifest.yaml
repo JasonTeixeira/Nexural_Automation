@@ -1,0 +1,64 @@
+id: strategy.execution-updates
+track: strategy-builder
+title: Execution Update Handling
+updated_at: '2026-07-19'
+estimated_minutes: 50
+objectives:
+- Explain how to drive protection from execution facts rather than intent.
+- Produce a deterministic trace and fault-evidence artifact.
+prerequisites:
+- strategy.order-updates
+tags:
+- executable
+- paper-only
+- partial_fill
+translations:
+  en:
+    title: Execution Update Handling
+    summary: Implement and prove how to drive protection from execution facts rather than intent.
+  es:
+    title: Gestión de ejecuciones
+    summary: Implementa y demuestra cómo activar protección desde ejecuciones reales y no intenciones.
+hints:
+- Read the visible assertion, then identify how to drive protection from execution facts rather than intent;
+  inspect `handle_execution_update` as a naming clue.
+- The target behavior is represented by one explicit operation near `handle_execution_update`.
+- Replay the partial_fill profile and inspect its required recovery operation.
+execution:
+  runner: nexural.declarative-trace.v1
+  starter: starter/program.yaml
+  visible_tests: tests/visible.yaml
+  hidden_tests: tests/hidden.yaml
+  solution: solution/program.yaml
+  expected_trace: expected-trace.json
+  fault_profiles:
+  - partial_fill
+rubric:
+- id: trace-complete
+  metric: tests.trace-complete.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: Replace every TODO so the trusted runner can complete the trace.
+- id: target-behavior
+  metric: tests.target-behavior.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: The trace must implement `handle_execution_update`.
+- id: paper-boundary
+  metric: tests.paper-boundary.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The hidden safety boundary requires paper-only mode.
+- id: fault-resilience
+  metric: fault_evidence.partial_fill.handled
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The implementation did not safely handle the seeded partial_fill scenario.

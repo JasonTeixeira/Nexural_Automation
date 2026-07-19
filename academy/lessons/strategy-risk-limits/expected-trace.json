@@ -1,0 +1,11 @@
+{
+  "status": "complete",
+  "operations": [
+    "load_fixture",
+    "enforce_paper_risk_limits",
+    "reject_stale_timestamp",
+    "emit_evidence"
+  ],
+  "fault_profile": "stale_data",
+  "deterministic": true
+}

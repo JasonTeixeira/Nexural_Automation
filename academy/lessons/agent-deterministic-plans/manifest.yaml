@@ -1,0 +1,64 @@
+id: agent.deterministic-plans
+track: agent-automation-engineer
+title: Deterministic Plans
+updated_at: '2026-07-19'
+estimated_minutes: 50
+objectives:
+- Explain how to make bounded plans inspectable before execution.
+- Produce a deterministic trace and fault-evidence artifact.
+prerequisites:
+- agent.provenance
+tags:
+- executable
+- paper-only
+- duplicate
+translations:
+  en:
+    title: Deterministic Plans
+    summary: Implement and prove how to make bounded plans inspectable before execution.
+  es:
+    title: Planes deterministas
+    summary: Implementa y demuestra cómo hacer planes acotados e inspeccionables antes de ejecutar.
+hints:
+- Read the visible assertion, then identify how to make bounded plans inspectable before execution; inspect
+  `serialize_execution_plan` as a naming clue.
+- The target behavior is represented by one explicit operation near `serialize_execution_plan`.
+- Replay the duplicate profile and inspect its required recovery operation.
+execution:
+  runner: nexural.declarative-trace.v1
+  starter: starter/program.yaml
+  visible_tests: tests/visible.yaml
+  hidden_tests: tests/hidden.yaml
+  solution: solution/program.yaml
+  expected_trace: expected-trace.json
+  fault_profiles:
+  - duplicate
+rubric:
+- id: trace-complete
+  metric: tests.trace-complete.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: Replace every TODO so the trusted runner can complete the trace.
+- id: target-behavior
+  metric: tests.target-behavior.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: The trace must implement `serialize_execution_plan`.
+- id: paper-boundary
+  metric: tests.paper-boundary.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The hidden safety boundary requires paper-only mode.
+- id: fault-resilience
+  metric: fault_evidence.duplicate.handled
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The implementation did not safely handle the seeded duplicate scenario.

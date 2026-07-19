@@ -1,0 +1,9 @@
+program:
+  operations:
+  - load_fixture
+  - enforce_monotonic_sequence
+  - reject_late_event
+  - emit_evidence
+  settings:
+    mode: paper
+    deterministic: true

@@ -1,0 +1,64 @@
+id: bridge.duplicate-delivery
+track: bridge-engineer
+title: At-Least-Once Delivery
+updated_at: '2026-07-19'
+estimated_minutes: 50
+objectives:
+- Explain how to make at-least-once delivery produce exactly-once effect.
+- Produce a deterministic trace and fault-evidence artifact.
+prerequisites:
+- bridge.stale-signals
+tags:
+- executable
+- paper-only
+- duplicate
+translations:
+  en:
+    title: At-Least-Once Delivery
+    summary: Implement and prove how to make at-least-once delivery produce exactly-once effect.
+  es:
+    title: Entrega al menos una vez
+    summary: Implementa y demuestra cómo lograr efecto único con entrega al menos una vez.
+hints:
+- Read the visible assertion, then identify how to make at-least-once delivery produce exactly-once effect;
+  inspect `deduplicate_delivery_key` as a naming clue.
+- The target behavior is represented by one explicit operation near `deduplicate_delivery_key`.
+- Replay the duplicate profile and inspect its required recovery operation.
+execution:
+  runner: nexural.declarative-trace.v1
+  starter: starter/program.yaml
+  visible_tests: tests/visible.yaml
+  hidden_tests: tests/hidden.yaml
+  solution: solution/program.yaml
+  expected_trace: expected-trace.json
+  fault_profiles:
+  - duplicate
+rubric:
+- id: trace-complete
+  metric: tests.trace-complete.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: Replace every TODO so the trusted runner can complete the trace.
+- id: target-behavior
+  metric: tests.target-behavior.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: The trace must implement `deduplicate_delivery_key`.
+- id: paper-boundary
+  metric: tests.paper-boundary.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The hidden safety boundary requires paper-only mode.
+- id: fault-resilience
+  metric: fault_evidence.duplicate.handled
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The implementation did not safely handle the seeded duplicate scenario.

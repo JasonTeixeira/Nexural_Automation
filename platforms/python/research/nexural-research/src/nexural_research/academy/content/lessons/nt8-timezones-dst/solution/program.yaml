@@ -1,0 +1,9 @@
+program:
+  operations:
+  - load_fixture
+  - normalize_exchange_timezone
+  - reject_stale_timestamp
+  - emit_evidence
+  settings:
+    mode: paper
+    deterministic: true

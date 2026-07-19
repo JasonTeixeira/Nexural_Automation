@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/JasonTeixeira/Nexural_Automation/schemas/beta-evidence.schema.json",
+  "title": "Nexural NT8 external beta evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "participant_id",
+    "tested_commit",
+    "environment",
+    "setup",
+    "scenarios",
+    "attestation"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "participant_id": {
+      "type": "string",
+      "pattern": "^beta-[a-f0-9]{12}$",
+      "description": "Pseudonymous participant identifier; never store account names."
+    },
+    "tested_commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nt8_version", "windows_version", "connection", "account_mode"],
+      "properties": {
+        "nt8_version": { "type": "string", "minLength": 3, "maxLength": 40 },
+        "windows_version": { "type": "string", "minLength": 3, "maxLength": 80 },
+        "connection": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "account_mode": { "enum": ["Playback101", "Sim101"] }
+      }
+    },
+    "setup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["clean_machine", "minutes_to_first_compile", "minutes_to_first_playback"],
+      "properties": {
+        "clean_machine": { "type": "boolean" },
+        "minutes_to_first_compile": { "type": "number", "minimum": 0, "maximum": 240 },
+        "minutes_to_first_playback": { "type": "number", "minimum": 0, "maximum": 480 }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "result", "evidence_sha256"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$" },
+          "result": { "enum": ["pass", "fail", "blocked"] },
+          "evidence_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "notes": { "type": "string", "maxLength": 1000 }
+        }
+      }
+    },
+    "attestation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["paper_only", "no_profitability_claim", "submitted_at"],
+      "properties": {
+        "paper_only": { "const": true },
+        "no_profitability_claim": { "const": true },
+        "submitted_at": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

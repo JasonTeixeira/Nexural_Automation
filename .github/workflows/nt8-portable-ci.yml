@@ -1,0 +1,59 @@
+name: NT8 portable safety spine
+
+on:
+  pull_request:
+    paths:
+      - "platforms/ninjatrader/**"
+      - ".github/workflows/nt8-portable-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "platforms/ninjatrader/**"
+      - ".github/workflows/nt8-portable-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fault-suite:
+    name: Portable fault suite (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Run deterministic execution fault suite
+        shell: pwsh
+        run: ./platforms/ninjatrader/scripts/Test-NT8SafetySpine.ps1 -SkipNativeCompile
+      - name: Build source import archive
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./platforms/ninjatrader/scripts/Build-NinjaTraderArchive.ps1 -SkipNativeCompile -OutputDirectory artifacts/nt8
+      - name: Prove archive reproducibility
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          ./platforms/ninjatrader/scripts/Build-NinjaTraderArchive.ps1 `
+            -SkipTests `
+            -SkipNativeCompile `
+            -OutputDirectory artifacts/nt8-repeat
+          $primary = Get-ChildItem artifacts/nt8 -Filter '*.zip' -File -ErrorAction Stop
+          $repeat = Get-ChildItem artifacts/nt8-repeat -Filter '*.zip' -File -ErrorAction Stop
+          $primaryHash = (Get-FileHash $primary.FullName -Algorithm SHA256).Hash
+          $repeatHash = (Get-FileHash $repeat.FullName -Algorithm SHA256).Hash
+          if ($primaryHash -ne $repeatHash) {
+            throw "NT8 source archive is not reproducible: $primaryHash != $repeatHash"
+          }
+      - name: Upload source archive proof
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: nt8-source-import-archive
+          path: artifacts/nt8/*
+          if-no-files-found: error

@@ -1,0 +1,25 @@
+criteria:
+- id: trace-complete
+  weight: 20
+  evidence: trusted runner artifact
+- id: integrated-behavior
+  weight: 20
+  evidence: trusted runner artifact
+- id: paper-boundary
+  weight: 10
+  evidence: trusted runner artifact
+- id: fault-disconnect
+  weight: 10
+  evidence: trusted runner artifact
+- id: fault-duplicate
+  weight: 10
+  evidence: trusted runner artifact
+- id: fault-latency
+  weight: 10
+  evidence: trusted runner artifact
+- id: fault-partial_fill
+  weight: 10
+  evidence: trusted runner artifact
+- id: fault-stale_data
+  weight: 10
+  evidence: trusted runner artifact

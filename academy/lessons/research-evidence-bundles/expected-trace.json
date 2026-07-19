@@ -1,0 +1,11 @@
+{
+  "status": "complete",
+  "operations": [
+    "load_fixture",
+    "seal_evidence_bundle",
+    "reconcile_after_disconnect",
+    "emit_evidence"
+  ],
+  "fault_profile": "disconnect",
+  "deterministic": true
+}

@@ -1,0 +1,9 @@
+program:
+  operations:
+  - load_fixture
+  - serialize_execution_plan
+  - deduplicate_by_event_id
+  - emit_evidence
+  settings:
+    mode: paper
+    deterministic: true

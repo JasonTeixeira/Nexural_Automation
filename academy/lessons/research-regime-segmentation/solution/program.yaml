@@ -1,0 +1,9 @@
+program:
+  operations:
+  - load_fixture
+  - segment_without_future_labels
+  - reject_stale_timestamp
+  - emit_evidence
+  settings:
+    mode: paper
+    deterministic: true

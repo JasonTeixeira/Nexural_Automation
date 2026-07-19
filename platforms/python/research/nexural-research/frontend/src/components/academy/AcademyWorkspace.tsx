@@ -25,7 +25,6 @@ import {
   XCircle,
 } from "lucide-react";
 import {
-  applyAcademyFault,
   checkAcademyItem,
   getAcademyCatalog,
   getAcademyCohortSummary,
@@ -53,7 +52,7 @@ type AcademyView = "mission" | "lab" | "ledger" | "credentials" | "marketplace" 
 type LabPanel = "brief" | "workbench" | "evidence";
 
 const LEARNER_ID = "local-operator";
-const TRACK_ORDER = ["strategy-builder", "research-operator", "bridge-engineer", "agent-automation-engineer"];
+const TRACK_ORDER = ["nt8-foundations", "strategy-builder", "research-operator", "bridge-engineer", "agent-automation-engineer"];
 const LAB_PANELS: LabPanel[] = ["brief", "workbench", "evidence"];
 
 const VIEW_ITEMS: Array<{ id: AcademyView; label: string; icon: typeof Route }> = [
@@ -71,12 +70,7 @@ function itemMap(catalog: AcademyCatalog) {
 
 function submissionTemplate(item: AcademyItem): Record<string, unknown> {
   if (item.starter_submission) return item.starter_submission;
-  return item.rubric.reduce<Record<string, unknown>>((payload, criterion) => {
-    if (criterion.visibility !== "hidden" && !criterion.metric.includes("profit")) {
-      payload[criterion.metric] = criterion.expected;
-    }
-    return payload;
-  }, {});
+  return { source: { program: { operations: ["TODO"], settings: { mode: "paper" } } }, seed: 0 };
 }
 
 function StatusMark({ status }: { status: "locked" | "available" | "active" | "passed" }) {
@@ -197,15 +191,8 @@ export function AcademyWorkspace() {
     setError(null);
     try {
       if (fault !== "none") {
-        const faultEvidence = await applyAcademyFault(
-          fault as "disconnect" | "duplicate" | "latency" | "partial_fill" | "stale_data",
-          [
-            { id: "evt-1", quantity: 2, state: "accepted" },
-            { id: "evt-2", quantity: 2, state: "filled" },
-          ],
-          42,
-        );
-        payload.fault_evidence = faultEvidence;
+        payload.scenario = { fault_profile: fault, seed: 42 };
+        payload.seed = 42;
       }
       const result = mode === "submit"
         ? await submitAcademyItem(selected.id, LEARNER_ID, payload)
@@ -294,7 +281,7 @@ export function AcademyWorkspace() {
           </section>
 
           <section className="academy-tracks" aria-labelledby="tracks-heading">
-            <div className="academy-section-heading"><div><span>Curriculum vector</span><h2 id="tracks-heading">Four operating tracks</h2></div><BookOpen className="h-5 w-5" /></div>
+              <div className="academy-section-heading"><div><span>Curriculum vector</span><h2 id="tracks-heading">Five operating tracks</h2></div><BookOpen className="h-5 w-5" /></div>
             {orderedTracks.map((track, index) => {
               const trackItems = [...track.lessons, ...track.capstones].map((id) => items[id]).filter(Boolean);
               const passed = trackItems.filter((item) => complete.has(item.id)).length;
@@ -363,7 +350,7 @@ export function AcademyWorkspace() {
             </aside>
 
             <section id="lab-panel-workbench" role="tabpanel" aria-labelledby="lab-tab-workbench" className={`academy-lab-panel academy-workbench ${labPanel === "workbench" ? "mobile-active" : ""}`}>
-              <div className="academy-panel-label"><TerminalSquare className="h-4 w-4" /><span id="workbench-heading">Submission payload</span><small>JSON / deterministic</small></div>
+              <div className="academy-panel-label"><TerminalSquare className="h-4 w-4" /><span id="workbench-heading">Declarative trace program</span><small>JSON / replayed by trusted runner</small></div>
               <textarea aria-label="Lab submission JSON" spellCheck={false} value={submission} onChange={(event) => setSubmission(event.target.value)} />
               <footer><span>Seeded grader</span><span>Profitability excluded</span><span>{fault === "none" ? "Nominal feed" : `Fault: ${fault}`}</span></footer>
             </section>

@@ -1,0 +1,64 @@
+id: strategy.order-updates
+track: strategy-builder
+title: Order Update Handling
+updated_at: '2026-07-19'
+estimated_minutes: 50
+objectives:
+- Explain how to consume order updates without assuming provider ordering.
+- Produce a deterministic trace and fault-evidence artifact.
+prerequisites:
+- strategy.managed-orders
+tags:
+- executable
+- paper-only
+- latency
+translations:
+  en:
+    title: Order Update Handling
+    summary: Implement and prove how to consume order updates without assuming provider ordering.
+  es:
+    title: Gestión de actualizaciones de orden
+    summary: Implementa y demuestra cómo consumir actualizaciones sin asumir el orden del proveedor.
+hints:
+- Read the visible assertion, then identify how to consume order updates without assuming provider ordering;
+  inspect `handle_order_update` as a naming clue.
+- The target behavior is represented by one explicit operation near `handle_order_update`.
+- Replay the latency profile and inspect its required recovery operation.
+execution:
+  runner: nexural.declarative-trace.v1
+  starter: starter/program.yaml
+  visible_tests: tests/visible.yaml
+  hidden_tests: tests/hidden.yaml
+  solution: solution/program.yaml
+  expected_trace: expected-trace.json
+  fault_profiles:
+  - latency
+rubric:
+- id: trace-complete
+  metric: tests.trace-complete.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: Replace every TODO so the trusted runner can complete the trace.
+- id: target-behavior
+  metric: tests.target-behavior.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: The trace must implement `handle_order_update`.
+- id: paper-boundary
+  metric: tests.paper-boundary.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The hidden safety boundary requires paper-only mode.
+- id: fault-resilience
+  metric: fault_evidence.latency.handled
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The implementation did not safely handle the seeded latency scenario.

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["component", "routing_scope", "live_routing", "ninjatrader", "portable_core", "evidence"],
+  "properties": {
+    "component": { "type": "string" },
+    "routing_scope": {
+      "type": "array",
+      "const": ["Sim101", "Playback101"]
+    },
+    "live_routing": { "const": false },
+    "ninjatrader": {
+      "type": "object",
+      "required": ["native_compile_tested_versions", "desktop_import_verified_versions", "minimum_version", "maximum_version_exclusive", "runtime", "verification_date"]
+    },
+    "portable_core": { "type": "object" },
+    "evidence": { "type": "object" }
+  },
+  "additionalProperties": false
+}

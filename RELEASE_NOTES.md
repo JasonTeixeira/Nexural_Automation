@@ -1,27 +1,38 @@
 # Release Notes
 
-## v0.1.0-public-mvp
+## 2.0 release candidate
 
-This is the first public MVP release of Nexural Automation as a strategy and automation lab.
+This candidate turns Nexural Automation into a safety-first NT8 automation engineering system rather than a collection of strategy examples.
 
-### Included
+### Native execution safety
 
-- MCP automation server with stable public tools for capabilities, strategy analysis, gauntlet runs, cost estimates, reports, and scaffolds.
-- Strategy SDK with Python, NinjaTrader, TradingView, and multi-symbol examples.
-- Bridge SDK with health, paper signal, flatten, kill-switch, and fill reconciliation lifecycle methods.
-- SageQuant-style gauntlet outputs for reject, tune, watchlist, and promote-to-paper decisions.
-- Locked Python CI audit file for Python 3.11.
-- Secret scan, schema validation, frontend audit, Docker/Trivy, and cross-platform quality gates.
-- Public docs for installation, strategy building, bridge building, gauntlet failures, cost assumptions, MCP/API contracts, and Strategy Lab wiring.
+- Portable C# execution/risk kernel.
+- Native NinjaScript Strategy and AddOn adapters.
+- Exact `Sim101 + Simulator` and `Playback101 + Playback` gates with no live-routing switch.
+- Persistent kill switch, reconciliation, sequence/age validation, order lifecycle, partial-fill handling, durable cursor/ACK recovery, and audit journal.
+- Thirteen deterministic fault scenarios.
+- Native compile and validated archive tooling for NT8 8.1.7.2.
 
-### Safety Position
+### Executable Academy
 
-Nexural Automation is research, education, simulation, and paper-first infrastructure. It does not place trades, make financial recommendations, or guarantee future performance.
+- Five tracks, sixty executable labs, and five capstones.
+- English and Spanish concepts, starters, solutions, public checks, hidden-test metadata, expected traces, and evidence rubrics.
+- Trusted data-only runner derives source hashes, traces, test results, fault evidence, and artifact digests.
+- Complete Academy resources ship inside the Python wheel and are parity-tested against the source catalog.
 
-### Tagging Checklist
+### Security and release engineering
 
-- GitHub Actions green on `main`.
-- Local quality gate passes at `0.95`.
-- `pip-audit -r requirements/py311-ci-lock.txt` passes.
-- `npm audit --audit-level=moderate` passes.
-- Local MCP/API keys rotated if they were ever copied into local config files.
+- Fail-closed, opt-in local path API with root confinement and atomic writes.
+- HTML report output escaping.
+- Immutable GitHub Action pins and critical-path CODEOWNERS.
+- Release tag/version verification, Python distribution checks, NT8 archive validation, SPDX SBOM, SHA-256 checksums, keyless Sigstore signing, PyPI trusted publishing, and GHCR provenance.
+- Pseudonymous external-beta evidence schema and validator.
+
+### Verification state
+
+- Portable fault suite: 13/13 passed.
+- Native NT8 8.1.7.2 adapter compile: 0 warnings, 0 errors.
+- Academy: 5 tracks, 60 lessons, and 5 capstones loaded from an installed wheel.
+- NT8 desktop import, Playback/Sim fills, and external beta results remain explicit human/external gates. They are not claimed by this candidate.
+
+See [README.md](README.md), [ROADMAP.md](ROADMAP.md), and [the NT8 import procedure](platforms/ninjatrader/docs/IMPORT_AND_VERIFY.md) for the exact evidence contract.

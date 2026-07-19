@@ -36,6 +36,9 @@ node_modules/
 # Nexural Research build artifacts
 # NOTE: frontend/dist/ is COMMITTED so users don't need Node.js
 dist-electron/
+build/
+*.egg-info/
+.gstack/
 *.duckdb
 *.db
 *.parquet

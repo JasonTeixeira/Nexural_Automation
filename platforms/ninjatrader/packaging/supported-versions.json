@@ -1,0 +1,29 @@
+{
+  "$schema": "./supported-versions.schema.json",
+  "component": "Nexural NT8 Safety Spine",
+  "routing_scope": [
+    "Sim101",
+    "Playback101"
+  ],
+  "live_routing": false,
+  "ninjatrader": {
+    "native_compile_tested_versions": [
+      "8.1.7.2"
+    ],
+    "desktop_import_verified_versions": [],
+    "minimum_version": "8.1.7.2",
+    "maximum_version_exclusive": "8.2.0.0",
+    "runtime": ".NET Framework 4.8",
+    "verification_date": "2026-07-19"
+  },
+  "portable_core": {
+    "target_framework": "netstandard2.0",
+    "language_version": "C# 7.3"
+  },
+  "evidence": {
+    "portable_fault_suite": "tests/Nexural.NT8.Core.FaultSuite",
+    "native_compile_harness": "tests/Nexural.NT8.AdapterCompile",
+    "local_native_compile_tested": true,
+    "manual_desktop_import_required": true
+  }
+}

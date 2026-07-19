@@ -1,0 +1,11 @@
+{
+  "status": "complete",
+  "operations": [
+    "load_fixture",
+    "verify_paper_deployment_gate",
+    "reconcile_after_disconnect",
+    "emit_evidence"
+  ],
+  "fault_profile": "disconnect",
+  "deterministic": true
+}

@@ -1,0 +1,56 @@
+name: External NT8 beta validation
+description: Submit sanitized Playback101 or Sim101 validation evidence.
+title: "[BETA] "
+labels: ["beta-validation", "evidence"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include account names, credentials, machine names, proprietary market data, or live-order evidence.
+  - type: input
+    id: commit
+    attributes:
+      label: Tested commit SHA
+      placeholder: 40-character Git commit SHA
+    validations:
+      required: true
+  - type: input
+    id: nt8
+    attributes:
+      label: NinjaTrader 8 version
+    validations:
+      required: true
+  - type: dropdown
+    id: account_mode
+    attributes:
+      label: Account mode
+      options:
+        - Playback101
+        - Sim101
+    validations:
+      required: true
+  - type: input
+    id: connection
+    attributes:
+      label: Connection or data provider
+      description: Provider name only; do not provide account details.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Scenario results and evidence hashes
+      description: List scenario IDs, pass/fail/blocked status, and SHA-256 hashes.
+    validations:
+      required: true
+  - type: checkboxes
+    id: attestation
+    attributes:
+      label: Safety attestation
+      options:
+        - label: I used only Playback101 or Sim101.
+          required: true
+        - label: I removed sensitive and personally identifying data.
+          required: true
+        - label: I am not claiming profitability or live-trading readiness.
+          required: true

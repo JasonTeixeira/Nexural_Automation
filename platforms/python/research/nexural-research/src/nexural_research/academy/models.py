@@ -4,9 +4,35 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Literal
 
 Visibility = Literal["public", "hidden"]
+
+
+@dataclass(frozen=True)
+class ExecutableTest:
+    """A trusted assertion loaded from the content package, never from a learner payload."""
+
+    id: str
+    path: str
+    operator: str
+    expected: Any
+    visibility: Visibility
+    message: str
+
+
+@dataclass(frozen=True)
+class ExecutionSpec:
+    """Runtime contract for a declarative, deterministic Academy exercise."""
+
+    runner: str
+    starter: str
+    solution: str
+    expected_trace: str
+    visible_tests: tuple[ExecutableTest, ...]
+    hidden_tests: tuple[ExecutableTest, ...]
+    fault_profiles: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -34,6 +60,8 @@ class LearningItem:
     rubric: tuple[RubricCriterion, ...]
     hints: tuple[str, ...] = ()
     tags: tuple[str, ...] = ()
+    execution: ExecutionSpec | None = None
+    content_root: Path | None = None
 
 
 @dataclass(frozen=True)

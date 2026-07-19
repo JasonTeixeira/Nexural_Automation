@@ -1,0 +1,13 @@
+criteria:
+- id: trace-complete
+  weight: 25
+  evidence: trusted runner artifact
+- id: target-behavior
+  weight: 25
+  evidence: trusted runner artifact
+- id: paper-boundary
+  weight: 25
+  evidence: trusted runner artifact
+- id: fault-resilience
+  weight: 25
+  evidence: trusted runner artifact

@@ -1,0 +1,64 @@
+id: research.optimization-bias
+track: research-operator
+title: Optimization Bias Controls
+updated_at: '2026-07-19'
+estimated_minutes: 50
+objectives:
+- Explain how to record the complete search space and selection process.
+- Produce a deterministic trace and fault-evidence artifact.
+prerequisites:
+- research.regime-segmentation
+tags:
+- executable
+- paper-only
+- duplicate
+translations:
+  en:
+    title: Optimization Bias Controls
+    summary: Implement and prove how to record the complete search space and selection process.
+  es:
+    title: Controles de sesgo de optimización
+    summary: Implementa y demuestra cómo registrar el espacio de búsqueda y proceso de selección completos.
+hints:
+- Read the visible assertion, then identify how to record the complete search space and selection process;
+  inspect `measure_selection_bias` as a naming clue.
+- The target behavior is represented by one explicit operation near `measure_selection_bias`.
+- Replay the duplicate profile and inspect its required recovery operation.
+execution:
+  runner: nexural.declarative-trace.v1
+  starter: starter/program.yaml
+  visible_tests: tests/visible.yaml
+  hidden_tests: tests/hidden.yaml
+  solution: solution/program.yaml
+  expected_trace: expected-trace.json
+  fault_profiles:
+  - duplicate
+rubric:
+- id: trace-complete
+  metric: tests.trace-complete.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: Replace every TODO so the trusted runner can complete the trace.
+- id: target-behavior
+  metric: tests.target-behavior.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: The trace must implement `measure_selection_bias`.
+- id: paper-boundary
+  metric: tests.paper-boundary.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The hidden safety boundary requires paper-only mode.
+- id: fault-resilience
+  metric: fault_evidence.duplicate.handled
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The implementation did not safely handle the seeded duplicate scenario.

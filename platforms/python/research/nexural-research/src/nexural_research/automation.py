@@ -8,7 +8,9 @@ from the CLI, HTTP API, MCP tools, tests, or future schedulers.
 from __future__ import annotations
 
 import math
+import ntpath
 import os
+import tempfile
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
@@ -100,37 +102,116 @@ def _json_dict(value: Any) -> dict[str, Any]:
     return normalized
 
 
-def _allowed_roots() -> list[Path]:
-    raw = os.environ.get("NEXURAL_ALLOWED_DATA_DIRS", "").strip()
+def _configured_roots(variable: str, *, required: bool) -> list[Path]:
+    raw = os.environ.get(variable, "").strip()
     if not raw:
+        if required:
+            raise PermissionError(f"{variable} must be configured for confined path access")
         return []
-    roots = []
+    roots: list[Path] = []
     for item in raw.split(os.pathsep):
         item = item.strip()
         if item:
-            roots.append(Path(item).expanduser().resolve())
+            _reject_confined_path_syntax(item)
+            try:
+                root = Path(item).expanduser().resolve(strict=True)
+            except (OSError, RuntimeError) as exc:
+                raise PermissionError(f"Configured path root is unavailable: {variable}") from exc
+            if not root.is_dir():
+                raise PermissionError(f"Configured path root is not a directory: {variable}")
+            roots.append(root)
+    if required and not roots:
+        raise PermissionError(f"{variable} must contain at least one path root")
     return roots
 
 
-def _resolve_input_file(path: str | Path) -> Path:
-    p = Path(path).expanduser().resolve()
-    if not p.exists():
-        raise FileNotFoundError(f"Input file does not exist: {p}")
-    if not p.is_file():
-        raise ValueError(f"Input path is not a file: {p}")
+def _reject_confined_path_syntax(path: str | Path) -> None:
+    raw = os.fspath(path)
+    if not raw or "\x00" in raw:
+        raise PermissionError("unsafe path syntax")
 
-    roots = _allowed_roots()
-    if roots and not any(p == root or root in p.parents for root in roots):
-        allowed = ", ".join(str(root) for root in roots)
-        raise PermissionError(
-            f"Input file is outside NEXURAL_ALLOWED_DATA_DIRS: {p}. Allowed: {allowed}"
-        )
-    return p
+    windows_form = raw.replace("/", "\\")
+    drive, tail = ntpath.splitdrive(windows_form)
+    if windows_form.startswith("\\\\") or drive.startswith("\\\\"):
+        raise PermissionError("unsafe path syntax: network and device paths are not allowed")
+    if ":" in tail:
+        raise PermissionError("unsafe path syntax: alternate data streams are not allowed")
+
+    posix_parts = Path(raw).parts
+    windows_parts = tuple(part for part in windows_form.split("\\") if part)
+    if ".." in posix_parts or ".." in windows_parts:
+        raise PermissionError("unsafe path syntax: traversal is not allowed")
 
 
-def load_trade_export(path: str | Path) -> tuple[pd.DataFrame, dict[str, Any]]:
+def _is_under(candidate: Path, roots: list[Path]) -> bool:
+    return any(candidate == root or candidate.is_relative_to(root) for root in roots)
+
+
+def resolve_confined_input_file(
+    path: str | Path,
+    *,
+    require_configured_roots: bool = False,
+) -> Path:
+    """Resolve an input file, applying fail-closed roots for HTTP/local-path mode.
+
+    CLI and MCP callers retain the historical unrestricted local default. Once
+    roots are configured, or ``require_configured_roots`` is true, traversal,
+    network/device paths, ADS syntax, and symlink escapes are rejected.
+    """
+
+    roots = _configured_roots(
+        "NEXURAL_ALLOWED_DATA_DIRS",
+        required=require_configured_roots,
+    )
+    if roots or require_configured_roots:
+        _reject_confined_path_syntax(path)
+    try:
+        candidate = Path(path).expanduser().resolve(strict=True)
+    except FileNotFoundError as exc:
+        raise FileNotFoundError("Input file does not exist") from exc
+    except (OSError, RuntimeError) as exc:
+        raise PermissionError("Input path could not be resolved safely") from exc
+    if not candidate.is_file():
+        raise ValueError("Input path is not a file")
+    if roots and not _is_under(candidate, roots):
+        raise PermissionError("Input file is outside configured roots")
+    return candidate
+
+
+def resolve_confined_output_directory(
+    path: str | Path,
+    *,
+    require_configured_roots: bool = False,
+) -> Path:
+    """Resolve a report directory without allowing an output-root escape."""
+
+    roots = _configured_roots(
+        "NEXURAL_ALLOWED_REPORT_DIRS",
+        required=require_configured_roots,
+    )
+    if roots or require_configured_roots:
+        _reject_confined_path_syntax(path)
+    try:
+        candidate = Path(path).expanduser().resolve(strict=False)
+    except (OSError, RuntimeError) as exc:
+        raise PermissionError("Output path could not be resolved safely") from exc
+    if roots and not _is_under(candidate, roots):
+        raise PermissionError("Output directory is outside configured roots")
+    if candidate.exists() and (candidate.is_symlink() or not candidate.is_dir()):
+        raise PermissionError("Output path is not a safe directory")
+    return candidate
+
+
+def load_trade_export(
+    path: str | Path,
+    *,
+    require_confinement: bool = False,
+) -> tuple[pd.DataFrame, dict[str, Any]]:
     """Load a supported trade export and return normalized trades plus metadata."""
-    p = _resolve_input_file(path)
+    p = resolve_confined_input_file(
+        path,
+        require_configured_roots=require_confinement,
+    )
     df, platform = detect_and_load(p)
     if "profit" not in df.columns:
         raise ValueError("Trade export could not be normalized: missing required profit column")
@@ -194,9 +275,10 @@ def analyze_strategy_export(
     monte_carlo_sims: int = 2000,
     monte_carlo_distribution: str = "empirical",
     walk_forward_windows: int = 5,
+    require_confinement: bool = False,
 ) -> dict[str, Any]:
     """Run the full agent-ready strategy due diligence workflow."""
-    df, source = load_trade_export(csv_path)
+    df, source = load_trade_export(csv_path, require_confinement=require_confinement)
 
     core = metrics_from_trades(df)
     comp = comprehensive_analysis(df, risk_free_rate=risk_free_rate)
@@ -315,20 +397,42 @@ def generate_strategy_report(
     *,
     output_dir: str | Path | None = None,
     title: str | None = None,
+    require_confinement: bool = False,
 ) -> dict[str, Any]:
     """Generate an HTML research report and return its path plus quick summary."""
-    df, source = load_trade_export(csv_path)
+    df, source = load_trade_export(csv_path, require_confinement=require_confinement)
     in_path = Path(source["path"])
-    out_dir = (
-        Path(output_dir).expanduser().resolve()
-        if output_dir
-        else in_path.parent / "nexural_reports"
+    if require_confinement and output_dir is None:
+        raise PermissionError("A confined output directory is required")
+    out_dir = resolve_confined_output_directory(
+        output_dir if output_dir is not None else in_path.parent / "nexural_reports",
+        require_configured_roots=require_confinement,
     )
     out_dir.mkdir(parents=True, exist_ok=True)
 
     report_title = title or f"Nexural Research Report - {source['filename']}"
     out_path = out_dir / f"{in_path.stem}_nexural_report.html"
-    out_path.write_text(build_trades_report_html(df, title=report_title), encoding="utf-8")
+    if out_path.is_symlink() or (out_path.exists() and not out_path.is_file()):
+        raise PermissionError("Report target is not a safe regular file")
+    report_html = build_trades_report_html(df, title=report_title)
+    temporary_name: str | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=out_dir,
+            prefix=".nexural-report-",
+            suffix=".tmp",
+            delete=False,
+        ) as temporary:
+            temporary.write(report_html)
+            temporary.flush()
+            os.fsync(temporary.fileno())
+            temporary_name = temporary.name
+        Path(temporary_name).replace(out_path)
+    finally:
+        if temporary_name:
+            Path(temporary_name).unlink(missing_ok=True)
 
     core = metrics_from_trades(df)
     return _json_dict(
@@ -354,9 +458,10 @@ def run_strategy_gauntlet_export(
     min_trades: int = 100,
     n_trials: int = 100,
     cost_stress_profile: str = "elevated",
+    require_confinement: bool = False,
 ) -> dict[str, Any]:
     """Run the institutional gauntlet on a supported trade-export CSV."""
-    df, source = load_trade_export(csv_path)
+    df, source = load_trade_export(csv_path, require_confinement=require_confinement)
     report = run_trade_gauntlet(
         df,
         strategy_name=strategy_name,

@@ -1,0 +1,64 @@
+id: nt8.strategy-analyzer
+track: nt8-foundations
+title: Strategy Analyzer Reproducibility
+updated_at: '2026-07-19'
+estimated_minutes: 50
+objectives:
+- Explain how to capture analyzer, fill-resolution, and optimization settings.
+- Produce a deterministic trace and fault-evidence artifact.
+prerequisites:
+- nt8.resource-cleanup
+tags:
+- executable
+- paper-only
+- partial_fill
+translations:
+  en:
+    title: Strategy Analyzer Reproducibility
+    summary: Implement and prove how to capture analyzer, fill-resolution, and optimization settings.
+  es:
+    title: Reproducibilidad en Strategy Analyzer
+    summary: Implementa y demuestra cómo capturar ajustes del analizador, resolución de fills y optimización.
+hints:
+- Read the visible assertion, then identify how to capture analyzer, fill-resolution, and optimization
+  settings; inspect `record_analyzer_configuration` as a naming clue.
+- The target behavior is represented by one explicit operation near `record_analyzer_configuration`.
+- Replay the partial_fill profile and inspect its required recovery operation.
+execution:
+  runner: nexural.declarative-trace.v1
+  starter: starter/program.yaml
+  visible_tests: tests/visible.yaml
+  hidden_tests: tests/hidden.yaml
+  solution: solution/program.yaml
+  expected_trace: expected-trace.json
+  fault_profiles:
+  - partial_fill
+rubric:
+- id: trace-complete
+  metric: tests.trace-complete.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: Replace every TODO so the trusted runner can complete the trace.
+- id: target-behavior
+  metric: tests.target-behavior.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: public
+  message: The trace must implement `record_analyzer_configuration`.
+- id: paper-boundary
+  metric: tests.paper-boundary.passed
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The hidden safety boundary requires paper-only mode.
+- id: fault-resilience
+  metric: fault_evidence.partial_fill.handled
+  operator: equals
+  expected: true
+  weight: 25
+  visibility: hidden
+  message: The implementation did not safely handle the seeded partial_fill scenario.

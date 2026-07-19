@@ -22,18 +22,18 @@ jobs:
       run:
         working-directory: platforms/python/research/nexural-research
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.11"
       - name: Install
         run: pip install -e ".[dev,mcp]"
-      - name: Lint public MVP surface
+      - name: Lint critical trust-boundary surface
         env:
           PYTHONPATH: src
-        run: python -m ruff check src/nexural_research/automation.py src/nexural_research/mcp_server.py src/nexural_research/mcp_hosts.py src/nexural_research/cost_model.py src/nexural_research/gauntlet.py src/nexural_research/strategy_sdk.py src/nexural_research/bridge_sdk.py src/nexural_research/contracts.py src/nexural_research/quality_gate.py src/nexural_research/api/routers/automation.py tests/test_automation.py tests/test_api.py tests/test_mcp_contract.py
+        run: python -m ruff check src/nexural_research/automation.py src/nexural_research/academy src/nexural_research/mcp_server.py src/nexural_research/mcp_hosts.py src/nexural_research/cost_model.py src/nexural_research/gauntlet.py src/nexural_research/strategy_sdk.py src/nexural_research/bridge_sdk.py src/nexural_research/contracts.py src/nexural_research/quality_gate.py src/nexural_research/api/routers/automation.py src/nexural_research/api/routers/export.py src/nexural_research/report/html.py tests/test_automation.py tests/test_academy.py tests/test_academy_execution.py tests/test_academy_interfaces.py tests/test_api.py tests/test_local_path_security.py tests/test_mcp_contract.py tests/test_report_generation.py
       - name: Format check
-        run: ruff format --check src/nexural_research/automation.py src/nexural_research/mcp_server.py src/nexural_research/mcp_hosts.py src/nexural_research/cost_model.py src/nexural_research/gauntlet.py src/nexural_research/strategy_sdk.py src/nexural_research/bridge_sdk.py src/nexural_research/contracts.py src/nexural_research/quality_gate.py src/nexural_research/api/routers/automation.py tests/test_automation.py tests/test_api.py tests/test_mcp_contract.py
+        run: ruff format --check src/nexural_research/automation.py src/nexural_research/academy src/nexural_research/mcp_server.py src/nexural_research/mcp_hosts.py src/nexural_research/cost_model.py src/nexural_research/gauntlet.py src/nexural_research/strategy_sdk.py src/nexural_research/bridge_sdk.py src/nexural_research/contracts.py src/nexural_research/quality_gate.py src/nexural_research/api/routers/automation.py src/nexural_research/api/routers/export.py src/nexural_research/report/html.py tests/test_automation.py tests/test_academy.py tests/test_academy_execution.py tests/test_academy_interfaces.py tests/test_api.py tests/test_local_path_security.py tests/test_mcp_contract.py tests/test_report_generation.py
 
   typecheck:
     runs-on: ubuntu-latest
@@ -41,14 +41,14 @@ jobs:
       run:
         working-directory: platforms/python/research/nexural-research
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.11"
       - name: Install
         run: pip install -e ".[dev]" mypy
       - name: Type check
-        run: mypy src/nexural_research/ --ignore-missing-imports --no-strict-optional || true
+        run: mypy src/nexural_research/automation.py src/nexural_research/academy src/nexural_research/api/routers/automation.py src/nexural_research/api/routers/export.py src/nexural_research/report/html.py --ignore-missing-imports --no-strict-optional --follow-imports=silent
 
   security:
     runs-on: ubuntu-latest
@@ -56,8 +56,8 @@ jobs:
       run:
         working-directory: platforms/python/research/nexural-research
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.11"
       - name: Install security tools
@@ -70,8 +70,8 @@ jobs:
   secret-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.11"
       - name: Scan tracked files for committed secrets
@@ -86,8 +86,8 @@ jobs:
       run:
         working-directory: platforms/python/research/nexural-research
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -102,7 +102,7 @@ jobs:
 
       - name: Upload coverage
         if: matrix.python-version == '3.11'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: coverage-report
           path: platforms/python/research/nexural-research/coverage.xml
@@ -117,8 +117,8 @@ jobs:
       run:
         working-directory: platforms/python/research/nexural-research
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.11"
       - name: Install public MVP dependencies
@@ -139,14 +139,14 @@ jobs:
       run:
         working-directory: platforms/python/research/nexural-research/frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: platforms/python/research/nexural-research/frontend/package-lock.json
       - name: Install
-        run: npm ci || npm install
+        run: npm ci
       - name: Dependency audit
         run: npm audit --audit-level=moderate
       - name: Type check
@@ -161,11 +161,11 @@ jobs:
       run:
         working-directory: platforms/python/research/nexural-research
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Build Docker image
         run: docker build -t nexural-research:ci .
       - name: Scan image with Trivy
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
         with:
           image-ref: nexural-research:ci
           format: table

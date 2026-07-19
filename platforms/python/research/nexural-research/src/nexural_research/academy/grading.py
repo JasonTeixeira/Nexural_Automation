@@ -1,17 +1,19 @@
-"""Deterministic, declarative Academy grader."""
+"""Deterministic Academy grader over trusted machine-produced evidence."""
 
 from __future__ import annotations
 
 from collections.abc import Mapping
 from typing import Any
 
+from .execution import execute_item
 from .models import CriterionResult, GradeResult, LearningItem, RubricCriterion
 
 MISSING = object()
 
 
 def grade(item: LearningItem, submission: Mapping[str, Any]) -> GradeResult:
-    results = tuple(_evaluate(criterion, submission) for criterion in item.rubric)
+    evidence = execute_item(item, submission)
+    results = tuple(_evaluate(criterion, evidence) for criterion in item.rubric)
     score = sum(result.earned for result in results)
     return GradeResult(item.id, score == 100, score, results)
 

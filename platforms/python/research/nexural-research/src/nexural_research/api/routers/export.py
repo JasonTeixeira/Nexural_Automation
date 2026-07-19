@@ -183,4 +183,4 @@ def generate_html_report(
 ):
     """Generate a full HTML report."""
     df = get_trades(session_id)
-    return HTMLResponse(content=build_trades_report_html(df, title=escape(title, quote=True)))
+    return HTMLResponse(content=build_trades_report_html(df, title=title))

@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Nexural.NT8.AdapterCompile</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <UseWPF>true</UseWPF>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>1591</NoWarn>
+    <NinjaTraderBin Condition="'$(NinjaTraderBin)' == ''">C:\Program Files\NinjaTrader 8\bin</NinjaTraderBin>
+    <NinjaTraderCustomBin Condition="'$(NinjaTraderCustomBin)' == ''">$(USERPROFILE)\Documents\NinjaTrader 8\bin\Custom\bin\Release</NinjaTraderCustomBin>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/Nexural.NT8.Core/*.cs" />
+    <Compile Include="../../adapters/NinjaScript/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="NinjaTrader.Core" HintPath="$(NinjaTraderBin)\NinjaTrader.Core.dll" Private="false" />
+    <Reference Include="NinjaTrader.Gui" HintPath="$(NinjaTraderBin)\NinjaTrader.Gui.dll" Private="false" />
+    <Reference Include="NinjaTrader.Custom" HintPath="$(NinjaTraderCustomBin)\NinjaTrader.Custom.dll" Private="false" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <Target Name="RequireNinjaTrader" BeforeTargets="ResolveReferences" Condition="!Exists('$(NinjaTraderBin)\NinjaTrader.Core.dll')">
+    <Error Text="NinjaTrader.Core.dll was not found. Set /p:NinjaTraderBin=&quot;...\NinjaTrader 8\bin&quot;." />
+  </Target>
+</Project>

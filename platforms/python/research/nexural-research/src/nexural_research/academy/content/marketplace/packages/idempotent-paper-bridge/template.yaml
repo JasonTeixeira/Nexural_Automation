@@ -1,0 +1,15 @@
+schema_version: "1.0"
+name: idempotent-paper-bridge
+kind: bridge-template
+entrypoint: bridge.retries
+controls:
+  max_attempts: 8
+  persist_idempotency_key: false
+  exhausted_action: retry_forever
+scenario:
+  fixture: academy/fixtures/event-stream.json
+  faults: [disconnect, duplicate, latency, partial_fill, stale_data]
+  seed: 42
+promotion:
+  target: paper
+  requires: [bounded_retries, idempotent_delivery, operator_review]

@@ -1,0 +1,11 @@
+{
+  "status": "complete",
+  "operations": [
+    "load_fixture",
+    "recover_from_checkpoint",
+    "reconcile_after_disconnect",
+    "emit_evidence"
+  ],
+  "fault_profile": "disconnect",
+  "deterministic": true
+}

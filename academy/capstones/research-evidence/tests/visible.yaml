@@ -1,0 +1,14 @@
+tests:
+- id: trace-complete
+  path: trace.status
+  operator: equals
+  expected: complete
+  message: The capstone trace must complete.
+- id: integrated-behavior
+  path: source.program.operations
+  operator: ordered_subset
+  expected:
+  - measure_selection_bias
+  - simulate_path_uncertainty
+  - seal_evidence_bundle
+  message: The three terminal track behaviors must execute in order.

@@ -1,0 +1,9 @@
+program:
+  operations:
+  - load_fixture
+  - handle_order_update
+  - reject_late_event
+  - emit_evidence
+  settings:
+    mode: paper
+    deterministic: true

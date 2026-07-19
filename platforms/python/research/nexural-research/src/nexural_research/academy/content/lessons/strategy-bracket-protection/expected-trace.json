@@ -1,0 +1,11 @@
+{
+  "status": "complete",
+  "operations": [
+    "load_fixture",
+    "maintain_protective_bracket",
+    "accumulate_partial_fills",
+    "emit_evidence"
+  ],
+  "fault_profile": "partial_fill",
+  "deterministic": true
+}

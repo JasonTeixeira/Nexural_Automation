@@ -1,0 +1,9 @@
+program:
+  operations:
+  - load_fixture
+  - seal_evidence_bundle
+  - reconcile_after_disconnect
+  - emit_evidence
+  settings:
+    mode: paper
+    deterministic: true

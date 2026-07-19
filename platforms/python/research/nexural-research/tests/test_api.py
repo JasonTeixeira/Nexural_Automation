@@ -158,7 +158,7 @@ class TestAutomationEndpoints:
         assert resp.status_code == 200
         assert resp.json()["estimated_total_cost"] > 0
 
-    def test_gauntlet_csv(self, client, tmp_path):
+    def test_gauntlet_csv(self, tmp_path, monkeypatch):
         csv_path = tmp_path / "api_gauntlet.csv"
         base = pd.Timestamp("2025-01-02 09:30:00")
         rows = []
@@ -176,6 +176,9 @@ class TestAutomationEndpoints:
                 }
             )
         pd.DataFrame(rows).to_csv(csv_path, index=False)
+        monkeypatch.setenv("NEXURAL_LOCAL_PATH_API_ENABLED", "true")
+        monkeypatch.setenv("NEXURAL_ALLOWED_DATA_DIRS", str(tmp_path))
+        client = TestClient(app, client=("127.0.0.1", 51001))
 
         resp = client.post(
             "/api/automation/gauntlet-csv",
@@ -190,7 +193,7 @@ class TestAutomationEndpoints:
         assert resp.status_code == 200
         assert len(resp.json()["gauntlet"]["checks"]) == 10
 
-    def test_report_csv(self, client, tmp_path):
+    def test_report_csv(self, tmp_path, monkeypatch):
         csv_path = tmp_path / "api_report.csv"
         base = pd.Timestamp("2025-01-02 09:30:00")
         rows = []
@@ -208,10 +211,16 @@ class TestAutomationEndpoints:
                 }
             )
         pd.DataFrame(rows).to_csv(csv_path, index=False)
+        reports = tmp_path / "reports"
+        reports.mkdir()
+        monkeypatch.setenv("NEXURAL_LOCAL_PATH_API_ENABLED", "true")
+        monkeypatch.setenv("NEXURAL_ALLOWED_DATA_DIRS", str(tmp_path))
+        monkeypatch.setenv("NEXURAL_ALLOWED_REPORT_DIRS", str(reports))
+        client = TestClient(app, client=("127.0.0.1", 51002))
 
         resp = client.post(
             "/api/automation/report-csv",
-            json={"csv_path": str(csv_path), "output_dir": str(tmp_path / "reports")},
+            json={"csv_path": str(csv_path), "output_dir": str(reports)},
         )
         assert resp.status_code == 200
         assert resp.json()["report_path"].endswith("api_report_nexural_report.html")
