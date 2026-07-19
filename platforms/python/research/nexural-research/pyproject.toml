@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'nexural-research'
-version = '2.0.0'
+version = "0.3.0"
 description = 'Institutional-grade strategy analysis engine for NinjaTrader trade exports. 71+ metrics, Monte Carlo, walk-forward, overfitting detection, stress testing, and full quant analytics.'
 readme = 'README.md'
 requires-python = '>=3.11,<3.12'
