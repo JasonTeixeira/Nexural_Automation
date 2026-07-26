@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "contract_id": "NEXURAL_NT8_ROLLING_360D_LAST_TICK_HYDRATION_V1",
+  "classification": "operator_contract_only_no_market_data",
+  "research_only": true,
+  "paper_approved": false,
+  "live_approved": false,
+  "universe": ["ES", "NQ", "YM", "RTY", "CL", "GC", "SI", "BTC", "ETH"],
+  "interval": {"bar_type": "Tick", "bar_value": 1, "data_kinds_required": ["Last"]},
+  "retention": {"screening_days": 360, "survivor_months": 24},
+  "cadence": {
+    "daily": "hydrate active exact contract after session",
+    "roll": "hydrate outgoing and incoming exact contracts with overlap",
+    "weekly_repair": "re-hydrate trailing 14 calendar days",
+    "pre_campaign": "run archive audit and attach JSON receipt"
+  },
+  "integrity_gates": [
+    "exact-contract identity is recorded",
+    "first and last requested-session tick are attested",
+    "duplicate timestamps retain sequence order",
+    "gaps and partial sessions are reported rather than filled",
+    "continuous contracts are never substituted for exact-roll evidence"
+  ],
+  "order_flow_boundary": [
+    "Last ticks are insufficient for historical bid/ask delta, imbalance, absorption, DOM, or queue claims.",
+    "Bid, Ask, and Last availability must be audited separately.",
+    "Replay/L1/L2 recording begins prospectively and cannot reconstruct unrecorded history."
+  ],
+  "raw_data_publication": "prohibited_by_repository_policy"
+}

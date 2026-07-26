@@ -9,6 +9,7 @@ Build the strategy. Prove the research. Break the bridge. Recover the state. Pro
 [![Core CI](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/ci.yml)
 [![Research CI](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/python-research-ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/python-research-ci.yml)
 [![NT8 portable CI](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/nt8-portable-ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/nt8-portable-ci.yml)
+[![Qualification](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/world-class-qualification.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/world-class-qualification.yml)
 [![CodeQL](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/codeql.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/codeql.yml)
 [![Docs](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/docs-pages.yml/badge.svg)](https://jasonteixeira.github.io/Nexural_Automation/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-00b894.svg)](LICENSE)
@@ -42,13 +43,14 @@ This table separates automated evidence from claims that still require a human o
 | Capability | Current evidence | Status |
 |---|---|---|
 | Portable C# execution/risk kernel | 13 deterministic fault scenarios on .NET 8 | **Automated** |
+| Adversarial execution/risk validation | 50,000 property cases, 50,000 fuzz cases, 14/14 explicit mutants killed, measured recovery RTOs | **Automated locally and in CI** |
 | Native NT8 adapter compile | Exact Strategy/AddOn sources compiled against local NT8 `8.1.7.2`: 0 warnings, 0 errors | **Locally verified** |
 | NT8 desktop import and simulated fills | Checklist and evidence contract exist; NinjaTrader exposes no supported headless import command | **Manual gate** |
 | Academy catalog | 5 tracks, 60 lesson manifests, 5 capstone manifests; source/package parity tested | **Automated** |
 | Academy grading | Trusted data-only runner derives source hash, trace, tests, fault evidence, and digest | **Automated** |
 | Python research engine | Cross-platform quality gate, pytest, schema validation, security scans, browser checks | **Automated in CI** |
-| Release artifacts | Wheel/sdist, NT8 archive, SBOM, SHA-256 manifest, keyless Sigstore signing workflow | **Configured; verified on release** |
-| External beta | Pseudonymous evidence schema and promotion thresholds are implemented | **Prepared, not yet completed** |
+| Release artifacts | Reproducible wheel/sdist and NT8 builds, SBOM, SHA-256 manifest, keyless Sigstore sign-and-verify gate | **Implemented; no qualifying release published yet** |
+| World-class qualification | Policy-driven aggregate gate covers native desktops, automation, release, security, maintainership, learners, and capstones | **Infrastructure complete; external evidence incomplete** |
 
 ## Start here
 
@@ -71,6 +73,7 @@ Run the native safety checks from the repository root:
 ```powershell
 cd ../../../..
 ./platforms/ninjatrader/scripts/Test-NT8SafetySpine.ps1
+./platforms/ninjatrader/scripts/Test-NT8Adversarial.ps1
 ```
 
 If NT8 is not installed, run the portable kernel and fault suite only:
@@ -218,6 +221,7 @@ Run the same gates locally that protect the release path:
 py -3.11 scripts/repo-tools/secret_scan.py
 py -3.11 scripts/repo-tools/validate_contract_schemas.py
 py -3.11 scripts/repo-tools/validate_beta_evidence.py
+py -3.11 scripts/repo-tools/verify_world_class_gate.py --format markdown
 
 # Python engine and Academy
 cd platforms/python/research/nexural-research
@@ -227,9 +231,12 @@ py -3.11 -m nexural_research.cli quality-gate --threshold 0.95 --json --fast
 # Native/portable NT8 checks
 cd ../../../..
 ./platforms/ninjatrader/scripts/Test-NT8SafetySpine.ps1
+./platforms/ninjatrader/scripts/Test-NT8Adversarial.ps1
 ```
 
-Releases are built from immutable tags. The release gate builds and tests Python distributions, runs browser/auth/accessibility checks, runs the portable NT8 fault suite, validates the NT8 archive, generates an SPDX SBOM and SHA-256 manifest, signs artifacts through keyless Sigstore, and only then dispatches trusted PyPI and GHCR publication workflows. All third-party GitHub Actions are pinned to immutable commit SHAs.
+Releases are promoted from a frozen, exact successful qualification commit. New external evidence may be merged afterward only as schema-valid JSON additions in the two evidence directories; an evidence-delta gate proves that the immutable release tag contains no later modification, deletion, code, workflow, policy, schema, symlink, or traversal change. The release then reproduces Python and NT8 builds in independent directories, runs browser/auth/accessibility and adversarial NT8 checks, rejects high or critical container vulnerabilities, generates an SPDX SBOM and SHA-256 manifest, signs and verifies every payload through keyless Sigstore, records the resulting bundle digests, and only publishes after the complete qualification report passes. All third-party GitHub Actions are pinned to immutable commit SHAs.
+
+`world-class` is a computed evidence state, not a marketing label. The current repository intentionally fails that complete gate until two independent Windows/NT8 environments, both account modes, two patch versions, 100 learners, 25 independently graded capstones, an external security review, a second qualified maintainer, and a qualifying signed release are represented by reviewed evidence. See the [qualification contract](qualification/README.md).
 
 ## Repository map
 
@@ -245,6 +252,7 @@ Nexural_Automation/
 ├── platforms/python/research/
 │   └── nexural-research/             # analysis engine, API, MCP, Academy service, UI
 ├── beta/                             # external evidence contract; no fabricated results
+├── qualification/                    # machine-enforced policy and evidence boundary
 ├── schemas/                          # strategy, bridge, beta, and evidence schemas
 ├── docs/                             # architecture, tutorials, security, operations
 ├── conductor/                        # product, stack, workflow, and track context
@@ -261,6 +269,7 @@ Nexural_Automation/
 | Build a strategy | [First strategy](docs/build-your-first-strategy.md) · [strategy framework](docs/strategy-framework.md) |
 | Build a bridge | [First bridge](docs/build-your-first-bridge.md) · [bridge examples](platforms/python/research/examples/bridges) |
 | Validate research | [Gauntlet](docs/why-strategies-fail-the-gauntlet.md) · [benchmarks](BENCHMARKS.md) |
+| Audit qualification | [World-class evidence contract](qualification/README.md) · [roadmap](ROADMAP.md) |
 | Operate securely | [Security hardening](docs/security-hardening.md) · [threat model](docs/threat-model.md) |
 | Contribute | [Contributing guide](CONTRIBUTING.md) · [roadmap](ROADMAP.md) |
 

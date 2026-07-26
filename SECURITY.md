@@ -53,3 +53,11 @@ Out of scope:
 We will not pursue legal action against researchers who act in good faith, avoid privacy violations and destructive testing, do not access live brokerage systems, and allow a reasonable remediation window before disclosure.
 
 The repository's automated security checks and threat model are defensive engineering evidence, not a substitute for an independent professional security assessment.
+
+## Qualification rule
+
+The world-class gate requires zero unresolved critical or high vulnerabilities and at least one
+independent external security assessment. The review record must match
+[`schemas/external-security-review.schema.json`](schemas/external-security-review.schema.json),
+reference the immutable commit reviewed, include the report SHA-256 digest, and confirm that no
+critical/high findings remain unresolved. Project maintainers cannot self-attest this gate.

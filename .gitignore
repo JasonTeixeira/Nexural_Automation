@@ -11,6 +11,7 @@ Thumbs.db
 !.env.example
 
 # Build artifacts / temp
+/artifacts/
 bin/
 obj/
 .vs/
@@ -23,6 +24,10 @@ obj/
 __pycache__/
 *.pyc
 .pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
 .venv/
 venv/
 
@@ -45,3 +50,11 @@ build/
 experiments/
 reports/
 **/data/sessions/
+
+# Provider-licensed NinjaTrader historical and Replay data.  Commit only
+# reproducible contracts, manifests, checksums, and synthetic fixtures.
+**/NinjaTrader 8/db/
+**/NinjaTrader 8/replay/
+*.ncd
+*.nrd
+*.raw_ticks.csv

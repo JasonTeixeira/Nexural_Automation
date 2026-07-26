@@ -37,6 +37,13 @@ body:
     validations:
       required: true
   - type: textarea
+    id: learning
+    attributes:
+      label: Completed labs, capstones and grading digest
+      description: List code-graded lab IDs, capstone IDs, and the grading SHA-256 digest.
+    validations:
+      required: true
+  - type: textarea
     id: evidence
     attributes:
       label: Scenario results and evidence hashes
@@ -53,4 +60,6 @@ body:
         - label: I removed sensitive and personally identifying data.
           required: true
         - label: I am not claiming profitability or live-trading readiness.
+          required: true
+        - label: Every submitted completion was produced by code-derived grading.
           required: true

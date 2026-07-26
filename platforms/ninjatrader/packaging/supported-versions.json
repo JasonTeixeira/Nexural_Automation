@@ -10,8 +10,11 @@
     "native_compile_tested_versions": [
       "8.1.7.2"
     ],
-    "desktop_import_verified_versions": [],
-    "minimum_version": "8.1.7.2",
+    "desktop_qualification_target_versions": [
+      "8.1.7.1",
+      "8.1.7.2"
+    ],
+    "minimum_version": "8.1.7.1",
     "maximum_version_exclusive": "8.2.0.0",
     "runtime": ".NET Framework 4.8",
     "verification_date": "2026-07-19"

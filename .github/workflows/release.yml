@@ -1,13 +1,14 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing release tag to validate and publish
+        description: Existing qualified release tag to build, verify and publish
+        required: true
+        type: string
+      tested_commit:
+        description: Frozen release-candidate SHA referenced by qualification evidence
         required: true
         type: string
 
@@ -19,30 +20,38 @@ permissions:
 
 jobs:
   release:
+    name: Signed world-class release gate
     runs-on: ubuntu-latest
+    env:
+      RELEASE_CERTIFICATE_IDENTITY: https://github.com/JasonTeixeira/Nexural_Automation/.github/workflows/release.yml@refs/tags/${{ inputs.tag }}
     defaults:
       run:
         working-directory: platforms/python/research/nexural-research
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
-          ref: ${{ inputs.tag || github.ref_name }}
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0
 
       - name: Resolve and verify release tag
         id: release-ref
-        shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          TESTED_COMMIT: ${{ inputs.tested_commit }}
         run: |
-          tag="${{ inputs.tag || github.ref_name }}"
-          case "$tag" in
-            v[0-9]*.[0-9]*.[0-9]*) ;;
-            *) echo "Invalid release tag: $tag" >&2; exit 1 ;;
-          esac
-          package_version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
-          if [ "v${package_version}" != "$tag" ]; then
-            echo "Tag $tag does not match package version v${package_version}" >&2
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid release tag: $RELEASE_TAG" >&2
             exit 1
           fi
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          package_version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          test "v${package_version}" = "$RELEASE_TAG"
+          test "$(git rev-list -n 1 "$RELEASE_TAG")" = "$GITHUB_SHA"
+          python "${{ github.workspace }}/scripts/repo-tools/verify_qualification_delta.py" \
+            --tested-commit "$TESTED_COMMIT" \
+            --release-commit "$GITHUB_SHA"
+          echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "tested_commit=$TESTED_COMMIT" >> "$GITHUB_OUTPUT"
+          echo "source_date_epoch=$(git show -s --format=%ct HEAD)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
@@ -64,21 +73,67 @@ jobs:
           python -m nexural_research.cli quality-gate --threshold 0.95 --json --fast
           pytest tests/ --ignore=tests/e2e --tb=short -q
 
-      - name: Build and verify Python distributions
+      - name: Download exact-commit automation evidence
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TESTED_COMMIT: ${{ steps.release-ref.outputs.tested_commit }}
         run: |
-          python -m build
-          python -m twine check dist/*
-          mkdir -p "${{ github.workspace }}/release-artifacts/python"
-          cp dist/* "${{ github.workspace }}/release-artifacts/python/"
+          run_id=$(gh run list \
+            --workflow world-class-qualification.yml \
+            --commit "$TESTED_COMMIT" \
+            --status success \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')
+          test -n "$run_id"
+          gh run download "$run_id" --name world-class-qualification-evidence --dir artifacts/qualification
+          mkdir -p qualification/evidence/automation
+          cp artifacts/qualification/automation.json qualification/evidence/automation/ci.json
 
-      - name: Run portable NT8 fault suite and build import archive
+      - name: Require all pre-release qualification evidence
+        working-directory: ${{ github.workspace }}
+        env:
+          TESTED_COMMIT: ${{ steps.release-ref.outputs.tested_commit }}
+        run: python scripts/repo-tools/verify_world_class_gate.py --commit "$TESTED_COMMIT" --stage pre-release --require-complete --format markdown
+
+      - name: Build two independent Python distributions
+        env:
+          SOURCE_DATE_EPOCH: ${{ steps.release-ref.outputs.source_date_epoch }}
+        run: |
+          rm -rf "${{ github.workspace }}/release-build-a" "${{ github.workspace }}/release-build-b" "${{ github.workspace }}/release-artifacts"
+          python -m build --outdir "${{ github.workspace }}/release-build-a/python"
+          python -m build --outdir "${{ github.workspace }}/release-build-b/python"
+          python "${{ github.workspace }}/scripts/repo-tools/normalize_sdist.py" \
+            "${{ github.workspace }}/release-build-a/python/"*.tar.gz \
+            --epoch "$SOURCE_DATE_EPOCH"
+          python "${{ github.workspace }}/scripts/repo-tools/normalize_sdist.py" \
+            "${{ github.workspace }}/release-build-b/python/"*.tar.gz \
+            --epoch "$SOURCE_DATE_EPOCH"
+          python -m twine check "${{ github.workspace }}/release-build-a/python/"*
+          python -m twine check "${{ github.workspace }}/release-build-b/python/"*
+
+      - name: Build two independent NT8 archives
         working-directory: ${{ github.workspace }}
         shell: pwsh
         run: |
           ./platforms/ninjatrader/scripts/Test-NT8SafetySpine.ps1 -SkipNativeCompile
+          ./platforms/ninjatrader/scripts/Test-NT8Adversarial.ps1 `
+            -OutputDirectory '${{ github.workspace }}/artifacts/qualification-release'
           ./platforms/ninjatrader/scripts/Build-NinjaTraderArchive.ps1 `
-            -SkipNativeCompile `
-            -OutputDirectory '${{ github.workspace }}/release-artifacts/nt8'
+            -SkipTests -SkipNativeCompile `
+            -OutputDirectory '${{ github.workspace }}/release-build-a/nt8'
+          ./platforms/ninjatrader/scripts/Build-NinjaTraderArchive.ps1 `
+            -SkipTests -SkipNativeCompile `
+            -OutputDirectory '${{ github.workspace }}/release-build-b/nt8'
+
+      - name: Assemble release payload
+        working-directory: ${{ github.workspace }}
+        run: |
+          mkdir -p release-artifacts/python release-artifacts/nt8 release-artifacts/qualification
+          cp release-build-a/python/* release-artifacts/python/
+          cp release-build-a/nt8/* release-artifacts/nt8/
+          cp artifacts/qualification/automation.json release-artifacts/qualification/automation.json
 
       - name: Install browser gate and build canonical frontend
         run: |
@@ -100,10 +155,17 @@ jobs:
           E2E_FRONTEND_URL=http://127.0.0.1:8011 PYTHONPATH=src pytest tests/e2e -v --tb=short
           E2E_FRONTEND_URL=http://127.0.0.1:8011 E2E_AUTH_URL=http://127.0.0.1:8012 npm run test:e2e --prefix frontend
 
-      - name: Build Docker image
-        run: |
-          docker build -t nexural-research:${{ github.ref_name }} .
-          docker tag nexural-research:${{ github.ref_name }} nexural-research:latest
+      - name: Build release container
+        run: docker build -t nexural-research:${{ inputs.tag }} .
+
+      - name: Reject every HIGH or CRITICAL release-container vulnerability
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
+        with:
+          image-ref: nexural-research:${{ inputs.tag }}
+          format: table
+          severity: HIGH,CRITICAL
+          ignore-unfixed: false
+          exit-code: 1
 
       - name: Generate SBOM (SPDX-JSON)
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
@@ -113,19 +175,79 @@ jobs:
           output-file: ${{ github.workspace }}/release-artifacts/sbom.spdx.json
           artifact-name: sbom.spdx.json
 
-      - name: Generate release checksums
+      - name: Generate checksums for the unsigned payload set
         working-directory: ${{ github.workspace }}
-        shell: bash
         run: |
-          find release-artifacts -type f -print0 \
-            | sort -z \
-            | xargs -0 sha256sum \
-            > release-artifacts/SHA256SUMS
+          (cd release-artifacts && \
+            find . -type f ! -name SHA256SUMS -print0 \
+              | sort -z \
+              | xargs -0 sha256sum > SHA256SUMS)
 
-      - name: Sign and verify release artifacts with Sigstore
+      - name: Sign and verify every release payload
         uses: sigstore/gh-action-sigstore-python@5b79a39c381910c090341a2c9b0bf022c8b387e1 # v3.4.0
         with:
-          inputs: ${{ github.workspace }}/release-artifacts/**/*
+          inputs: |
+            ${{ github.workspace }}/release-artifacts/python/*
+            ${{ github.workspace }}/release-artifacts/nt8/*
+            ${{ github.workspace }}/release-artifacts/qualification/automation.json
+            ${{ github.workspace }}/release-artifacts/sbom.spdx.json
+            ${{ github.workspace }}/release-artifacts/SHA256SUMS
+          verify: true
+          verify-cert-identity: ${{ env.RELEASE_CERTIFICATE_IDENTITY }}
+          verify-oidc-issuer: https://token.actions.githubusercontent.com
+          upload-signing-artifacts: true
+
+      - name: Generate release evidence from verified Sigstore bundles
+        working-directory: ${{ github.workspace }}
+        env:
+          RELEASE_TAG: ${{ steps.release-ref.outputs.tag }}
+          TESTED_COMMIT: ${{ steps.release-ref.outputs.tested_commit }}
+          WORKFLOW_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          CERTIFICATE_IDENTITY: ${{ env.RELEASE_CERTIFICATE_IDENTITY }}
+        run: |
+          mkdir -p qualification/evidence/releases
+          python scripts/repo-tools/generate_release_evidence.py \
+            --artifacts release-artifacts \
+            --build-a release-build-a \
+            --build-b release-build-b \
+            --bundle-root release-artifacts \
+            --tag "$RELEASE_TAG" \
+            --commit "$TESTED_COMMIT" \
+            --release-commit "$GITHUB_SHA" \
+            --workflow-run "$WORKFLOW_RUN" \
+            --sbom release-artifacts/sbom.spdx.json \
+            --certificate-identity "$CERTIFICATE_IDENTITY" \
+            --output qualification/evidence/releases/ci.json
+          cp qualification/evidence/releases/ci.json release-artifacts/qualification/release.json
+
+      - name: Sign and verify the release evidence
+        uses: sigstore/gh-action-sigstore-python@5b79a39c381910c090341a2c9b0bf022c8b387e1 # v3.4.0
+        with:
+          inputs: ${{ github.workspace }}/release-artifacts/qualification/release.json
+          verify: true
+          verify-cert-identity: ${{ env.RELEASE_CERTIFICATE_IDENTITY }}
+          verify-oidc-issuer: https://token.actions.githubusercontent.com
+          upload-signing-artifacts: true
+
+      - name: Require and record the complete world-class gate
+        working-directory: ${{ github.workspace }}
+        env:
+          TESTED_COMMIT: ${{ steps.release-ref.outputs.tested_commit }}
+        run: |
+          python scripts/repo-tools/verify_world_class_gate.py \
+            --commit "$TESTED_COMMIT" \
+            --stage complete \
+            --require-complete \
+            --format json \
+            --output release-artifacts/qualification/world-class-report.json
+
+      - name: Sign and verify the final qualification report
+        uses: sigstore/gh-action-sigstore-python@5b79a39c381910c090341a2c9b0bf022c8b387e1 # v3.4.0
+        with:
+          inputs: ${{ github.workspace }}/release-artifacts/qualification/world-class-report.json
+          verify: true
+          verify-cert-identity: ${{ env.RELEASE_CERTIFICATE_IDENTITY }}
+          verify-oidc-issuer: https://token.actions.githubusercontent.com
           upload-signing-artifacts: true
 
       - name: Create GitHub Release

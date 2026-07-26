@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "label": "world-class",
+  "thresholds": {
+    "independent_windows_machines": 2,
+    "independent_desktop_testers": 2,
+    "supported_nt8_patch_versions": 2,
+    "required_account_modes": ["Playback101", "Sim101"],
+    "disconnect_rto_seconds": 5.0,
+    "restart_rto_seconds": 30.0,
+    "property_cases": 50000,
+    "fuzz_cases": 50000,
+    "mutation_score_percent": 85.0,
+    "unresolved_critical_vulnerabilities": 0,
+    "unresolved_high_vulnerabilities": 0,
+    "external_learners": 100,
+    "capstone_completers": 25,
+    "provider_profiles": 3,
+    "clean_setup_rate": 0.95,
+    "external_security_reviews": 1,
+    "qualified_maintainers": 2,
+    "owner_maintainers": 1,
+    "non_owner_maintainers": 1,
+    "qualifying_signed_releases": 1
+  }
+}

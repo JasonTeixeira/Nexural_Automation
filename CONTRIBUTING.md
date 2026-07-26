@@ -8,13 +8,14 @@ Thanks for contributing. The goal is to build a repo that’s useful to real tra
 - conservative claims (no hype)
 - reproducible steps
 
-## What you can contribute
-- NinjaTrader 8 strategies/indicators (primary)
-- TradingView Pine v5 indicators/strategies (secondary)
-- Python strategy scaffolds for the Strategy SDK
-- paper-first bridge scaffolds for external tools
-- docs, research notes, validation checklists
-- utilities and tooling (carefully)
+## Current contribution priority
+
+The qualification cycle accepts safety-kernel tests, recovery/fault evidence, Academy labs,
+documentation, security hardening, packaging, and release tooling. It intentionally accepts **zero
+new standalone strategies** until every world-class gate is satisfied.
+
+Existing strategy and indicator modules may receive correctness, safety, compatibility, and
+documentation fixes. The `No new standalone strategies` CI check enforces this boundary.
 
 ## Module requirements (required for strategies/indicators)
 Each module folder must contain:
@@ -65,5 +66,7 @@ nexural-research quality-gate --threshold 0.95 --json --fast
 - No committed `.mcp.json`, `.env`, exports, reports, databases, or API keys
 - Strategy examples declare no-lookahead execution assumptions
 - Bridge examples stay paper-first unless external safety proofs are documented
+- Critical execution, risk, release, or qualification paths have a qualified independent reviewer
+- Evidence records contain pseudonymous IDs and digests, never credentials or trading identifiers
 
 By submitting a PR, you agree your contribution is licensed under Apache-2.0.

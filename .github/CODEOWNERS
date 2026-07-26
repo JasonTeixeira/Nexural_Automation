@@ -9,3 +9,7 @@
 /platforms/python/research/nexural-research/src/nexural_research/bridge_sdk.py @JasonTeixeira
 /.github/workflows/ @JasonTeixeira
 /schemas/ @JasonTeixeira
+/qualification/ @JasonTeixeira
+/scripts/repo-tools/verify_world_class_gate.py @JasonTeixeira
+/scripts/repo-tools/verify_qualification_delta.py @JasonTeixeira
+/platforms/ninjatrader/scripts/Test-NT8Mutations.py @JasonTeixeira

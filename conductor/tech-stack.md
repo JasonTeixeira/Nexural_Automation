@@ -10,10 +10,10 @@
 
 ## Validation
 
-- Pytest, Hypothesis, coverage, Ruff, MyPy, Bandit, pip-audit, CodeQL, Trivy.
+- Pytest, Hypothesis, coverage, Ruff, MyPy, Bandit, pip-audit, CodeQL, Trivy, generated property/fuzz tests, and explicit mutation testing.
 - Portable .NET unit and fault tests plus a Windows/NT8 self-hosted compile/import gate.
 - Playwright and axe-core at 375, 768, 1024, and 1440 pixel widths.
-- JSON Schema 2020-12 for contracts, Academy packages, and beta evidence.
+- JSON Schema 2020-12 for contracts, Academy packages, beta evidence, desktop qualification, releases, security reviews, and maintainer attestations.
 
 ## Distribution
 
@@ -27,4 +27,4 @@
 - Hosted HTTP APIs consume opaque artifact IDs; local filesystem paths are local-adapter only.
 - Academy execution is sandboxed and cannot submit live orders.
 - Public NT8 bridges accept only Playback101 and Sim101 by default.
-- Release publishing consumes artifacts built by successful release gates, never an untested rebuild.
+- Release publishing consumes reproducible artifacts and an exact-commit qualification run, never an untested rebuild.

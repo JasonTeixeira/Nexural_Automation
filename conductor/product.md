@@ -36,3 +36,6 @@ and safely operating NinjaTrader 8 automation.
 - 95% clean-machine setup success and median first passing lab under 10 minutes.
 - Signed, checksummed, SBOM-attached, reproducible release artifacts.
 - Independent beta evidence meeting the gate in [`beta/README.md`](../beta/README.md).
+- Two independent Windows machines and two supported NT8 patch versions covering Playback and Simulator.
+- Zero unresolved critical/high vulnerabilities plus an external security assessment.
+- A second qualified non-owner maintainer for critical-path review.

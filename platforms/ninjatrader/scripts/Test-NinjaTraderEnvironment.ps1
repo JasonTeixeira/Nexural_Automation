@@ -14,8 +14,9 @@ if (-not (Test-Path -LiteralPath $coreAssembly -PathType Leaf)) {
 
 $installedVersion = (Get-Item -LiteralPath $coreAssembly).VersionInfo.FileVersion
 $compileTested = @($support.ninjatrader.native_compile_tested_versions)
-if ($installedVersion -notin $compileTested) {
-    throw "NinjaTrader $installedVersion is not in the native-compile-tested set: $($compileTested -join ', ')"
+$qualificationTargets = @($support.ninjatrader.desktop_qualification_target_versions)
+if ($installedVersion -notin $qualificationTargets) {
+    throw "NinjaTrader $installedVersion is not in the desktop qualification target set: $($qualificationTargets -join ', ')"
 }
 if ($support.live_routing -ne $false) {
     throw 'Safety manifest must explicitly disable live routing.'
@@ -26,8 +27,8 @@ if (@($support.routing_scope) -join ',' -ne 'Sim101,Playback101') {
 
 [pscustomobject]@{
     InstalledVersion = $installedVersion
-    NativeCompileTarget = $true
-    DesktopImportVerified = $installedVersion -in @($support.ninjatrader.desktop_import_verified_versions)
+    NativeCompileBaseline = $installedVersion -in $compileTested
+    DesktopQualificationTarget = $true
     CoreAssembly = $coreAssembly
     RoutingScope = @($support.routing_scope) -join ', '
     LiveRouting = $support.live_routing

@@ -20,7 +20,7 @@ if (-not $SkipTests) {
 
 $supportPath = Join-Path $root 'packaging\supported-versions.json'
 $support = Get-Content -LiteralPath $supportPath -Raw | ConvertFrom-Json
-$version = @($support.ninjatrader.native_compile_tested_versions)[0]
+$version = $support.ninjatrader.minimum_version
 $archivePath = Join-Path $OutputDirectory "Nexural-NT8-Safety-Spine-$version.zip"
 $staging = Join-Path $OutputDirectory ('.stage-' + [Guid]::NewGuid().ToString('N'))
 

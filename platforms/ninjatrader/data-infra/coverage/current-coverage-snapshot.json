@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "snapshot_date": "2026-07-25",
+  "classification": "sanitized_local_inventory_no_prices_no_ticks",
+  "source": "Documents/NinjaTrader 8/db read-only inventory",
+  "raw_data_included": false,
+  "database": {
+    "total_gib": 6.735,
+    "tick_gib": 3.79,
+    "cache_gib": 2.77,
+    "minute_gib": 0.078,
+    "replay_gib": 0.091
+  },
+  "last_tick_coverage": [
+    {"symbol": "ES", "from": "2024-06-13", "to": "2026-07-24", "contracts": 8, "files": 11646, "gib": 1.72},
+    {"symbol": "NQ", "from": "2025-04-03", "to": "2026-07-24", "contracts": 6, "files": 8000, "gib": 0.758},
+    {"symbol": "YM", "from": "2025-07-29", "to": "2026-07-24", "contracts": 5, "files": 6003, "gib": 0.115},
+    {"symbol": "RTY", "from": "2025-07-28", "to": "2026-07-24", "contracts": 5, "files": 6026, "gib": 0.18},
+    {"symbol": "CL", "from": "2025-07-28", "to": "2026-07-24", "contracts": 13, "files": 6437, "gib": 0.196},
+    {"symbol": "GC", "from": "2025-07-28", "to": "2026-07-24", "contracts": 6, "files": 6083, "gib": 0.195},
+    {"symbol": "SI", "from": "2025-07-28", "to": "2026-07-24", "contracts": 6, "files": 6086, "gib": 0.077},
+    {"symbol": "BTC", "from": "2025-07-29", "to": "2026-07-25", "contracts": 13, "files": 6650, "gib": 0.011},
+    {"symbol": "ETH", "from": "2025-07-29", "to": "2026-07-25", "contracts": 13, "files": 6600, "gib": 0.016}
+  ],
+  "known_gaps": [
+    "HG and ZB each contain only eight distinct dates and are not research-eligible.",
+    "Historical tick files are Last only; no Bid or Ask files were found.",
+    "Only three isolated NQ Replay files were found; there is no continuous L1/L2 Replay archive."
+  ],
+  "research_eligibility": {
+    "price_and_volume_at_price": "eligible_for_exact_roll_audit",
+    "historical_bid_ask_delta": "not_eligible",
+    "dom_absorption_queue": "not_eligible"
+  }
+}

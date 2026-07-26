@@ -1,0 +1,33 @@
+name: External security review
+description: Register an independent security assessment and remediation state.
+title: "[SECURITY REVIEW] "
+labels: ["security-review", "evidence"]
+body:
+  - type: input
+    id: commit
+    attributes:
+      label: Reviewed commit SHA
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Review scope
+      description: Cover all six required surfaces—filesystem/API, Academy execution, NT8 bridge, execution/risk kernel, CI/CD and supply chain.
+    validations:
+      required: true
+  - type: input
+    id: report_hash
+    attributes:
+      label: Sanitized report SHA-256
+    validations:
+      required: true
+  - type: checkboxes
+    id: attestation
+    attributes:
+      label: Reviewer attestation
+      options:
+        - label: The reviewer is independent of the repository owner.
+          required: true
+        - label: No unresolved critical or high findings remain.
+          required: true
