@@ -50,3 +50,11 @@ build/
 experiments/
 reports/
 **/data/sessions/
+
+# Provider-licensed NinjaTrader historical and Replay data.  Commit only
+# reproducible contracts, manifests, checksums, and synthetic fixtures.
+**/NinjaTrader 8/db/
+**/NinjaTrader 8/replay/
+*.ncd
+*.nrd
+*.raw_ticks.csv
