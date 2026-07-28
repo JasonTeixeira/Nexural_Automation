@@ -266,17 +266,44 @@ docker compose up -d
 
 # Development mode
 docker compose --profile dev up
+
+# Production image: exact Python pins, numeric non-root user, packaged frontend
+docker build -t nexural-research:local .
+docker inspect --format '{{.Config.User}}' nexural-research:local
 ```
+
+The production image writes Academy and session state only beneath `/app/data`. CI starts it with
+a read-only root filesystem, no Linux capabilities, `no-new-privileges`, and explicit temporary
+mounts, then runs the complete browser workflow against that locked-down container.
 
 ---
 
 ## Kubernetes
 
 ```bash
-kubectl apply -f k8s/deployment.yaml
+# Create or update the required secret without committing credentials.
+kubectl create secret generic nexural-secrets \
+  --from-literal=api-keys="$NEXURAL_API_KEYS" \
+  --from-literal=database-url="$NEXURAL_DATABASE_URL" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# Never promote the mutable example tag. Substitute a verified release digest.
+export NEXURAL_IMAGE="ghcr.io/jasonteixeira/nexural-research@sha256:<verified-digest>"
+kubectl set image -f k8s/deployment.yaml \
+  nexural-research="$NEXURAL_IMAGE" \
+  --local -o yaml | kubectl apply -f -
+
+kubectl rollout status deployment/nexural-research
+kubectl get pods -l app=nexural-research
 ```
 
-Includes: Deployment (3 replicas), Service, HPA (2-10 pods), PVC (50Gi).
+The manifest enforces a numeric non-root identity, a read-only root filesystem, dropped
+capabilities, `RuntimeDefault` seccomp, no service-account token, resource limits, health probes,
+and bounded writable mounts.
+
+The included PVC is `ReadWriteOnce`. Before allowing the HPA to place replicas on multiple nodes,
+use a storage class that supports `ReadWriteMany` or externalize Academy/session state. Treat the
+raw `latest` image value as a substitution target, never as a promoted production reference.
 
 ---
 
@@ -287,7 +314,7 @@ Includes: Deployment (3 replicas), Service, HPA (2-10 pods), PVC (50Gi).
 3. Run tests: `pytest tests/`
 4. Submit a pull request
 
-See [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](../../../../CONTRIBUTING.md) for guidelines.
 
 ---
 
@@ -296,14 +323,14 @@ See [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
 - **[OPERATIONS.md](OPERATIONS.md)** — Deployment, monitoring, alerting, incident response
 - **[DATA_DICTIONARY.md](DATA_DICTIONARY.md)** — Every metric explained with formulas
 - **[V0_FRONTEND_BLUEPRINT.md](V0_FRONTEND_BLUEPRINT.md)** — Frontend specification
-- **[../../../docs/security-hardening.md](../../../docs/security-hardening.md)** - Public security hardening model
-- **[../../../docs/automation-academy.md](../../../docs/automation-academy.md)** - Contributor learning path
+- **[../../../../docs/security-hardening.md](../../../../docs/security-hardening.md)** - Public security hardening model
+- **[../../../../docs/automation-academy.md](../../../../docs/automation-academy.md)** - Contributor learning path
 
 ---
 
 ## License
 
-Apache-2.0 - see [LICENSE](../../LICENSE)
+Apache-2.0 - see [LICENSE](../../../../LICENSE)
 
 ---
 

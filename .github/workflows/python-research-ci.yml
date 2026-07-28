@@ -71,11 +71,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+      - name: Scan complete Git history with Gitleaks
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.11"
       - name: Scan tracked files for committed secrets
         run: python scripts/repo-tools/secret_scan.py
+      - name: Validate production container dependency pins
+        run: python scripts/repo-tools/validate_container_constraints.py
 
   test:
     runs-on: ubuntu-latest
@@ -153,6 +161,11 @@ jobs:
         run: npx tsc --noEmit
       - name: Build
         run: npm run build
+      - name: Audit desktop packaging dependencies
+        working-directory: platforms/python/research/nexural-research/desktop
+        run: |
+          npm ci --ignore-scripts
+          npm audit --audit-level=high
 
   docker:
     runs-on: ubuntu-latest
@@ -170,12 +183,42 @@ jobs:
           image-ref: nexural-research:ci
           format: table
           severity: HIGH,CRITICAL
-          ignore-unfixed: true
+          ignore-unfixed: false
           exit-code: 1
 
-      - name: Smoke test
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: platforms/python/research/nexural-research/frontend/package-lock.json
+      - name: Install production browser test dependencies
+        working-directory: platforms/python/research/nexural-research/frontend
         run: |
-          docker run -d --name nexural-ci -p 8000:8000 nexural-research:ci
-          sleep 5
-          curl -f http://localhost:8000/api/health || exit 1
-          docker stop nexural-ci
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Run browser workflows against the locked-down production image
+        run: |
+          docker run -d --name nexural-ci \
+            --read-only \
+            --security-opt no-new-privileges \
+            --cap-drop ALL \
+            --tmpfs /tmp:rw,noexec,nosuid,uid=10001,gid=10001,mode=1770,size=1g \
+            --tmpfs /app/data:rw,nosuid,uid=10001,gid=10001,mode=0770,size=1g \
+            --tmpfs /app/reports:rw,nosuid,uid=10001,gid=10001,mode=0770,size=256m \
+            --tmpfs /app/experiments:rw,nosuid,uid=10001,gid=10001,mode=0770,size=256m \
+            -p 127.0.0.1:8011:8000 \
+            nexural-research:ci
+          trap 'docker rm -f nexural-ci >/dev/null 2>&1 || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8011/api/health >/dev/null; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker logs nexural-ci
+              exit 1
+            fi
+            sleep 1
+          done
+          docker inspect --format '{{.Config.User}} {{.HostConfig.ReadonlyRootfs}} {{.HostConfig.Privileged}}' nexural-ci \
+            | grep '^10001:10001 true false$'
+          E2E_FRONTEND_URL=http://127.0.0.1:8011 npm run test:e2e --prefix frontend

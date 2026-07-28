@@ -3,17 +3,17 @@ import clsx from "clsx";
 interface Props {
   label: string;
   value: string | number;
-  color?: "default" | "green" | "red" | "amber" | "blue";
+  color?: "default" | "green" | "red" | "amber" | "active";
   subtitle?: string;
   badge?: string;
 }
 
 const valueColors = {
-  default: "text-white",
-  green: "text-emerald-400",
-  red: "text-red-400",
-  amber: "text-amber-400",
-  blue: "text-blue-400",
+  default: "text-[var(--ivory)]",
+  green: "text-[var(--signal-pass)]",
+  red: "text-[var(--signal-fail)]",
+  amber: "text-[var(--signal-warn)]",
+  active: "text-[var(--signal-active-strong)]",
 };
 
 const glowColors = {
@@ -21,7 +21,7 @@ const glowColors = {
   green: "glow-green",
   red: "glow-red",
   amber: "",
-  blue: "glow-blue",
+  active: "glow-active",
 };
 
 export function MetricCard({ label, value, color = "default", subtitle, badge }: Props) {
@@ -32,7 +32,7 @@ export function MetricCard({ label, value, color = "default", subtitle, badge }:
           <span className={clsx(
             color === "green" ? "badge-green" :
             color === "red" ? "badge-red" :
-            color === "amber" ? "badge-amber" : "badge-blue"
+            color === "amber" ? "badge-amber" : "badge-active"
           )}>{badge}</span>
         </div>
       )}

@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="1440" viewBox="0 0 720 1440" role="img" aria-labelledby="mobile-map-title mobile-map-desc">
+  <title id="mobile-map-title">Nexural Automation mobile system map</title>
+  <desc id="mobile-map-desc">A portrait system map showing Academy and research evidence passing through promotion and fault gates into the fail-closed C sharp safety kernel, NinjaTrader adapter, Simulator, and evidence feedback path.</desc>
+  <defs>
+    <marker id="mobile-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10Z" fill="#C7F464"/>
+    </marker>
+    <style>
+      .display{font-family:"Space Grotesk",sans-serif;font-weight:700;fill:#F4F0E6}
+      .mono{font-family:"JetBrains Mono",monospace;fill:#8E9B95}
+      .node{fill:#18201C;stroke:#56635D;stroke-width:2}
+      .gate{fill:#241A14;stroke:#FF6B35;stroke-width:3}
+      .flow{fill:none;stroke:#C7F464;stroke-width:4}
+      .edge{fill:none;stroke:#C7F464;stroke-width:4;marker-end:url(#mobile-arrow)}
+      .feedback{fill:none;stroke:#56635D;stroke-width:3;stroke-dasharray:10 10;marker-end:url(#mobile-arrow)}
+    </style>
+  </defs>
+  <rect width="720" height="1440" fill="#111714"/>
+  <path d="M0 92H720M0 1330H720" stroke="#27332E" stroke-width="2"/>
+  <text x="36" y="48" class="display" font-size="28">NEXURAL AUTOMATION</text>
+  <text x="36" y="76" class="mono" font-size="16">MOBILE SYSTEM MAP / SIMULATION FIRST</text>
+  <rect x="580" y="38" width="104" height="34" fill="#C7F464"/>
+  <text x="632" y="61" font-family="JetBrains Mono,monospace" font-size="14" font-weight="700" fill="#111714" text-anchor="middle">NX / 01</text>
+
+  <text x="36" y="132" class="mono" font-size="17">01 / LEARN + PROVE</text>
+  <rect x="36" y="154" width="306" height="150" class="node"/>
+  <text x="60" y="195" class="display" font-size="26">Automation Academy</text>
+  <text x="60" y="232" class="mono" font-size="18">60 labs • 5 capstones</text>
+  <text x="60" y="265" class="mono" font-size="18">code-derived grading</text>
+  <rect x="378" y="154" width="306" height="150" class="node"/>
+  <text x="402" y="195" class="display" font-size="26">Research engine</text>
+  <text x="402" y="232" class="mono" font-size="18">walk-forward • costs</text>
+  <text x="402" y="265" class="mono" font-size="18">DSR • Monte Carlo</text>
+
+  <path d="M189 304V354H330" class="flow"/>
+  <path d="M531 304V354H390" class="flow"/>
+  <path d="M360 354V378" class="edge"/>
+
+  <text x="36" y="370" class="mono" font-size="17">02 / QUALIFY</text>
+  <polygon points="360,388 492,468 360,548 228,468" class="gate"/>
+  <text x="360" y="458" class="display" font-size="25" text-anchor="middle">Promotion</text>
+  <text x="360" y="491" class="mono" font-size="17" text-anchor="middle">evidence gate</text>
+  <rect x="468" y="570" width="216" height="120" class="gate"/>
+  <text x="492" y="610" class="display" font-size="24">Fault suite</text>
+  <text x="492" y="646" class="mono" font-size="16">property • fuzz</text>
+  <text x="492" y="674" class="mono" font-size="16">mutation • RTO</text>
+  <path d="M360 548V618H220V708" class="edge"/>
+  <path d="M468 630H420V708" class="edge"/>
+
+  <text x="36" y="726" class="mono" font-size="17">03 / CONTROL</text>
+  <rect x="36" y="748" width="648" height="292" fill="#1C261F" stroke="#C7F464" stroke-width="4"/>
+  <text x="68" y="798" class="display" font-size="30">C# safety kernel</text>
+  <path d="M68 818H652" stroke="#56635D" stroke-width="2"/>
+  <text x="68" y="861" class="mono" font-size="19">account + provider gate</text>
+  <text x="68" y="899" class="mono" font-size="19">sequence + time gate</text>
+  <text x="68" y="937" class="mono" font-size="19">reconciliation • risk limits</text>
+  <text x="68" y="975" class="mono" font-size="19">kill switch • cursor • ACK • journal</text>
+  <rect x="500" y="848" width="152" height="112" fill="#C7F464"/>
+  <text x="576" y="892" font-family="JetBrains Mono,monospace" font-size="17" font-weight="700" fill="#111714" text-anchor="middle">UNKNOWN</text>
+  <text x="576" y="919" font-family="JetBrains Mono,monospace" font-size="17" font-weight="700" fill="#111714" text-anchor="middle">STATE</text>
+  <text x="576" y="946" font-family="JetBrains Mono,monospace" font-size="17" font-weight="700" fill="#111714" text-anchor="middle">BLOCKS</text>
+
+  <path d="M360 1040V1086" class="edge"/>
+  <text x="36" y="1080" class="mono" font-size="17">04 / EXECUTE + PROVE</text>
+  <rect x="36" y="1100" width="306" height="132" class="node"/>
+  <text x="60" y="1142" class="display" font-size="26">NT8 adapter</text>
+  <text x="60" y="1178" class="mono" font-size="18">Strategy or AddOn</text>
+  <text x="60" y="1208" class="mono" font-size="18">paper-only boundary</text>
+  <rect x="378" y="1100" width="306" height="132" class="node"/>
+  <text x="402" y="1142" class="display" font-size="26">Simulator</text>
+  <text x="402" y="1178" class="mono" font-size="18">Sim101 • Simulator</text>
+  <text x="402" y="1208" class="mono" font-size="18">Playback101 • Playback</text>
+  <path d="M342 1166H368" class="edge"/>
+  <path d="M531 1232V1270H704V630H694" class="feedback"/>
+  <text x="697" y="930" class="mono" font-size="15" text-anchor="middle" transform="rotate(-90 697 930)">EVIDENCE FEEDBACK</text>
+
+  <rect x="36" y="1350" width="648" height="58" fill="#F4F0E6"/>
+  <text x="58" y="1375" font-family="Space Grotesk,sans-serif" font-size="18" font-weight="700" fill="#111714">PROMOTION RULE</text>
+  <text x="58" y="1398" font-family="JetBrains Mono,monospace" font-size="14" fill="#27332E">No metric or green test bypasses native simulation evidence.</text>
+</svg>

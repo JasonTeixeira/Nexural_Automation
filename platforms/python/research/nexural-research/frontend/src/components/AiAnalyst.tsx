@@ -31,7 +31,11 @@ export function AiAnalyst({ sessionId, apiKey, provider }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
   }, [messages]);
 
   const send = useCallback(async (text: string) => {
@@ -83,8 +87,8 @@ export function AiAnalyst({ sessionId, apiKey, provider }: Props) {
     return (
       <div className="max-w-2xl mx-auto animate-slide-up">
         <div className="panel text-center py-16">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/20 flex items-center justify-center">
-            <svg className="w-8 h-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-lg border border-[var(--signal-active-border)] bg-[var(--signal-active-soft)]">
+            <svg className="h-8 w-8 text-[var(--signal-active)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
             </svg>
           </div>
@@ -93,7 +97,7 @@ export function AiAnalyst({ sessionId, apiKey, provider }: Props) {
             Connect your Claude or OpenAI API key to get institutional-grade AI analysis of your strategy data.
           </p>
           <p className="text-xs text-gray-500">
-            Go to <span className="text-blue-400 font-medium">Settings</span> to configure your API key
+            Go to <span className="font-medium text-[var(--signal-active-strong)]">Settings</span> to configure your API key
           </p>
         </div>
       </div>
@@ -117,7 +121,7 @@ export function AiAnalyst({ sessionId, apiKey, provider }: Props) {
                 <button
                   key={i}
                   onClick={() => send(prompt)}
-                  className="glass-card px-4 py-3 text-left text-xs text-gray-400 hover:text-gray-200 hover:border-blue-500/20 transition-all"
+                  className="glass-card min-h-11 cursor-pointer px-4 py-3 text-left text-xs text-gray-400 transition-all hover:border-[var(--signal-active-border)] hover:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal-active)]"
                 >
                   {prompt}
                 </button>
@@ -132,9 +136,9 @@ export function AiAnalyst({ sessionId, apiKey, provider }: Props) {
               {msg.role === "assistant" ? (
                 <div className="prose prose-invert prose-sm max-w-none">
                   {msg.content.split("\n").map((line, j) => {
-                    if (line.startsWith("## ")) return <h3 key={j} className="text-blue-400 font-semibold text-sm mt-4 mb-2">{line.slice(3)}</h3>;
+                    if (line.startsWith("## ")) return <h3 key={j} className="mt-4 mb-2 text-sm font-semibold text-[var(--signal-active-strong)]">{line.slice(3)}</h3>;
                     if (line.startsWith("### ")) return <h4 key={j} className="text-gray-300 font-medium text-sm mt-3 mb-1">{line.slice(4)}</h4>;
-                    if (line.startsWith("- ") || line.startsWith("* ")) return <div key={j} className="flex gap-2 text-xs my-0.5"><span className="text-blue-500 mt-0.5">&#8226;</span><span>{line.slice(2)}</span></div>;
+                    if (line.startsWith("- ") || line.startsWith("* ")) return <div key={j} className="my-0.5 flex gap-2 text-xs"><span className="mt-0.5 text-[var(--signal-active)]">&#8226;</span><span>{line.slice(2)}</span></div>;
                     if (line.startsWith("**") && line.endsWith("**")) return <div key={j} className="font-semibold text-gray-200 text-xs mt-2">{line.slice(2, -2)}</div>;
                     if (line.trim() === "") return <div key={j} className="h-2" />;
                     return <p key={j} className="text-xs my-1">{line}</p>;
@@ -156,9 +160,9 @@ export function AiAnalyst({ sessionId, apiKey, provider }: Props) {
           <div className="flex justify-start">
             <div className="chat-bubble-ai flex items-center gap-3">
               <div className="flex gap-1">
-                <div className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-                <div className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+                <div className="h-2 w-2 rounded-full bg-[var(--signal-active)] animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="h-2 w-2 rounded-full bg-[var(--signal-active)] animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="h-2 w-2 rounded-full bg-[var(--signal-active)] animate-bounce" style={{ animationDelay: "300ms" }} />
               </div>
               <span className="text-xs text-gray-500">Analyzing your strategy data...</span>
             </div>
@@ -167,7 +171,7 @@ export function AiAnalyst({ sessionId, apiKey, provider }: Props) {
 
         {error && (
           <div className="flex justify-center">
-            <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-xs text-red-400 max-w-md">
+            <div className="max-w-md rounded-lg border border-[var(--signal-fail-border)] bg-[var(--signal-fail-soft)] px-4 py-3 text-xs text-[var(--signal-fail)]">
               {error}
             </div>
           </div>
@@ -181,7 +185,7 @@ export function AiAnalyst({ sessionId, apiKey, provider }: Props) {
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask about your strategy..."
           disabled={loading}
-          className="flex-1 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500/40 focus:ring-1 focus:ring-blue-500/20 transition-all disabled:opacity-50"
+          className="min-h-11 flex-1 rounded-lg border border-[var(--line-strong)] bg-[var(--surface-input)] px-4 py-3 text-sm text-gray-200 placeholder-gray-600 transition-all focus:border-[var(--signal-active)] focus:outline-none focus:ring-1 focus:ring-[var(--signal-active)] disabled:opacity-50"
         />
         <button
           type="submit"

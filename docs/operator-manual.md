@@ -127,8 +127,8 @@ Then perform the desktop procedure:
 9. Sanitize logs and screenshots; remove account, user, machine, and order identifiers.
 10. Generate and schema-validate the independent desktop evidence record.
 
-The complete evidence fields and expected log set are in
-[Build, import, and verify](../platforms/ninjatrader/docs/IMPORT_AND_VERIFY.md).
+The complete portal-safe evidence summary and expected desktop procedure are in
+[NinjaTrader 8 safety boundary](nt8-safety.md#desktop-import-verification).
 Repeat against the same frozen archive on two independently operated Windows
 machines and at least two supported NT8 patch versions.
 

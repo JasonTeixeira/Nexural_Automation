@@ -40,11 +40,11 @@ export function Sidebar({ view, onNavigate, session, onReset }: Props) {
       <div className="px-6 py-6 border-b border-white/[0.04]">
         <div className="flex items-center gap-3">
           <div className="nexural-mark">
-            <span>N</span>
+            <img src="/favicon.svg" alt="" aria-hidden="true" className="h-full w-full" />
           </div>
           <div>
-            <div className="text-sm font-semibold text-white tracking-tight">Nexural Research</div>
-            <div className="text-[10px] text-gray-500 font-medium">Strategy Analysis Engine</div>
+            <div className="text-sm font-semibold text-white tracking-tight">Nexural Automation</div>
+            <div className="text-[10px] text-gray-500 font-medium">Research + Academy Engine</div>
           </div>
         </div>
       </div>
@@ -72,7 +72,7 @@ export function Sidebar({ view, onNavigate, session, onReset }: Props) {
                 <span>{item.label}</span>
                 {item.id === "academy" && <span className="ml-auto badge-amber">LAB</span>}
                 {item.id === "ai" && (
-                  <span className="ml-auto badge-blue">AI</span>
+                  <span className="ml-auto badge-active">AI</span>
                 )}
               </button>
             </div>

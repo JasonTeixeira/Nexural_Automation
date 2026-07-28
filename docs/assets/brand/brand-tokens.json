@@ -1,0 +1,25 @@
+{
+  "name": "Nexural Automation",
+  "version": "1.0.0",
+  "colors": {
+    "institutional-charcoal": "#111714",
+    "control-surface": "#18201C",
+    "structural-line": "#27332E",
+    "warm-paper": "#F4F0E6",
+    "acid-lime": "#C7F464",
+    "safety-orange": "#FF6B35",
+    "muted-instrument": "#8E9B95"
+  },
+  "typography": {
+    "display": "Space Grotesk",
+    "technical": "JetBrains Mono"
+  },
+  "mark": {
+    "clearSpace": "One orange stroke width",
+    "minimumDigitalSize": "24px",
+    "backgrounds": [
+      "institutional-charcoal",
+      "warm-paper"
+    ]
+  }
+}

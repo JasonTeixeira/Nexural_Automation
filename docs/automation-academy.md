@@ -1,88 +1,129 @@
+---
+title: Automation Academy
+description: Use the five-track executable curriculum, deterministic grading, mobile mission index, and evidence ledger.
+---
+
 # Automation Academy
+
+![Nexural Automation Academy mission control showing five operating tracks and the mission queue](assets/screenshots/academy-desktop.png)
+
+[Open the mobile progressive mission index](assets/screenshots/academy-mobile.png)
+
+The Academy is an executable learning system, not a gallery of strategy snippets. Exactly 60 labs
+lead to five capstones. Each mission is a versioned content package evaluated by the trusted
+`nexural_research.academy` runner.
+
+!!! note "What completion proves"
+    An Academy result proves that the learner satisfied a curriculum contract against a specific
+    artifact. It does not certify arbitrary learner code, profitability, live-account safety, or
+    repository qualification.
+
+## The five-track route
+
+| Track | Learner outcome | Safety boundary |
+|---|---|---|
+| NinjaTrader Foundations | Understand lifecycle, calculate modes, series, sessions, resources, and Playback behavior | Platform knowledge is not desktop-import evidence |
+| Strategy Builder | Produce deterministic, paper-only strategy behavior | No standalone strategy bypasses promotion or native gates |
+| Research Operator | Detect leakage, model costs, run walk-forward checks, and preserve evidence | Historical metrics cannot approve execution |
+| Bridge Engineer | Build recoverable transport, ACK, cursor, journal, and reconciliation behavior | Only supported simulation account/provider pairs are eligible |
+| Agent Automation Engineer | Build observable, least-privilege research agents | Hosted services do not execute arbitrary learner or plugin code |
+
+Each track contains 12 labs and one capstone. Prerequisites are enforced by the domain service;
+successful submissions create immutable snapshots in a hash-chained experiment ledger.
 
 ![Automation Academy evidence loop](assets/diagrams/academy-learning-loop.svg)
 
-Nexural Automation is meant to teach contributors how to build strategy systems, not just read strategy notes. The public learning path is a loop:
+## Start the local workspace
 
-1. State a thesis.
-2. Scaffold the strategy.
-3. Validate the metadata contract.
-4. Run a historical export through the gauntlet.
-5. Estimate costs.
-6. Export a report.
-7. Decide reject, tune, watchlist, or promote to paper.
-8. Build a bridge only after the research contract is clean.
-
-## Track 1: Strategy Builder
-
-Start with a strategy scaffold:
+Install the Python 3.11 package from the repository root:
 
 ```powershell
-cd platforms\python\research\nexural-research
-nexural-research new-strategy "Opening Range Failure" --platform python --output-dir ..\examples\strategies
+$env:SETUPTOOLS_USE_DISTUTILS = "stdlib"
+py -3.11 -m pip install -e "platforms/python/research/nexural-research[dev,mcp]"
 ```
 
-Every strategy must include:
-
-- `metadata.yaml` with symbols, asset class, platform, no-lookahead policy, and promotion gate.
-- `parameters.md` with tunable parameters and fixed assumptions.
-- `validation.md` with walk-forward, cost, slippage, and rejection evidence.
-- Source code that separates signal generation from execution assumptions.
-
-Run:
+Launch the local stack with the repository script:
 
 ```powershell
-nexural-research validate-strategy ..\examples\strategies\opening_range_failure\metadata.yaml
+./scripts/start-local-stack.ps1
 ```
 
-## Track 2: Gauntlet Operator
+Open the URL printed by the script, select **Automation Academy**, and use Mission control. At
+375 pixels the interface presents one expanded track at a time with All, Ready, Active, Passed,
+and Locked filters. At larger widths the complete 65-mission queue remains visible.
 
-Use the gauntlet before trusting any backtest:
+## Complete one mission from the CLI
+
+The CLI exposes the same catalog and deterministic grader:
 
 ```powershell
-nexural-research gauntlet --input C:\Exports\nq_strategy.csv --symbol NQ --strategy-name "NQ ORF"
-nexural-research costs --symbol NQ --trades 250 --quantity 1 --stress-profile elevated
+nexural-research academy catalog --json
+nexural-research academy start research.lookahead --learner local-operator --json
+nexural-research academy check research.lookahead `
+  --learner local-operator `
+  --submission academy/fixtures/lookahead-safe-submission.json `
+  --json
+nexural-research academy progress --learner local-operator --json
 ```
 
-Required habits:
+For every mission:
 
-- Treat costs as part of the strategy, not a postscript.
-- Reject lookahead, same-bar execution shortcuts, and synthetic fills.
-- Compare Monte Carlo drawdown, walk-forward efficiency, DSR, and tail risk before reading net profit.
-- Do not promote anything without a paper-first checkpoint.
+1. Read `concept.en.md` or `concept.es.md`.
+2. Inspect the starter `program.yaml` and public checks.
+3. Repair the declarative program; do not add executable Python or C#.
+4. Run `academy check`.
+5. Use the derived trace and failed assertions to make the next change.
+6. Preserve the source hash, trace, test result, fault evidence, and grading digest.
 
-## Track 3: Bridge Builder
+Learner-supplied pass flags are ignored. Only the trusted runner's replayed result can advance a
+prerequisite, complete a capstone, or create an attestation.
 
-Create a bridge scaffold only after the strategy has a clean metadata contract:
+## Read the evidence, not the score alone
+
+A passing response should contain machine-derived evidence tied to the submitted source:
+
+| Evidence | Why it exists |
+|---|---|
+| Source hash | Binds the result to the exact declarative program |
+| Deterministic trace | Makes the evaluated behavior replayable |
+| Public and derived checks | Explains the accepted or rejected behavior |
+| Seeded fault result | Proves the mission's failure path was exercised |
+| Artifact digest | Detects evidence mutation after grading |
+| Ledger link | Preserves the attempt in tamper-evident learner history |
+
+Use **Evidence ledger** in the workspace or:
 
 ```powershell
-nexural-research new-bridge "NinjaTrader CSV" --output-dir ..\examples\bridges
-nexural-research validate-bridge ..\examples\bridges\ninjatrader_csv\bridge_contract.json
+nexural-research academy trace --learner local-operator
 ```
 
-Bridge acceptance requires proof files or documented evidence for:
+## Author a compatible learning package
 
-- Health check.
-- Paper signal roundtrip.
-- Flatten acknowledgement.
-- Kill-switch acknowledgement.
-- Fill reconciliation.
-
-## Track 4: Agent Automation
-
-Run the MCP server:
+The authoring tools create data-only packages and validate their contract without executing
+learner code:
 
 ```powershell
-nexural-mcp
+py -3.11 -m nexural_research.academy.authoring new nt8.example `
+  --root academy/lessons `
+  --track nt8-foundations `
+  --title "Example" `
+  --title-es "Ejemplo"
+
+py -3.11 -m nexural_research.academy.authoring validate academy/lessons/nt8-example
 ```
 
-Then ask an agent to analyze a CSV, scaffold a strategy, estimate costs, or generate a report. Keep `NEXURAL_ALLOWED_DATA_DIRS` set when an agent can read local files.
+Every package includes bilingual concepts, an incomplete starter, a reference solution, public
+checks, hidden-test metadata, an expected trace, a seeded fault, and an evidence rubric. The
+canonical catalog is generated by `academy/tools/generate_curriculum.py`; source and installed
+wheel resources must remain byte-for-byte consistent.
 
-## Graduation Standard
+## Interfaces and extension boundary
 
-A contributor is ready to submit public examples when they can:
+Academy routes are available below `/api/academy/*` and `/api/v1/academy/*`. When
+`NEXURAL_AUTH_ENABLED=true`, bearer authentication isolates learner state by API-key subject.
+Plugin entry points load none by default and require an exact local distribution allowlist.
 
-- Explain why the strategy is not using lookahead.
-- Run `validate-strategy`, `validate-bridge`, and `quality-gate`.
-- Interpret each gauntlet rejection.
-- Produce a paper-first bridge proof without live order routing.
+Continue with the [operator manual](operator-manual.md#3-complete-an-academy-lab), the
+[Academy source contract](https://github.com/JasonTeixeira/Nexural_Automation/blob/main/academy/README.md),
+and the
+[learning-item schema](https://github.com/JasonTeixeira/Nexural_Automation/blob/main/academy/schema/learning-item.schema.json).

@@ -65,5 +65,9 @@
   "devDependencies": {
     "electron": "39.8.10",
     "electron-builder": "26.15.3"
+  },
+  "overrides": {
+    "brace-expansion": "5.0.8",
+    "tar": "7.5.22"
   }
 }

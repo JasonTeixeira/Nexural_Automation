@@ -1,10 +1,12 @@
+title = "Nexural Automation secret scanning"
+
 [extend]
 useDefault = true
 
 [[allowlists]]
-description = "LocalStorage identifier names, not credential values"
-regexTarget = "match"
-regexes = [
-  '''nexural_api_keys_v[0-9]+''',
-  '''nexural_keys_encrypted_v[0-9]+''',
-]
+description = "Historical frontend-v0 local-storage marker names are not credentials"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''platforms/python/research/nexural-research/frontend-v0/lib/api-keys-context\.tsx''']
+regexes = ['''const (STORAGE_KEY|KEYS_ENCRYPTED)\s*=''']

@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#0a0e17"/>
-  <text x="16" y="22" text-anchor="middle" font-family="system-ui" font-weight="700" font-size="18" fill="#3b82f6">N</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" role="img" aria-labelledby="favicon-title favicon-desc">
+  <title id="favicon-title">Nexural Automation favicon</title>
+  <desc id="favicon-desc">Compact acid-lime N and safety-orange X mark.</desc>
+  <rect width="32" height="32" rx="6" fill="#111714"/>
+  <path d="M4.5 23V9L13 23V9" fill="none" stroke="#C7F464" stroke-width="2.8" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M17 9L27.5 23M27.5 9L17 23" fill="none" stroke="#FF6B35" stroke-width="2.8" stroke-linecap="square"/>
 </svg>

@@ -60,7 +60,7 @@ export function MetricsOverview({ sessionId }: Props) {
             color={valColor(c.net_profit)}
             badge={(c.net_profit as number) > 0 ? "PROFIT" : "LOSS"}
           />
-          <MetricCard label="Total Trades" value={String(c.n_trades)} color="blue" />
+          <MetricCard label="Total Trades" value={String(c.n_trades)} color="active" />
           <MetricCard
             label="Win Rate"
             value={fmtPct(c.win_rate)}
@@ -146,13 +146,13 @@ export function MetricsOverview({ sessionId }: Props) {
             <MetricCard
               label="Kelly Criterion"
               value={`${fmtNum(e.kelly_pct)}%`}
-              color="blue"
+              color="active"
               subtitle="Optimal capital allocation"
             />
             <MetricCard
               label="Half Kelly"
               value={`${fmtNum(e.half_kelly_pct)}%`}
-              color="blue"
+              color="active"
               subtitle="Conservative sizing"
             />
             <MetricCard

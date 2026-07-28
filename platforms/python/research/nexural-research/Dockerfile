@@ -16,8 +16,11 @@ COPY src/ ./src/
 RUN test -f src/nexural_research/academy/content/curriculum.yaml
 RUN apk add --no-cache libgomp openblas \
     && apk add --no-cache --virtual .build-deps build-base gfortran openblas-dev \
-    && pip install --no-cache-dir --upgrade pip setuptools wheel jaraco.context \
-    && pip install --no-cache-dir --constraint container-constraints.txt . \
+    && pip install --no-cache-dir pip==26.1.2 setuptools==83.0.0 wheel==0.47.0 jaraco.context==6.1.2 \
+    && pip install --no-cache-dir \
+        --constraint container-constraints.txt \
+        --build-constraint container-constraints.txt \
+        . \
     && apk del .build-deps
 RUN python -c "from nexural_research.academy.catalog import CurriculumCatalog, default_academy_root; catalog = CurriculumCatalog.load(default_academy_root()); assert catalog.lessons and catalog.capstones"
 
@@ -25,15 +28,19 @@ RUN python -c "from nexural_research.academy.catalog import CurriculumCatalog, d
 COPY --from=frontend-build /app/frontend/dist ./static/
 
 # Data directories
-RUN addgroup -S nexural \
-    && adduser -S -G nexural -h /app -s /sbin/nologin nexural \
+RUN addgroup -S -g 10001 nexural \
+    && adduser -S -D -u 10001 -G nexural -h /app -s /sbin/nologin nexural \
     && mkdir -p data/exports data/processed reports experiments \
     && chown -R nexural:nexural data reports experiments
 
-USER nexural
+USER 10001:10001
 
 # Keep runtime path resolution anchored to /app for static assets and writable state.
-ENV PYTHONPATH=/app/src
+ENV PYTHONPATH=/app/src \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    NEXURAL_ACADEMY_STATE_DIR=/app/data/academy \
+    NEXURAL_SESSION_DIR=/app/data/sessions
 
 # Expose API port
 EXPOSE 8000

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="320" viewBox="0 0 1440 320" role="img" aria-labelledby="wordmark-title wordmark-desc">
+  <title id="wordmark-title">Nexural Automation wordmark</title>
+  <desc id="wordmark-desc">The words Nexural Automation in warm paper, acid lime, and safety orange on transparent charcoal-ready artwork.</desc>
+  <path d="M56 76H1384" fill="none" stroke="#27332E" stroke-width="2"/>
+  <rect x="56" y="54" width="76" height="10" fill="#C7F464"/>
+  <rect x="140" y="54" width="28" height="10" fill="#FF6B35"/>
+  <text x="56" y="210" fill="#F4F0E6" font-family="Space Grotesk" font-size="154" font-weight="700" letter-spacing="-5">NEXURAL</text>
+  <text x="975" y="210" fill="#C7F464" font-family="JetBrains Mono" font-size="40" font-weight="700" letter-spacing="7">AUTOMATION</text>
+  <rect x="976" y="234" width="354" height="6" fill="#FF6B35"/>
+  <circle cx="1365" cy="237" r="10" fill="#F4F0E6"/>
+</svg>

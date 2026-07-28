@@ -7,17 +7,17 @@ import clsx from "clsx";
 interface Props { sessionId: string; }
 
 const PRIORITY_STYLES = {
-  critical: { bg: "bg-red-500/10", border: "border-red-500/30", badge: "badge-red", label: "CRITICAL" },
-  high: { bg: "bg-amber-500/8", border: "border-amber-500/20", badge: "badge-amber", label: "HIGH" },
-  medium: { bg: "bg-blue-500/8", border: "border-blue-500/20", badge: "badge-blue", label: "MEDIUM" },
+  critical: { bg: "bg-[var(--signal-fail-soft)]", border: "border-[var(--signal-fail-border)]", badge: "badge-red", label: "CRITICAL" },
+  high: { bg: "bg-[var(--signal-warn-soft)]", border: "border-[var(--signal-warn-border)]", badge: "badge-amber", label: "HIGH" },
+  medium: { bg: "bg-[var(--signal-active-soft)]", border: "border-[var(--signal-active-border)]", badge: "badge-active", label: "MEDIUM" },
   low: { bg: "bg-gray-500/8", border: "border-gray-500/20", badge: "text-gray-500 bg-gray-500/10 border-gray-500/20 inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold border", label: "LOW" },
 };
 
 const GRADE_COLORS: Record<string, string> = {
-  A: "text-emerald-400", "A-": "text-emerald-400",
-  "B+": "text-blue-400", B: "text-blue-400", "B-": "text-blue-400",
-  C: "text-amber-400", "C-": "text-amber-400",
-  D: "text-red-400", F: "text-red-500",
+  A: "text-[var(--signal-pass)]", "A-": "text-[var(--signal-pass)]",
+  "B+": "text-[var(--signal-active-strong)]", B: "text-[var(--signal-active-strong)]", "B-": "text-[var(--signal-active-strong)]",
+  C: "text-[var(--signal-warn)]", "C-": "text-[var(--signal-warn)]",
+  D: "text-[var(--signal-fail)]", F: "text-[var(--signal-fail)]",
 };
 
 export function ImprovementsPanel({ sessionId }: Props) {
@@ -94,15 +94,15 @@ export function ImprovementsPanel({ sessionId }: Props) {
                 <div className="grid grid-cols-3 gap-4 text-xs">
                   <div>
                     <div className="text-gray-600 mb-0.5">Current</div>
-                    <div className="text-red-400 font-mono">{rec.current_value as string}</div>
+                    <div className="font-mono text-[var(--signal-fail)]">{rec.current_value as string}</div>
                   </div>
                   <div>
                     <div className="text-gray-600 mb-0.5">Suggested</div>
-                    <div className="text-emerald-400 font-mono">{rec.suggested_value as string}</div>
+                    <div className="font-mono text-[var(--signal-pass)]">{rec.suggested_value as string}</div>
                   </div>
                   <div>
                     <div className="text-gray-600 mb-0.5">Expected Impact</div>
-                    <div className="text-blue-400 font-mono">{rec.expected_impact as string}</div>
+                    <div className="font-mono text-[var(--signal-active-strong)]">{rec.expected_impact as string}</div>
                   </div>
                 </div>
               </div>
@@ -163,7 +163,7 @@ export function ImprovementsPanel({ sessionId }: Props) {
                   ["Avg Trade", `$${(filtered.avg_trade as number)?.toFixed(2)}`, ""],
                 ].map(([label, val, sub]) => (
                   <div key={label} className="glass-card p-3 text-center">
-                    <div className="text-sm font-mono text-emerald-400 font-semibold">{val}</div>
+                    <div className="font-mono text-sm font-semibold text-[var(--signal-pass)]">{val}</div>
                     <div className="text-[10px] text-gray-500 mt-1">{label}</div>
                     {sub && <div className="text-[9px] text-gray-600 mt-0.5">{sub}</div>}
                   </div>
@@ -184,15 +184,15 @@ export function ImprovementsPanel({ sessionId }: Props) {
               <div className="text-[10px] text-gray-500 mt-1">Drawdown Periods</div>
             </div>
             <div className="glass-card p-4 text-center">
-              <div className="text-lg font-mono text-red-400">${Math.abs(dd.deepest_drawdown as number).toFixed(2)}</div>
+              <div className="font-mono text-lg text-[var(--signal-fail)]">${Math.abs(dd.deepest_drawdown as number).toFixed(2)}</div>
               <div className="text-[10px] text-gray-500 mt-1">Deepest Drawdown</div>
             </div>
             <div className="glass-card p-4 text-center">
-              <div className="text-lg font-mono text-amber-400">{(dd.avg_recovery_trades as number).toFixed(1)}</div>
+              <div className="font-mono text-lg text-[var(--signal-warn)]">{(dd.avg_recovery_trades as number).toFixed(1)}</div>
               <div className="text-[10px] text-gray-500 mt-1">Avg Recovery Trades</div>
             </div>
             <div className="glass-card p-4 text-center">
-              <div className="text-lg font-mono text-red-400">{dd.max_recovery_trades as number}</div>
+              <div className="font-mono text-lg text-[var(--signal-fail)]">{dd.max_recovery_trades as number}</div>
               <div className="text-[10px] text-gray-500 mt-1">Max Recovery Trades</div>
             </div>
             <div className="glass-card p-4 text-center">
@@ -200,7 +200,7 @@ export function ImprovementsPanel({ sessionId }: Props) {
               <div className="text-[10px] text-gray-500 mt-1">Avg Recovery Time</div>
             </div>
             <div className="glass-card p-4 text-center">
-              <div className={`text-lg font-mono ${(dd.currently_in_drawdown as boolean) ? "text-red-400" : "text-emerald-400"}`}>
+              <div className={`text-lg font-mono ${(dd.currently_in_drawdown as boolean) ? "text-[var(--signal-fail)]" : "text-[var(--signal-pass)]"}`}>
                 {(dd.currently_in_drawdown as boolean) ? "YES" : "NO"}
               </div>
               <div className="text-[10px] text-gray-500 mt-1">Currently In Drawdown</div>
@@ -216,14 +216,14 @@ export function ImprovementsPanel({ sessionId }: Props) {
           <p className="text-xs text-gray-500 -mt-3 mb-4">Periods of 3+ consecutive losing trades</p>
           <div className="space-y-2">
             {clusters.map((c, i) => (
-              <div key={i} className="glass-card p-4 border border-red-500/10 flex items-center justify-between">
+              <div key={i} className="glass-card flex items-center justify-between border border-[var(--signal-fail-border)] p-4">
                 <div>
-                  <span className="text-sm font-mono text-red-400 font-semibold">{c.n_trades as number} consecutive losses</span>
+                  <span className="font-mono text-sm font-semibold text-[var(--signal-fail)]">{c.n_trades as number} consecutive losses</span>
                   <span className="text-xs text-gray-500 ml-3">
                     Trades #{c.start_index as number} — #{c.end_index as number}
                   </span>
                 </div>
-                <div className="text-sm font-mono text-red-400">${Math.abs(c.total_loss as number).toFixed(2)}</div>
+                <div className="font-mono text-sm text-[var(--signal-fail)]">${Math.abs(c.total_loss as number).toFixed(2)}</div>
               </div>
             ))}
           </div>
@@ -244,11 +244,11 @@ export function ImprovementsPanel({ sessionId }: Props) {
               <div className="text-[10px] text-gray-500 mt-1">Exit Efficiency</div>
             </div>
             <div className="glass-card p-4 text-center">
-              <div className="text-lg font-mono text-amber-400">${mae.avg_heat as number}</div>
+              <div className="font-mono text-lg text-[var(--signal-warn)]">${mae.avg_heat as number}</div>
               <div className="text-[10px] text-gray-500 mt-1">Avg Heat (Adverse)</div>
             </div>
             <div className="glass-card p-4 text-center">
-              <div className="text-lg font-mono text-emerald-400">${mae.suggested_stop as number}</div>
+              <div className="font-mono text-lg text-[var(--signal-pass)]">${mae.suggested_stop as number}</div>
               <div className="text-[10px] text-gray-500 mt-1">Suggested Stop</div>
             </div>
           </div>

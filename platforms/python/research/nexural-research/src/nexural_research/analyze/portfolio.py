@@ -14,10 +14,10 @@ from scipy import stats as sp_stats
 
 from nexural_research.analyze.equity import max_drawdown
 
-
 # ---------------------------------------------------------------------------
 # Multi-strategy correlation & portfolio
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class StrategyCorrelation:
@@ -105,7 +105,11 @@ def portfolio_analysis(
         daily = pd.DataFrame()
         for s in strategies:
             mask = df[strategy_col] == s
-            daily[s] = pd.to_numeric(df.loc[mask, "profit"], errors="coerce").fillna(0.0).reset_index(drop=True)
+            daily[s] = (
+                pd.to_numeric(df.loc[mask, "profit"], errors="coerce")
+                .fillna(0.0)
+                .reset_index(drop=True)
+            )
         daily = daily.fillna(0.0)
 
     # Ensure all strategies present
@@ -125,7 +129,9 @@ def portfolio_analysis(
         eq = np.cumsum(s_pnl)
         individual_nets.append(round(float(eq[-1]) if len(eq) > 0 else 0.0, 2))
         std = float(np.std(s_pnl, ddof=1)) if len(s_pnl) > 1 else 1e-10
-        individual_sharpes.append(round(float(np.mean(s_pnl) / std * np.sqrt(252)) if std > 1e-10 else 0.0, 4))
+        individual_sharpes.append(
+            round(float(np.mean(s_pnl) / std * np.sqrt(252)) if std > 1e-10 else 0.0, 4)
+        )
         individual_mdds.append(round(float(max_drawdown(pd.Series(eq))), 2))
 
     # Combined portfolio (equal weight)
@@ -133,18 +139,28 @@ def portfolio_analysis(
     combined_eq = np.cumsum(combined_pnl)
     combined_net = round(float(combined_eq[-1]) if len(combined_eq) > 0 else 0.0, 2)
     combined_std = float(np.std(combined_pnl, ddof=1)) if len(combined_pnl) > 1 else 1e-10
-    combined_sharpe = round(float(np.mean(combined_pnl) / combined_std * np.sqrt(252)) if combined_std > 1e-10 else 0.0, 4)
+    combined_sharpe = round(
+        float(np.mean(combined_pnl) / combined_std * np.sqrt(252)) if combined_std > 1e-10 else 0.0,
+        4,
+    )
     combined_mdd = round(float(max_drawdown(pd.Series(combined_eq))), 2)
 
     # Diversification benefit: % improvement in MDD vs worst individual
     worst_individual_mdd = min(individual_mdds)  # most negative
     div_benefit = round(
-        (1.0 - abs(combined_mdd) / abs(worst_individual_mdd)) * 100 if abs(worst_individual_mdd) > 1e-10 else 0.0,
+        (1.0 - abs(combined_mdd) / abs(worst_individual_mdd)) * 100
+        if abs(worst_individual_mdd) > 1e-10
+        else 0.0,
         2,
     )
 
     # Correlation matrix
-    corr_matrix = daily.corr().to_numpy().tolist()
+    if len(daily) > 1:
+        corr_matrix = daily.corr().fillna(0.0).to_numpy().tolist()
+    else:
+        # Correlation is undefined with one observation. Use the neutral,
+        # finite identity representation instead of leaking NaN into the API.
+        corr_matrix = np.eye(n_strats).tolist()
     correlations = []
     for i in range(n_strats):
         for j in range(i + 1, n_strats):
@@ -155,17 +171,21 @@ def portfolio_analysis(
                 sr, sp_val = sp_stats.spearmanr(a_vals, b_vals)
             else:
                 pr, pp, sr, sp_val = 0.0, 1.0, 0.0, 1.0
-            correlations.append(StrategyCorrelation(
-                strategy_a=strategies[i],
-                strategy_b=strategies[j],
-                pearson_r=round(float(pr), 4),
-                pearson_p=round(float(pp), 6),
-                spearman_r=round(float(sr), 4),
-                spearman_p=round(float(sp_val), 6),
-            ))
+            correlations.append(
+                StrategyCorrelation(
+                    strategy_a=strategies[i],
+                    strategy_b=strategies[j],
+                    pearson_r=round(float(pr), 4),
+                    pearson_p=round(float(pp), 6),
+                    spearman_r=round(float(sr), 4),
+                    spearman_p=round(float(sp_val), 6),
+                )
+            )
 
     # Simple equal risk contribution weights (inverse volatility)
-    vols = [float(np.std(daily[s].to_numpy(), ddof=1)) for s in strategies]
+    vols = [
+        float(np.std(daily[s].to_numpy(), ddof=1)) if len(daily[s]) > 1 else 0.0 for s in strategies
+    ]
     inv_vols = [1.0 / v if v > 1e-10 else 0.0 for v in vols]
     total_inv = sum(inv_vols)
     weights = [round(iv / total_inv, 4) if total_inv > 0 else 1.0 / n_strats for iv in inv_vols]
@@ -189,6 +209,7 @@ def portfolio_analysis(
 # ---------------------------------------------------------------------------
 # Benchmark comparison
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class BenchmarkComparison:
@@ -226,10 +247,18 @@ def benchmark_comparison(
 
     if n == 0:
         return BenchmarkComparison(
-            strategy_net=0.0, strategy_sharpe=0.0, strategy_mdd=0.0,
-            buyhold_net=0.0, buyhold_sharpe=0.0, buyhold_mdd=0.0,
-            random_net_mean=0.0, random_net_std=0.0, random_sharpe_mean=0.0,
-            random_mdd_mean=0.0, pct_better_than_random=0.0, alpha_vs_random=0.0,
+            strategy_net=0.0,
+            strategy_sharpe=0.0,
+            strategy_mdd=0.0,
+            buyhold_net=0.0,
+            buyhold_sharpe=0.0,
+            buyhold_mdd=0.0,
+            random_net_mean=0.0,
+            random_net_std=0.0,
+            random_sharpe_mean=0.0,
+            random_mdd_mean=0.0,
+            pct_better_than_random=0.0,
+            alpha_vs_random=0.0,
         )
 
     # Strategy metrics
@@ -261,7 +290,9 @@ def benchmark_comparison(
         rand_eq = np.cumsum(rand_pnl)
         random_nets[i] = rand_eq[-1]
         r_std = float(np.std(rand_pnl, ddof=1))
-        random_sharpes[i] = float(np.mean(rand_pnl) / r_std * np.sqrt(252)) if r_std > 1e-10 else 0.0
+        random_sharpes[i] = (
+            float(np.mean(rand_pnl) / r_std * np.sqrt(252)) if r_std > 1e-10 else 0.0
+        )
         peak = np.maximum.accumulate(rand_eq)
         random_mdds[i] = float(np.min(rand_eq - peak))
 

@@ -684,6 +684,10 @@ class TestEquityCurve:
         ui = ulcer_index(eq)
         assert ui >= 0
 
+    def test_ulcer_index_remains_finite_for_tiny_positive_peak(self):
+        eq = pd.Series([np.nextafter(0.0, 1.0), -10_000.0])
+        assert np.isfinite(ulcer_index(eq))
+
 
 # ===================================================================
 # SECTION 9: Regression Tests (Known Outputs)

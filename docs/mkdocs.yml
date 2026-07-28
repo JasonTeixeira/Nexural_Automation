@@ -1,0 +1,159 @@
+site_name: Nexural Automation Manual
+site_description: Simulation-first automation engineering, qualification, and operator documentation.
+site_author: Nexural
+site_url: https://jasonteixeira.github.io/Nexural_Automation/
+repo_url: https://github.com/JasonTeixeira/Nexural_Automation
+repo_name: JasonTeixeira/Nexural_Automation
+edit_uri: edit/main/docs/
+docs_dir: .
+site_dir: ../site
+use_directory_urls: true
+strict: true
+
+exclude_docs: |
+  assets/brand/README.md
+  assets/diagrams/README.md
+  index.html
+  mkdocs.yml
+  requirements.txt
+  overrides/
+  scripts/
+  tests/
+  assets/screenshots/README.md
+
+theme:
+  name: material
+  custom_dir: overrides
+  language: en
+  features:
+    - announce.dismiss
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.sections
+    - navigation.tabs
+    - navigation.top
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+  font:
+    text: Space Grotesk
+    code: JetBrains Mono
+  logo: assets/brand/nx-mark.svg
+  favicon: assets/brand/nx-mark.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Use dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Use light mode
+
+nav:
+  - Home: index.md
+  - Status: status.md
+  - Manual:
+      - Operator Manual: operator-manual.md
+      - System Architecture: architecture.md
+      - NT8 Safety: nt8-safety.md
+      - Risk Management: risk-management.md
+      - Incident Security: security-hardening.md
+  - Start:
+      - Installation: installation.md
+      - Quickstart: quickstart.md
+      - Public MVP Tutorial: public-mvp-tutorial.md
+      - Supported Platforms: supported-platforms.md
+      - Install Matrix: install-matrix.md
+  - Academy:
+      - Learning Path: automation-academy.md
+      - First Strategy: build-your-first-strategy.md
+      - First Bridge: build-your-first-bridge.md
+      - Indicator Framework: indicator-framework.md
+      - Strategy Framework: strategy-framework.md
+      - Strategy Lab Wiring: strategy-lab-wiring.md
+      - Automation Glossary: automation-glossary.md
+  - Research:
+      - Backtesting Policy: backtesting-policy.md
+      - Overfitting Primer: overfitting-primer.md
+      - Walk-Forward Examples: walk-forward-examples.md
+      - Gauntlet Failures: gauntlet-failures.md
+      - Why Strategies Fail: why-strategies-fail-the-gauntlet.md
+      - Cost Assumptions: cost-model-assumptions.md
+  - Automation:
+      - MCP Automation Server: mcp-automation-server.md
+      - MCP Contract: mcp-contract.md
+      - MCP/API Examples: mcp-api-examples.md
+      - Example Catalog: example-catalog.md
+  - Governance:
+      - Qualification Checklist: public-launch-checklist.md
+      - Contribution Workflow: contribution-workflow.md
+      - Threat Model: threat-model.md
+      - Secret Rotation: secret-rotation.md
+      - Backward Compatibility: backward-compatibility.md
+      - Naming Conventions: naming-conventions.md
+      - ADR — Simulation Trust Boundaries: adr/0001-simulation-first-trust-boundaries.md
+
+plugins:
+  - search:
+      lang: en
+      separator: '[\s\-\.]+'
+  - minify:
+      minify_html: true
+
+hooks:
+  - scripts/mkdocs_hooks.py
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      title: On this page
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+extra_css:
+  - assets/site.css
+
+extra_javascript:
+  - assets/site.js
+
+extra:
+  social_image: assets/og-card.png
+  status_label: NOT QUALIFIED
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/JasonTeixeira/Nexural_Automation
+      name: Nexural Automation on GitHub
+
+copyright: Research, education, Playback, and simulation only. No live-routing mode.

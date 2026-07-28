@@ -12,12 +12,14 @@ from nexural_research.analyze.portfolio import (
 def _make_trades(profits: list[float], strategies: list[str] | None = None) -> pd.DataFrame:
     n = len(profits)
     base = pd.Timestamp("2025-01-01 09:30:00")
-    return pd.DataFrame({
-        "profit": profits,
-        "exit_time": [base + pd.Timedelta(hours=i) for i in range(n)],
-        "instrument": "NQ",
-        "strategy": strategies or (["StratA"] * n),
-    })
+    return pd.DataFrame(
+        {
+            "profit": profits,
+            "exit_time": [base + pd.Timedelta(hours=i) for i in range(n)],
+            "instrument": "NQ",
+            "strategy": strategies or (["StratA"] * n),
+        }
+    )
 
 
 class TestPortfolioAnalysis:
@@ -35,6 +37,7 @@ class TestPortfolioAnalysis:
         assert len(result.strategy_names) == 2
         assert len(result.individual_sharpes) == 2
         assert len(result.correlation_matrix) == 2
+        assert result.correlation_matrix == [[1.0, 0.0], [0.0, 1.0]]
         assert len(result.correlations) == 1  # 1 pair
         assert len(result.optimal_weights) == 2
         assert abs(sum(result.optimal_weights) - 1.0) < 0.01

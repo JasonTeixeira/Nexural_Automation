@@ -59,7 +59,7 @@ export function TradesTable({ sessionId }: Props) {
                   const val = row[col];
                   const isProfit = col === "profit";
                   const color = isProfit && typeof val === "number"
-                    ? (val > 0 ? "text-emerald-400" : val < 0 ? "text-red-400" : "")
+                    ? (val > 0 ? "text-[var(--signal-pass)]" : val < 0 ? "text-[var(--signal-fail)]" : "")
                     : "";
                   return (
                     <td key={col} className={`whitespace-nowrap ${color}`}>
