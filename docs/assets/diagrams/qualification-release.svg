@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">World-class qualification and signed release pipeline</title>
+  <desc id="desc">A frozen candidate gathers automated, native desktop, learner, security, and maintainer evidence. Only an evidence-only delta may proceed to reproducible builds, SBOM, signing, verification, and publication.</desc>
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#C7F464"/></marker><style>.d{font-family:"Space Grotesk","Segoe UI",sans-serif;font-weight:700}.m{font-family:"JetBrains Mono","Consolas",monospace}.n{fill:#18201C;stroke:#56635D;stroke-width:2}.e{fill:none;stroke:#C7F464;stroke-width:3;marker-end:url(#a)}</style></defs>
+  <rect width="1200" height="675" fill="#111714"/>
+  <text x="52" y="58" class="d" font-size="28" fill="#F4F0E6">QUALIFICATION / EVIDENCE BEFORE RELEASE</text>
+  <text x="52" y="88" class="m" font-size="13" fill="#8E9B95">“WORLD-CLASS” IS A COMPUTED STATE — NOT A BADGE EDIT</text>
+  <rect x="52" y="134" width="214" height="116" class="n"/><text x="76" y="171" class="m" font-size="13" fill="#C7F464">01 / FREEZE</text><text x="76" y="207" class="d" font-size="22" fill="#F4F0E6">Candidate SHA</text><text x="76" y="232" class="m" font-size="11" fill="#8E9B95">version + archive digest</text>
+  <rect x="324" y="120" width="530" height="344" fill="#18201C" stroke="#56635D" stroke-width="2"/>
+  <text x="350" y="158" class="m" font-size="13" fill="#8E9B95">02 / INDEPENDENT EVIDENCE MATRIX</text>
+  <g class="m" font-size="12">
+    <rect x="350" y="184" width="222" height="64" fill="#1C261F" stroke="#C7F464"/><text x="370" y="210" fill="#C7F464">AUTOMATION</text><text x="370" y="232" fill="#F4F0E6">property • fuzz • mutation • RTO</text>
+    <rect x="598" y="184" width="230" height="64" fill="#1C261F" stroke="#C7F464"/><text x="618" y="210" fill="#C7F464">NATIVE DESKTOP</text><text x="618" y="232" fill="#F4F0E6">2 machines • 2 patches • 2 modes</text>
+    <rect x="350" y="270" width="222" height="64" fill="#1C261F" stroke="#C7F464"/><text x="370" y="296" fill="#C7F464">EXTERNAL LEARNERS</text><text x="370" y="318" fill="#F4F0E6">100 labs • 25 capstones</text>
+    <rect x="598" y="270" width="230" height="64" fill="#1C261F" stroke="#C7F464"/><text x="618" y="296" fill="#C7F464">SECURITY</text><text x="618" y="318" fill="#F4F0E6">0 critical/high • external review</text>
+    <rect x="350" y="356" width="478" height="64" fill="#1C261F" stroke="#C7F464"/><text x="370" y="382" fill="#C7F464">MAINTAINERSHIP</text><text x="370" y="404" fill="#F4F0E6">second qualified critical-path reviewer + approval</text>
+  </g>
+  <polygon points="1008,126 1140,192 1008,258 876,192" fill="#241A14" stroke="#FF6B35" stroke-width="3"/>
+  <text x="1008" y="183" class="d" font-size="18" fill="#F4F0E6" text-anchor="middle">Complete + valid?</text><text x="1008" y="208" class="m" font-size="11" fill="#FF8A5C" text-anchor="middle">schema + SHA + review</text>
+  <path d="M266 192H314" class="e"/><path d="M854 192H866" class="e"/>
+  <rect x="876" y="332" width="264" height="132" class="n"/>
+  <text x="900" y="369" class="m" font-size="13" fill="#C7F464">03 / PROMOTE</text><text x="900" y="402" class="d" font-size="21" fill="#F4F0E6">Evidence-only delta</text><text x="900" y="429" class="m" font-size="11" fill="#8E9B95">no code • policy • workflow</text><text x="900" y="450" class="m" font-size="11" fill="#8E9B95">change after frozen SHA</text>
+  <path d="M1008 258V322" class="e"/><text x="1022" y="294" class="m" font-size="11" fill="#C7F464">YES</text>
+  <text x="1010" y="112" class="m" font-size="11" fill="#FF8A5C">NO → REMAINS UNQUALIFIED</text>
+  <rect x="52" y="516" width="1096" height="86" fill="#F4F0E6"/>
+  <text x="76" y="548" class="m" font-size="12" font-weight="700" fill="#111714">04 / REPRODUCE ×2</text><text x="265" y="548" class="m" font-size="12" fill="#27332E">→ SHA-256 manifest → SPDX SBOM → Sigstore sign → verify bundles → publish</text>
+  <text x="76" y="577" class="m" font-size="12" fill="#27332E">Every payload is rebuilt from the immutable tag. A signature without reproducibility is insufficient.</text>
+  <path d="M1008 464V490H600V506" class="e"/>
+  <text x="52" y="642" class="m" font-size="12" fill="#FF8A5C">FAIL ANY GATE: preserve the report, fix the cause, freeze a new candidate, and repeat the full qualification.</text>
+</svg>

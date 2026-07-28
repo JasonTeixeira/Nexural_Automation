@@ -1,5 +1,10 @@
 # Quickstart (60 seconds)
 
+![Five-step Nexural Automation quickstart](assets/diagrams/quickstart-path.svg)
+
+Use the [visual operator manual](operator-manual.md#2-get-your-first-local-success)
+when you want the expected proof and stop condition for each step.
+
 A typed transcript of what the full demo flow looks like. Anyone reading this
 should be able to reproduce it on a fresh clone.
 

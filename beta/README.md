@@ -1,7 +1,12 @@
 # External NT8 beta
 
+![World-class qualification and release pipeline](../docs/assets/diagrams/qualification-release.svg)
+
 This directory is the evidence boundary for independent Playback101 and Sim101 validation.
 It contains no claimed participants or manufactured results.
+
+Use the [visual operator manual](../docs/operator-manual.md#7-qualify-and-release) to
+understand where learner and capstone records enter the complete release gate.
 
 ## Submission contract
 

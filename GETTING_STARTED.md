@@ -2,6 +2,11 @@
 
 Welcome to **Nexural_Automation** — a simulation-first toolkit for serious algorithmic-trading research. This guide takes you from zero to publishing your own strategy module, organized into three tracks:
 
+![Five-step Nexural Automation quickstart](docs/assets/diagrams/quickstart-path.svg)
+
+For one end-to-end, visual procedure—including Academy, NT8 import, fault recovery,
+qualification, and data operations—use the [visual operator manual](docs/operator-manual.md).
+
 | Track            | Time      | You'll learn to…                                                |
 | ---------------- | --------- | --------------------------------------------------------------- |
 | 🟢 **Beginner**  | ~10 min   | Run the demo gauntlet and read the HTML report                  |

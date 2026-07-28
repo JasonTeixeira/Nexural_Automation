@@ -1,5 +1,10 @@
 # Architecture
 
+![Nexural Automation system map](assets/diagrams/system-map.svg)
+
+Use the [visual operator manual](operator-manual.md#1-understand-the-system) for a
+guided reading of every promotion boundary and evidence return path.
+
 ## Goals
 - Multi-platform: NinjaTrader (C#), TradingView (Pine v5), Python research tooling.
 - Contributor-friendly: clear module boundaries and documentation requirements.
@@ -13,21 +18,11 @@
 - `configs/`: reusable configuration presets and examples
 - `scripts/`: repo tooling (catalog generation, validation, release helpers)
 
-## Public MVP Flow
+## Public MVP flow
 
-```mermaid
-flowchart LR
-  A[Strategy Export CSV] --> B[Nexural Automation API]
-  B --> C[Gauntlet]
-  B --> D[Cost Model]
-  B --> E[HTML Report]
-  B --> F[MCP Tools]
-  F --> G[Agent Client]
-  B --> H[Strategy Lab Gateway]
-  H --> I[Strategy Lab UI]
-  J[Strategy SDK] --> B
-  K[Bridge SDK] --> B
-```
+The system map above is the authoritative orientation. The public API, CLI, MCP, and
+UI are interfaces to the research engine; none bypass the promotion gate or the
+native NT8 safety kernel.
 
 ## Module boundary
 A *module* is a strategy or indicator folder that ships with documentation and metadata:

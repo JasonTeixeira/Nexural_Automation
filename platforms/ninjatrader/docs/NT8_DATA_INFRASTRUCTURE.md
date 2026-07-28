@@ -1,5 +1,10 @@
 # NT8 Data Infrastructure Operator Guide
 
+![Portable NT8 data infrastructure](../../../docs/assets/diagrams/data-infrastructure.svg)
+
+Use the [visual data runbook](../../../docs/operator-manual.md#8-operate-the-data-layer)
+for the exact hydrate, audit, inspect, and retain sequence.
+
 ## Purpose
 
 Create a reproducible local historical-data layer for Strategy Analyzer research without publishing exchange or provider data.

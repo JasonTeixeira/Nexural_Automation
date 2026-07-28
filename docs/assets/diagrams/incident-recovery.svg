@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">NT8 incident recovery decision runbook</title>
+  <desc id="desc">On disconnect, restart, duplicate, stale input, illegal transition, or fill mismatch, freeze entries, preserve evidence, reconcile state, flatten if unsafe, measure recovery, and require operator review before reset.</desc>
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#C7F464"/></marker><marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#FF6B35"/></marker><style>.d{font-family:"Space Grotesk","Segoe UI",sans-serif;font-weight:700}.m{font-family:"JetBrains Mono","Consolas",monospace}.n{fill:#18201C;stroke:#56635D;stroke-width:2}.ok{fill:none;stroke:#C7F464;stroke-width:3;marker-end:url(#a)}.bad{fill:none;stroke:#FF6B35;stroke-width:3;marker-end:url(#o)}</style></defs>
+  <rect width="1200" height="675" fill="#111714"/>
+  <text x="52" y="58" class="d" font-size="28" fill="#F4F0E6">INCIDENT RECOVERY / OPERATOR DECISION TREE</text>
+  <text x="52" y="88" class="m" font-size="13" fill="#8E9B95">DO NOT “TRY AGAIN” UNTIL STATE IS KNOWN</text>
+  <rect x="52" y="136" width="214" height="106" fill="#241A14" stroke="#FF6B35" stroke-width="3"/>
+  <text x="76" y="173" class="m" font-size="13" fill="#FF8A5C">FAULT DETECTED</text><text x="76" y="207" class="d" font-size="21" fill="#F4F0E6">Freeze new entries</text><text x="76" y="229" class="m" font-size="11" fill="#8E9B95">kill switch persists</text>
+  <rect x="326" y="136" width="214" height="106" class="n"/><text x="350" y="173" class="m" font-size="13" fill="#C7F464">PRESERVE</text><text x="350" y="207" class="d" font-size="21" fill="#F4F0E6">Capture evidence</text><text x="350" y="229" class="m" font-size="11" fill="#8E9B95">UTC • logs • cursor • ACK</text>
+  <rect x="600" y="136" width="214" height="106" class="n"/><text x="624" y="173" class="m" font-size="13" fill="#C7F464">RECONCILE</text><text x="624" y="207" class="d" font-size="21" fill="#F4F0E6">Compare truth</text><text x="624" y="229" class="m" font-size="11" fill="#8E9B95">account vs journal</text>
+  <polygon points="1008,126 1138,189 1008,252 878,189" fill="#18201C" stroke="#FF6B35" stroke-width="2"/>
+  <text x="1008" y="183" class="d" font-size="18" fill="#F4F0E6" text-anchor="middle">State safe?</text><text x="1008" y="207" class="m" font-size="11" fill="#8E9B95" text-anchor="middle">flat or protected</text>
+  <line x1="266" y1="189" x2="316" y2="189" class="ok"/><line x1="540" y1="189" x2="590" y2="189" class="ok"/><line x1="814" y1="189" x2="868" y2="189" class="ok"/>
+  <rect x="752" y="354" width="256" height="108" fill="#241A14" stroke="#FF6B35" stroke-width="3"/>
+  <text x="778" y="391" class="m" font-size="13" fill="#FF8A5C">NO / UNSAFE</text><text x="778" y="425" class="d" font-size="22" fill="#F4F0E6">Flatten + verify</text><text x="778" y="447" class="m" font-size="11" fill="#8E9B95">never assume acknowledgement</text>
+  <rect x="334" y="354" width="300" height="108" class="n"/>
+  <text x="360" y="391" class="m" font-size="13" fill="#C7F464">YES / RECOVERED</text><text x="360" y="425" class="d" font-size="22" fill="#F4F0E6">Measure RTO</text><text x="360" y="447" class="m" font-size="11" fill="#8E9B95">disconnect ≤ 5 s • restart ≤ 30 s</text>
+  <path d="M1008 252V328H880V344" class="bad"/><text x="1030" y="307" class="m" font-size="11" fill="#FF8A5C">NO</text>
+  <path d="M878 189H684V344H634" class="ok"/><text x="698" y="177" class="m" font-size="11" fill="#C7F464">YES</text>
+  <path d="M752 408H644" class="ok"/>
+  <rect x="334" y="520" width="674" height="76" fill="#F4F0E6"/>
+  <text x="358" y="551" class="d" font-size="18" fill="#111714">RE-ARM GATE</text><text x="500" y="551" class="m" font-size="13" fill="#27332E">operator ID + reviewed evidence + clean reconciliation</text>
+  <text x="358" y="578" class="m" font-size="12" fill="#27332E">Any unknown remains a failure. Preserve the stop and escalate.</text>
+  <path d="M484 462V510" class="ok"/>
+  <text x="52" y="638" class="m" font-size="12" fill="#8E9B95">TRIGGERS: disconnect • restart • duplicate • stale/future signal • illegal state regression • invalid execution • overfill</text>
+</svg>

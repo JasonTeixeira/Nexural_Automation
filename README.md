@@ -16,12 +16,22 @@ Build the strategy. Prove the research. Break the bridge. Recover the state. Pro
 [![Python](https://img.shields.io/badge/Python-3.11-f6c453.svg)](platforms/python/research/nexural-research/pyproject.toml)
 [![Execution](https://img.shields.io/badge/execution-Sim101%20%7C%20Playback101-e85d3f.svg)](platforms/ninjatrader/docs/SAFETY_SPINE.md)
 
-[Start here](#start-here) · [Academy](#automation-academy) · [NT8 safety spine](#native-nt8-safety-spine) · [Research engine](#research-and-promotion-engine) · [Architecture](#architecture) · [Verification](#verification-contract) · [Docs](#documentation-map)
+[Start here](#start-here) · [Visual manual](docs/operator-manual.md) · [Academy](#automation-academy) · [NT8 safety spine](#native-nt8-safety-spine) · [Research engine](#research-and-promotion-engine) · [Architecture](#architecture) · [Verification](#verification-contract) · [Docs](#documentation-map)
 
 </div>
 
 > [!CAUTION]
 > Research, education, Playback, and simulated execution only. The included bridge has no live-routing mode. This project is not financial advice and passing its tests does not make a strategy safe or profitable. Read the [full disclaimer](DISCLAIMER.md).
+
+![Nexural Automation system map](docs/assets/diagrams/system-map.svg)
+
+### Pick a mission
+
+| Learn it | Run it | Prove it |
+|---|---|---|
+| [Complete an executable Academy lab](docs/operator-manual.md#3-complete-an-academy-lab) | [Get a local result](docs/operator-manual.md#2-get-your-first-local-success) | [Read the qualification contract](qualification/README.md) |
+| [Understand the architecture](docs/operator-manual.md#1-understand-the-system) | [Import and test in NT8](docs/operator-manual.md#4-build-import-break-recover-and-prove-in-nt8) | [Collect independent evidence](docs/operator-manual.md#7-qualify-and-release) |
+| [Study safety and recovery](docs/operator-manual.md#5-read-the-safety-state) | [Audit the data layer](docs/operator-manual.md#8-operate-the-data-layer) | [Run the complete verification suite](#verification-contract) |
 
 ## What this repository is
 
@@ -55,6 +65,8 @@ This table separates automated evidence from claims that still require a human o
 ## Start here
 
 Requirements: Git, Python 3.11, and PowerShell 7 for the NT8 harness. Node.js 22 is needed only for frontend work. NinjaTrader 8 is needed only for the native compile and desktop verification steps.
+
+![Five-step Nexural Automation quickstart](docs/assets/diagrams/quickstart-path.svg)
 
 ### Windows
 
@@ -98,6 +110,8 @@ Launch the local API, MCP server, and dashboard with [`scripts/start-local-stack
 ## Automation Academy
 
 The Academy is an executable curriculum, not a page of code snippets. Every lab includes:
+
+![Automation Academy evidence loop](docs/assets/diagrams/academy-learning-loop.svg)
 
 - English and Spanish concept material
 - a deliberately incomplete starter program and a reference solution
@@ -144,21 +158,7 @@ Read the [Academy contract](academy/README.md) and [learning-item schema](academ
 
 The C# core is platform-portable; the adapters compile against the proprietary NT8 assemblies only in the native harness.
 
-```text
-signal file
-   │
-   ▼
-schema + monotonic sequence + age gate
-   │
-   ▼
-exact account/provider gate ── reject anything except Sim101/Playback101
-   │
-   ▼
-reconciliation + risk engine + persistent kill switch
-   │
-   ▼
-order/execution state machine ── journal ── ACK ── durable cursor
-```
+![Native NT8 safety state machine](docs/assets/diagrams/safety-state-machine.svg)
 
 The fault suite covers duplicate and non-monotonic signals, stale/future signals, unreconciled startup, every risk limit, partial fills, overfills, illegal transitions, restart persistence, cursor/ACK crash gaps, live-account rejection, and flatten-only kill-switch behavior.
 
@@ -191,24 +191,7 @@ See the [MCP contract](docs/mcp-contract.md), [API examples](docs/mcp-api-exampl
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    A[Academy learner] -->|declarative artifact| G[Trusted Academy runner]
-    G --> E[Trace + tests + fault evidence + digest]
-
-    X[Strategy exports] --> R[Python research engine]
-    M[MCP / CLI / API / UI] --> R
-    R --> Q[Gauntlet promotion gate]
-
-    S[Signal inbox] --> V[NT8 schema, sequence, age gates]
-    V --> K[C# risk + execution kernel]
-    K --> N[NinjaScript Strategy / AddOn]
-    N --> P[Sim101 or Playback101]
-
-    E --> Q
-    Q -->|paper evidence only| S
-    Q -->|reject / tune / rewrite| Z[Stop with reasons]
-```
+![Nexural Automation system map](docs/assets/diagrams/system-map.svg)
 
 Trust-boundary decisions are recorded in [ADR 0001](docs/adr/0001-simulation-first-trust-boundaries.md) and the [threat model](docs/threat-model.md).
 
@@ -263,6 +246,7 @@ Nexural_Automation/
 
 | Goal | Start here |
 |---|---|
+| Follow the complete visual workflow | [Visual operator manual](docs/operator-manual.md) |
 | Learn the curriculum | [Automation Academy](academy/README.md) |
 | Understand native safety | [Safety spine](platforms/ninjatrader/docs/SAFETY_SPINE.md) · [fault matrix](platforms/ninjatrader/docs/FAULT_MATRIX.md) |
 | Import into NT8 | [Build, import, and verify](platforms/ninjatrader/docs/IMPORT_AND_VERIFY.md) |
