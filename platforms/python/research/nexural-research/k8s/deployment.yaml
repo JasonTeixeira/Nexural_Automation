@@ -14,9 +14,24 @@ spec:
       labels:
         app: nexural-research
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
       containers:
         - name: nexural-research
           image: nexural-research:latest
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 8000
           env:
@@ -36,6 +51,12 @@ spec:
               value: "120"
             - name: NEXURAL_HSTS_ENABLED
               value: "true"
+            - name: NEXURAL_ACADEMY_STATE_DIR
+              value: /app/data/academy
+            - name: NEXURAL_SESSION_DIR
+              value: /app/data/sessions
+            - name: TMPDIR
+              value: /tmp
           resources:
             requests:
               cpu: "500m"
@@ -58,10 +79,23 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /app/data
+            - name: reports
+              mountPath: /app/reports
+            - name: experiments
+              mountPath: /app/experiments
+            - name: tmp
+              mountPath: /tmp
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: nexural-data
+        - name: reports
+          emptyDir: {}
+        - name: experiments
+          emptyDir: {}
+        - name: tmp
+          emptyDir:
+            sizeLimit: 1Gi
 ---
 apiVersion: v1
 kind: Service

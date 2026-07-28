@@ -5,6 +5,7 @@ import {
   BookOpen,
   Bot,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
   CircleAlert,
   FlaskConical,
@@ -50,10 +51,19 @@ import {
 
 type AcademyView = "mission" | "lab" | "ledger" | "credentials" | "marketplace" | "instructor";
 type LabPanel = "brief" | "workbench" | "evidence";
+type MissionStatus = "locked" | "available" | "active" | "passed";
+type MissionFilter = "all" | MissionStatus;
 
 const LEARNER_ID = "local-operator";
 const TRACK_ORDER = ["nt8-foundations", "strategy-builder", "research-operator", "bridge-engineer", "agent-automation-engineer"];
 const LAB_PANELS: LabPanel[] = ["brief", "workbench", "evidence"];
+const MISSION_FILTERS: Array<{ id: MissionFilter; label: string }> = [
+  { id: "all", label: "All" },
+  { id: "available", label: "Ready" },
+  { id: "active", label: "Active" },
+  { id: "passed", label: "Passed" },
+  { id: "locked", label: "Locked" },
+];
 
 const VIEW_ITEMS: Array<{ id: AcademyView; label: string; icon: typeof Route }> = [
   { id: "mission", label: "Mission control", icon: Route },
@@ -73,7 +83,7 @@ function submissionTemplate(item: AcademyItem): Record<string, unknown> {
   return { source: { program: { operations: ["TODO"], settings: { mode: "paper" } } }, seed: 0 };
 }
 
-function StatusMark({ status }: { status: "locked" | "available" | "active" | "passed" }) {
+function StatusMark({ status }: { status: MissionStatus }) {
   if (status === "passed") return <CheckCircle2 aria-label="Passed" className="h-4 w-4 text-[var(--signal-pass)]" />;
   if (status === "locked") return <LockKeyhole aria-label="Locked" className="h-4 w-4 text-[var(--text-dim)]" />;
   if (status === "active") return <Activity aria-label="In progress" className="h-4 w-4 text-[var(--signal-active)]" />;
@@ -91,9 +101,9 @@ function LoadingDeck() {
 
 function ErrorDeck({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="academy-state academy-state-error" role="alert">
+    <div className="academy-state academy-state-error academy-state-error-deck" role="alert">
       <CircleAlert className="h-7 w-7" />
-      <div><strong>Academy services unavailable</strong><span>{message}</span></div>
+      <div className="academy-state-copy"><strong>Academy services unavailable</strong><span>{message}</span></div>
       <button className="academy-button academy-button-secondary" onClick={onRetry}><RefreshCcw className="h-4 w-4" /> Retry</button>
     </div>
   );
@@ -115,6 +125,8 @@ export function AcademyWorkspace() {
   const [hint, setHint] = useState<string | null>(null);
   const [fault, setFault] = useState("none");
   const [labPanel, setLabPanel] = useState<LabPanel>("brief");
+  const [missionFilter, setMissionFilter] = useState<MissionFilter>("all");
+  const [expandedTrackId, setExpandedTrackId] = useState<string | null>(TRACK_ORDER[0]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -164,6 +176,15 @@ export function AcademyWorkspace() {
   const orderedItems = orderedTracks.flatMap((track) =>
     [...track.lessons, ...track.capstones].map((id) => items[id]).filter(Boolean),
   );
+  const missionStatus = (item: AcademyItem): MissionStatus => {
+    const itemProgress = progressById.get(item.id);
+    if (complete.has(item.id)) return "passed";
+    if (item.prerequisites.some((required) => !complete.has(required))) return "locked";
+    return itemProgress?.status === "in_progress" ? "active" : "available";
+  };
+  const matchesMissionFilter = (item: AcademyItem) =>
+    missionFilter === "all" || missionStatus(item) === missionFilter;
+  const filteredMissionCount = orderedItems.filter(matchesMissionFilter).length;
 
   const selectItem = useCallback((item: AcademyItem) => {
     const locked = item.prerequisites.some((required) => !complete.has(required));
@@ -260,7 +281,16 @@ export function AcademyWorkspace() {
         ))}
       </nav>
 
-      {error && <div className="academy-inline-error" role="alert"><XCircle className="h-4 w-4" />{error}<button onClick={() => setError(null)}>Dismiss</button></div>}
+      {error && (
+        <div className="academy-inline-error" role="alert">
+          <XCircle className="h-4 w-4 shrink-0" />
+          <span>{error}</span>
+          <div className="academy-inline-error-actions">
+            {view !== "mission" && <button onClick={() => setView("mission")}>Mission control</button>}
+            <button onClick={() => setError(null)}>Dismiss</button>
+          </div>
+        </div>
+      )}
 
       {view === "mission" && (
         <div className="academy-mission-grid">
@@ -312,6 +342,105 @@ export function AcademyWorkspace() {
                     <span><strong>{itemTitle(item)}</strong><small>{item.kind} · {item.estimated_minutes} min · {item.tags.slice(0, 2).join(" / ")}</small></span>
                     <ChevronRight className="ml-auto h-4 w-4" />
                   </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="academy-mobile-curriculum" aria-labelledby="mobile-curriculum-heading">
+            <div className="academy-section-heading">
+              <div>
+                <span>Progressive mission index</span>
+                <h2 id="mobile-curriculum-heading">Tracks and missions</h2>
+              </div>
+              <TerminalSquare className="h-5 w-5" />
+            </div>
+
+            <div className="academy-mission-filters" role="group" aria-label="Filter missions by status">
+              {MISSION_FILTERS.map((filter) => (
+                <button
+                  type="button"
+                  key={filter.id}
+                  aria-pressed={missionFilter === filter.id}
+                  className={missionFilter === filter.id ? "active" : ""}
+                  onClick={() => setMissionFilter(filter.id)}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+            <p className="sr-only" role="status" aria-live="polite">
+              {filteredMissionCount} missions match the {MISSION_FILTERS.find((filter) => filter.id === missionFilter)?.label} filter.
+            </p>
+
+            <div className="academy-track-accordion">
+              {orderedTracks.map((track, index) => {
+                const trackItems = [...track.lessons, ...track.capstones].map((id) => items[id]).filter(Boolean);
+                const matchingItems = trackItems.filter(matchesMissionFilter);
+                const passed = trackItems.filter((item) => complete.has(item.id)).length;
+                const expanded = expandedTrackId === track.id;
+                const triggerId = `academy-track-trigger-${track.id}`;
+                const panelId = `academy-track-panel-${track.id}`;
+                return (
+                  <article key={track.id}>
+                    <button
+                      type="button"
+                      id={triggerId}
+                      className="academy-track-trigger"
+                      aria-expanded={expanded}
+                      aria-controls={panelId}
+                      onClick={() => setExpandedTrackId((current) => current === track.id ? null : track.id)}
+                      onKeyDown={(event) => {
+                        if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+                        event.preventDefault();
+                        const nextIndex = event.key === "Home"
+                          ? 0
+                          : event.key === "End"
+                            ? orderedTracks.length - 1
+                            : (index + (event.key === "ArrowDown" ? 1 : -1) + orderedTracks.length) % orderedTracks.length;
+                        document.getElementById(`academy-track-trigger-${orderedTracks[nextIndex].id}`)?.focus();
+                      }}
+                    >
+                      <span className="academy-track-index">0{index + 1}</span>
+                      <span className="academy-track-trigger-copy">
+                        <strong>{track.title}</strong>
+                        <small>{passed}/{trackItems.length} passed · {matchingItems.length} shown</small>
+                      </span>
+                      <ChevronDown className="academy-track-chevron h-4 w-4" aria-hidden="true" />
+                    </button>
+                    <div
+                      id={panelId}
+                      role="region"
+                      aria-labelledby={triggerId}
+                      className="academy-track-panel"
+                      hidden={!expanded}
+                    >
+                      {matchingItems.length === 0 ? (
+                        <div className="academy-filter-empty">
+                          <strong>No matching missions</strong>
+                          <span>Choose another status filter to continue.</span>
+                        </div>
+                      ) : matchingItems.map((item) => {
+                        const status = missionStatus(item);
+                        return (
+                          <button
+                            type="button"
+                            key={item.id}
+                            disabled={status === "locked"}
+                            onClick={() => selectItem(item)}
+                            className={`academy-queue-item ${status}`}
+                          >
+                            <StatusMark status={status} />
+                            <span>
+                              <strong>{itemTitle(item)}</strong>
+                              <small>{status} · {item.kind} · {item.estimated_minutes} min</small>
+                            </span>
+                            <ChevronRight className="ml-auto h-4 w-4 shrink-0" aria-hidden="true" />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </article>
                 );
               })}
             </div>

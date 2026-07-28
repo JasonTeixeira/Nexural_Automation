@@ -23,6 +23,78 @@ for (const viewport of viewports) {
   });
 }
 
+test("mobile mission index uses accessible progressive disclosure", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 900 });
+  await page.goto("/", { waitUntil: "networkidle" });
+
+  const mobileCurriculum = page.locator(".academy-mobile-curriculum");
+  const triggers = mobileCurriculum.locator(".academy-track-trigger");
+  await expect(mobileCurriculum).toBeVisible();
+  await expect(page.locator(".academy-mission-queue")).toBeHidden();
+  await expect(triggers).toHaveCount(5);
+  await expect(triggers.first()).toHaveAttribute("aria-expanded", "true");
+  await expect(triggers.nth(1)).toHaveAttribute("aria-expanded", "false");
+  await expect(mobileCurriculum.locator(".academy-track-panel:visible")).toHaveCount(1);
+
+  const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+  expect(pageHeight).toBeLessThan(2600);
+
+  await triggers.first().focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(triggers.nth(1)).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(triggers.nth(1)).toHaveAttribute("aria-expanded", "true");
+  await expect(triggers.first()).toHaveAttribute("aria-expanded", "false");
+
+  const passedFilter = mobileCurriculum.getByRole("button", { name: "Passed", exact: true });
+  await passedFilter.click();
+  await expect(passedFilter).toHaveAttribute("aria-pressed", "true");
+  await expect(mobileCurriculum.getByRole("status")).toContainText("missions match");
+});
+
+for (const viewport of [{ width: 768, height: 1024 }, { width: 1024, height: 900 }, { width: 1440, height: 1100 }]) {
+  test(`desktop mission queue remains complete at ${viewport.width}px`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/", { waitUntil: "networkidle" });
+    await expect(page.locator(".academy-mobile-curriculum")).toBeHidden();
+    await expect(page.locator(".academy-mission-queue")).toBeVisible();
+    await expect(page.locator(".academy-mission-queue .academy-queue-item")).toHaveCount(65);
+  });
+}
+
+test("mobile inline errors wrap and preserve a mission-control escape route", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 900 });
+  await page.route("**/api/academy/items/*/hint", async (route) => {
+    await route.fulfill({
+      status: 503,
+      contentType: "application/json",
+      body: JSON.stringify({ detail: "Mentor evidence service is temporarily unavailable for this unusually long diagnostic request." }),
+    });
+  });
+  await page.goto("/", { waitUntil: "networkidle" });
+  await page.locator(".academy-track-panel:visible .academy-queue-item:not(:disabled)").first().click();
+  await page.getByRole("button", { name: "Request next hint" }).click();
+
+  const alert = page.getByRole("alert");
+  await expect(alert).toBeVisible();
+  await expect(alert.getByRole("button", { name: "Mission control" })).toBeVisible();
+  const overflow = await alert.evaluate((element) => element.scrollWidth > element.clientWidth);
+  expect(overflow).toBeFalsy();
+  await alert.getByRole("button", { name: "Mission control" }).click();
+  await expect(page.locator(".academy-mobile-curriculum")).toBeVisible();
+});
+
+test("reduced motion collapses Academy transitions", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ width: 375, height: 900 });
+  await page.goto("/", { waitUntil: "networkidle" });
+  const duration = await page.locator(".academy-track-chevron").first().evaluate((element) => {
+    const raw = getComputedStyle(element).transitionDuration;
+    return raw.endsWith("ms") ? Number.parseFloat(raw) : Number.parseFloat(raw) * 1000;
+  });
+  expect(duration).toBeLessThanOrEqual(0.02);
+});
+
 test("machine-derived causal mission records tamper-evident evidence", async ({ page }) => {
   await page.goto("/", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Causal Feature Pipeline" }).click();

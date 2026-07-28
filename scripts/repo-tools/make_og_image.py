@@ -1,12 +1,12 @@
-"""
-Generate the OpenGraph social preview card for the repo.
+"""Deterministically render Nexural Automation production raster assets.
 
-Output: docs/assets/og-card.png (1280x640 PNG, brand-4 palette).
+Outputs:
+    docs/assets/og-card.png                                      1280x640 RGB
+    platforms/python/research/nexural-research/desktop/icon.png 512x512 RGBA
 
-Run:
-    python scripts/repo-tools/make_og_image.py
-
-Re-run any time the headline/subhead/version changes.
+The vector sources remain canonical. This renderer uses Pillow's embedded font
+and fixed geometric primitives so it has no host-font, network, or timestamp
+dependency.
 """
 
 from __future__ import annotations
@@ -15,114 +15,202 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-# --- Brand 4 ----------------------------------------------------------------
-CYAN = (14, 211, 207)      # #0ED3CF
-CORAL = (232, 93, 58)      # #E85D3A
-LIME = (168, 198, 51)      # #A8C633
-MAGENTA = (199, 35, 110)   # #C7236E
-BG = (8, 10, 14)           # near-black backdrop
-INK = (235, 238, 242)      # off-white text
-MUTED = (140, 150, 165)
+CHARCOAL = (17, 23, 20)
+SURFACE = (24, 32, 28)
+STRUCTURE = (39, 51, 46)
+PAPER = (244, 240, 230)
+LIME = (199, 244, 100)
+ORANGE = (255, 107, 53)
+MUTED = (142, 155, 149)
 
-WIDTH, HEIGHT = 1280, 640
-
-
-def _font(size: int, bold: bool = False, mono: bool = False) -> ImageFont.FreeTypeFont:
-    candidates = []
-    if mono:
-        candidates = [
-            "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf" if bold
-            else "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
-        ]
-    else:
-        candidates = [
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold
-            else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        ]
-    for p in candidates:
-        if Path(p).exists():
-            return ImageFont.truetype(p, size)
-    return ImageFont.load_default()
+ROOT = Path(__file__).resolve().parents[2]
 
 
-def render() -> Image.Image:
-    img = Image.new("RGB", (WIDTH, HEIGHT), BG)
-    draw = ImageDraw.Draw(img)
+def _font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    """Use Pillow's embedded font rather than a machine-specific font path."""
 
-    # Subtle dot grid backdrop
-    for y in range(0, HEIGHT, 24):
-        for x in range(0, WIDTH, 24):
-            draw.point((x, y), fill=(22, 26, 32))
+    return ImageFont.load_default(size=size)
 
-    # Left brand stripe (4 segments, brand-4 colors, vertical)
-    stripe_w = 12
-    seg_h = HEIGHT // 4
-    for i, color in enumerate([CYAN, CORAL, LIME, MAGENTA]):
-        draw.rectangle([0, i * seg_h, stripe_w, (i + 1) * seg_h], fill=color)
 
-    # Kicker
-    pad_x = 72
-    y = 96
-    draw.text((pad_x, y), "// NEXURAL · AUTOMATION", font=_font(22, mono=True), fill=CYAN)
+def _spaced_text(
+    draw: ImageDraw.ImageDraw,
+    position: tuple[int, int],
+    text: str,
+    *,
+    font: ImageFont.FreeTypeFont | ImageFont.ImageFont,
+    fill: tuple[int, int, int],
+    spacing: int,
+) -> None:
+    x, y = position
+    for character in text:
+        draw.text((x, y), character, font=font, fill=fill)
+        box = draw.textbbox((x, y), character, font=font)
+        x = int(box[2]) + spacing
 
-    # Headline — 2 lines
-    y += 60
-    draw.text((pad_x, y), "Local-first automation lab", font=_font(64, bold=True), fill=INK)
-    y += 78
-    draw.text((pad_x, y), "for futures strategy research.", font=_font(64, bold=True), fill=INK)
 
-    # Subhead
-    y += 110
+def _draw_nx_mark(
+    draw: ImageDraw.ImageDraw,
+    *,
+    origin: tuple[int, int],
+    size: int,
+    background: tuple[int, int, int] = SURFACE,
+) -> None:
+    x, y = origin
+    scale = size / 512
+
+    def p(value: float) -> int:
+        return round(value * scale)
+
+    draw.rounded_rectangle(
+        (x, y, x + size, y + size),
+        radius=p(88),
+        fill=background,
+        outline=STRUCTURE,
+        width=max(1, p(2)),
+    )
+    draw.line(
+        (x + p(36), y + p(104), x + p(476), y + p(104)),
+        fill=STRUCTURE,
+        width=max(1, p(2)),
+    )
+    draw.line(
+        (x + p(36), y + p(408), x + p(476), y + p(408)),
+        fill=STRUCTURE,
+        width=max(1, p(2)),
+    )
+    width = max(2, p(34))
+    draw.line(
+        (
+            x + p(92),
+            y + p(366),
+            x + p(92),
+            y + p(146),
+            x + p(238),
+            y + p(366),
+            x + p(238),
+            y + p(146),
+        ),
+        fill=LIME,
+        width=width,
+        joint="curve",
+    )
+    draw.line(
+        (x + p(286), y + p(146), x + p(420), y + p(366)), fill=ORANGE, width=width
+    )
+    draw.line(
+        (x + p(420), y + p(146), x + p(286), y + p(366)), fill=ORANGE, width=width
+    )
+    draw.rectangle((x + p(36), y + p(36), x + p(80), y + p(44)), fill=LIME)
+    draw.rectangle((x + p(84), y + p(36), x + p(102), y + p(44)), fill=ORANGE)
+    radius = max(2, p(8))
+    draw.ellipse(
+        (
+            x + p(456) - radius,
+            y + p(456) - radius,
+            x + p(456) + radius,
+            y + p(456) + radius,
+        ),
+        fill=PAPER,
+    )
+
+
+def render_app_icon() -> Image.Image:
+    image = Image.new("RGBA", (512, 512), (*CHARCOAL, 255))
+    draw = ImageDraw.Draw(image)
+    _draw_nx_mark(draw, origin=(0, 0), size=512, background=CHARCOAL)
+    return image
+
+
+def render_og_card() -> Image.Image:
+    width, height = 1280, 640
+    image = Image.new("RGB", (width, height), CHARCOAL)
+    draw = ImageDraw.Draw(image)
+
+    for x in range(0, width + 1, 40):
+        draw.line((x, 0, x, height), fill=STRUCTURE, width=1)
+    for y in range(0, height + 1, 40):
+        draw.line((0, y, width, y), fill=STRUCTURE, width=1)
+
+    draw.rectangle((0, 0, 16, height), fill=LIME)
+    draw.rectangle((16, 0, 24, height), fill=ORANGE)
+    _draw_nx_mark(draw, origin=(72, 70), size=176)
+
+    _spaced_text(
+        draw,
+        (286, 72),
+        "NEXURAL AUTOMATION",
+        font=_font(31),
+        fill=LIME,
+        spacing=4,
+    )
+    draw.rectangle((286, 122, 1170, 126), fill=STRUCTURE)
+    draw.rectangle((286, 122, 470, 126), fill=ORANGE)
+
+    draw.text((286, 166), "AUTOMATION THAT", font=_font(72), fill=PAPER)
+    draw.text((286, 246), "PROVES ITS WORK.", font=_font(72), fill=PAPER)
+
     draw.text(
-        (pad_x, y),
-        "MCP server · Strategy & Bridge SDKs · Validation gauntlet · Futures cost model",
-        font=_font(24),
+        (286, 358),
+        "NinjaTrader safety engineering + reproducible research",
+        font=_font(27),
         fill=MUTED,
     )
-    y += 38
     draw.text(
-        (pad_x, y),
-        "NinjaTrader 8 · TradingView · Python — paper-first, agent-callable.",
-        font=_font(24),
+        (286, 398),
+        "Simulation-first. Evidence-driven. Fail-closed.",
+        font=_font(27),
         fill=MUTED,
     )
 
-    # Footer chips
-    y = HEIGHT - 96
-    chips = [
-        ("Apache-2.0", CYAN),
-        ("Python 3.11", CORAL),
-        ("MCP smoke-tested", LIME),
-        ("v0.1.0-public-mvp", MAGENTA),
-    ]
-    x = pad_x
-    for label, color in chips:
-        bbox = draw.textbbox((0, 0), label, font=_font(20, mono=True))
-        w = bbox[2] - bbox[0]
-        box_w = w + 28
-        box_h = 36
-        # rounded-ish rectangle
-        draw.rectangle([x, y, x + box_w, y + box_h], outline=color, width=2)
-        # dot
-        draw.ellipse([x + 10, y + 14, x + 18, y + 22], fill=color)
-        draw.text((x + 24, y + 8), label, font=_font(18, mono=True), fill=color)
-        x += box_w + 16
+    chips = ("RESEARCH", "REPLAY", "EVIDENCE", "PAPER ONLY")
+    chip_x = 286
+    for index, label in enumerate(chips):
+        font = _font(20)
+        bounds = draw.textbbox((0, 0), label, font=font)
+        chip_width = int(bounds[2] - bounds[0]) + 42
+        color = ORANGE if index == len(chips) - 1 else LIME
+        draw.rounded_rectangle(
+            (chip_x, 474, chip_x + chip_width, 516),
+            radius=4,
+            fill=SURFACE,
+            outline=color,
+            width=2,
+        )
+        draw.rectangle((chip_x + 12, 491, chip_x + 18, 497), fill=color)
+        draw.text((chip_x + 26, 485), label, font=font, fill=color)
+        chip_x += chip_width + 14
 
-    # Bottom-right repo handle
-    handle = "github.com/JasonTeixeira/Nexural_Automation"
-    bbox = draw.textbbox((0, 0), handle, font=_font(18, mono=True))
-    w = bbox[2] - bbox[0]
-    draw.text((WIDTH - pad_x - w, HEIGHT - 50), handle, font=_font(18, mono=True), fill=MUTED)
+    draw.rectangle((72, 566, 1208, 568), fill=STRUCTURE)
+    draw.text(
+        (72, 586),
+        "github.com/JasonTeixeira/Nexural_Automation",
+        font=_font(20),
+        fill=MUTED,
+    )
+    draw.text((1056, 586), "NX / 01", font=_font(20), fill=PAPER)
+    return image
 
-    return img
+
+def _save_png(image: Image.Image, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    image.save(path, format="PNG", optimize=False, compress_level=9)
+    print(
+        f"wrote {path.relative_to(ROOT)} ({path.stat().st_size:,} bytes, {image.width}x{image.height})"
+    )
 
 
 def main() -> None:
-    out_path = Path(__file__).resolve().parents[2] / "docs" / "assets" / "og-card.png"
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    img = render()
-    img.save(out_path, format="PNG", optimize=True)
-    print(f"wrote {out_path} ({out_path.stat().st_size:,} bytes, {WIDTH}x{HEIGHT})")
+    _save_png(render_og_card(), ROOT / "docs" / "assets" / "og-card.png")
+    _save_png(
+        render_app_icon(),
+        ROOT
+        / "platforms"
+        / "python"
+        / "research"
+        / "nexural-research"
+        / "desktop"
+        / "icon.png",
+    )
 
 
 if __name__ == "__main__":

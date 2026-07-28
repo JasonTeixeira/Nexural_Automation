@@ -44,6 +44,7 @@ def test_lab_tabs_use_roving_keyboard_focus() -> None:
         context = browser.new_context(viewport={"width": 375, "height": 900})
         page = context.new_page()
         page.goto(FRONTEND_URL, wait_until="networkidle")
+        page.get_by_role("button", name="Research Operator", exact=False).click()
         page.get_by_role("button", name="Causal Feature Pipeline").click()
 
         brief = page.locator('[role="tab"]').filter(has_text="brief")

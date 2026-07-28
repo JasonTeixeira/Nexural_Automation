@@ -16,7 +16,7 @@ export function SettingsPanel({ platformApiKey, onPlatformApiKeyChange, apiKey, 
           Required only when NEXURAL_AUTH_ENABLED is active. It protects sessions, Academy progress, AI routes, and exports.
         </p>
         <label htmlFor="platform-api-key" className="block text-xs text-gray-400 mb-2 font-medium uppercase tracking-wider">Nexural bearer key</label>
-        <input id="platform-api-key" type="password" autoComplete="off" value={platformApiKey} onChange={(event) => onPlatformApiKeyChange(event.target.value)} placeholder="Local server API key" className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm font-mono text-gray-300 placeholder-gray-600 focus:outline-none focus:border-amber-400/50 focus:ring-1 focus:ring-amber-400/20 transition-all" />
+        <input id="platform-api-key" type="password" autoComplete="off" value={platformApiKey} onChange={(event) => onPlatformApiKeyChange(event.target.value)} placeholder="Local server API key" className="min-h-11 w-full rounded-lg border border-[var(--line-strong)] bg-[var(--surface-input)] px-4 py-3 font-mono text-sm text-gray-300 placeholder-gray-600 transition-all focus:border-[var(--signal-active)] focus:outline-none focus:ring-1 focus:ring-[var(--signal-active)]" />
         <p className="text-[10px] text-gray-600 mt-2">Held in browser memory only and attached as an Authorization header to Nexural requests.</p>
       </div>
 
@@ -27,67 +27,71 @@ export function SettingsPanel({ platformApiKey, onPlatformApiKeyChange, apiKey, 
           Connect your own API key to enable AI-powered strategy analysis. Your key is stored only in browser memory and never sent to our servers.
         </p>
 
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <button
             onClick={() => onProviderChange("anthropic")}
+            aria-pressed={provider === "anthropic"}
             className={`glass-card p-5 text-left transition-all cursor-pointer ${
-              provider === "anthropic" ? "border-blue-500/30 glow-blue" : ""
+              provider === "anthropic" ? "border-[var(--signal-active)] glow-active" : ""
             }`}
           >
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-xs">A</div>
+              <div className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--signal-warn-border)] bg-[var(--signal-warn-soft)] text-xs font-bold text-[var(--signal-warn)]">A</div>
               <div>
                 <div className="text-sm font-medium text-white">Anthropic</div>
                 <div className="text-[10px] text-gray-500">Claude Sonnet 4</div>
               </div>
             </div>
-            {provider === "anthropic" && <span className="badge-blue">Active</span>}
+            {provider === "anthropic" && <span className="badge-active">Active</span>}
           </button>
 
           <button
             onClick={() => onProviderChange("openai")}
+            aria-pressed={provider === "openai"}
             className={`glass-card p-5 text-left transition-all cursor-pointer ${
-              provider === "openai" ? "border-blue-500/30 glow-blue" : ""
+              provider === "openai" ? "border-[var(--signal-active)] glow-active" : ""
             }`}
           >
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-xs">G</div>
+              <div className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--signal-pass-border)] bg-[var(--signal-pass-soft)] text-xs font-bold text-[var(--signal-pass)]">G</div>
               <div>
                 <div className="text-sm font-medium text-white">OpenAI</div>
                 <div className="text-[10px] text-gray-500">GPT-4o</div>
               </div>
             </div>
-            {provider === "openai" && <span className="badge-blue">Active</span>}
+            {provider === "openai" && <span className="badge-active">Active</span>}
           </button>
 
           <button
             onClick={() => onProviderChange("perplexity")}
+            aria-pressed={provider === "perplexity"}
             className={`glass-card p-5 text-left transition-all cursor-pointer ${
-              provider === "perplexity" ? "border-blue-500/30 glow-blue" : ""
+              provider === "perplexity" ? "border-[var(--signal-active)] glow-active" : ""
             }`}
           >
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-bold text-xs">P</div>
+              <div className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--line-strong)] bg-[var(--ink-800)] text-xs font-bold text-[var(--ivory)]">P</div>
               <div>
                 <div className="text-sm font-medium text-white">Perplexity</div>
                 <div className="text-[10px] text-gray-500">Sonar Pro + Web</div>
               </div>
             </div>
-            {provider === "perplexity" && <span className="badge-blue">Active</span>}
+            {provider === "perplexity" && <span className="badge-active">Active</span>}
           </button>
         </div>
 
         {/* API Key Input */}
         <div>
-          <label className="block text-xs text-gray-400 mb-2 font-medium uppercase tracking-wider">
+          <label htmlFor="provider-api-key" className="block text-xs text-gray-400 mb-2 font-medium uppercase tracking-wider">
             {provider === "anthropic" ? "Anthropic" : "OpenAI"} API Key
           </label>
           <input
+            id="provider-api-key"
             type="password"
             value={apiKey}
             onChange={(e) => onApiKeyChange(e.target.value)}
             placeholder={provider === "anthropic" ? "sk-ant-..." : provider === "openai" ? "sk-..." : "pplx-..."}
-            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm font-mono text-gray-300 placeholder-gray-600 focus:outline-none focus:border-blue-500/40 focus:ring-1 focus:ring-blue-500/20 transition-all"
+            className="min-h-11 w-full rounded-lg border border-[var(--line-strong)] bg-[var(--surface-input)] px-4 py-3 font-mono text-sm text-gray-300 placeholder-gray-600 transition-all focus:border-[var(--signal-active)] focus:outline-none focus:ring-1 focus:ring-[var(--signal-active)]"
           />
           <p className="text-[10px] text-gray-600 mt-2">
             Your key is stored in browser memory only. It is never persisted or sent to any server other than the AI provider.
@@ -98,8 +102,8 @@ export function SettingsPanel({ platformApiKey, onPlatformApiKeyChange, apiKey, 
         <div className="mt-4 flex items-center gap-2">
           {apiKey ? (
             <>
-              <div className="w-2 h-2 rounded-full bg-emerald-400" />
-              <span className="text-xs text-emerald-400">Key configured</span>
+              <div className="w-2 h-2 rounded-full bg-[var(--signal-pass)]" />
+              <span className="text-xs text-[var(--signal-pass)]">Key configured</span>
             </>
           ) : (
             <>

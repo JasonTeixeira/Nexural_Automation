@@ -61,8 +61,8 @@ export function UploadPanel({ onUpload }: Props) {
     <div className="min-h-screen flex items-center justify-center p-8 relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full blur-[120px] bg-amber-400/[0.025]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full blur-[100px] bg-emerald-400/[0.015]" />
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full blur-[120px] bg-[var(--signal-active-soft)] opacity-25" />
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full blur-[100px] bg-[var(--signal-pass-soft)] opacity-20" />
         {/* Grid */}
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
@@ -89,7 +89,7 @@ export function UploadPanel({ onUpload }: Props) {
           {...getRootProps()}
           className={`glass-card cursor-pointer text-center py-16 px-8 transition-all duration-500 ${
             isDragActive
-              ? "border-amber-400/40 scale-[1.02]"
+              ? "border-[var(--signal-active)] scale-[1.02]"
               : "hover:border-white/[0.12]"
           }`}
         >
@@ -97,13 +97,13 @@ export function UploadPanel({ onUpload }: Props) {
 
           {uploading ? (
             <div className="animate-fade-in">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-full border-2 border-amber-400/30 border-t-amber-400 animate-spin" />
-              <div className="text-amber-300 font-medium">Analyzing...</div>
+              <div className="mx-auto mb-4 h-12 w-12 rounded-full border-2 border-[var(--signal-active-border)] border-t-[var(--signal-active)] animate-spin" />
+              <div className="font-medium text-[var(--signal-active-strong)]">Analyzing...</div>
               <p className="text-gray-500 text-xs mt-2">Parsing CSV &middot; Detecting export type &middot; Normalizing data</p>
             </div>
           ) : (
             <div>
-              <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center">
+              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-lg border border-[var(--line-strong)] bg-[var(--ink-850)]">
                 <Upload className="h-7 w-7 text-gray-400" />
               </div>
               <p className="text-white font-medium text-base">
@@ -113,15 +113,15 @@ export function UploadPanel({ onUpload }: Props) {
                 Drag & drop a CSV or click to browse
               </p>
               <div className="flex items-center justify-center gap-4 mt-6 text-[11px] text-gray-600">
-                <span className="badge-blue">Trades</span>
-                <span className="badge-blue">Executions</span>
-                <span className="badge-blue">Optimization</span>
+                <span className="badge-active">Trades</span>
+                <span className="badge-active">Executions</span>
+                <span className="badge-active">Optimization</span>
               </div>
             </div>
           )}
 
           {error && (
-            <div className="mt-6 text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 inline-block">
+            <div className="mt-6 inline-block rounded-lg border border-[var(--signal-fail-border)] bg-[var(--signal-fail-soft)] px-4 py-3 text-sm text-[var(--signal-fail)]">
               {error}
             </div>
           )}

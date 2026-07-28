@@ -7,9 +7,9 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 interface Props { sessionId: string; }
 
-const TOOLTIP_STYLE = { backgroundColor: "#0c1222", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", fontSize: 12, color: "#e5e7eb" };
-const CHART_GRID = { strokeDasharray: "3 3", stroke: "rgba(255,255,255,0.04)" };
-const CHART_AXIS = { stroke: "rgba(255,255,255,0.08)", tick: { fontSize: 10, fill: "#6b7280" } };
+const TOOLTIP_STYLE = { backgroundColor: "var(--ink-900)", border: "1px solid var(--line-strong)", borderRadius: "8px", fontSize: 12, color: "var(--ivory)" };
+const CHART_GRID = { strokeDasharray: "3 3", stroke: "var(--chart-grid)" };
+const CHART_AXIS = { stroke: "var(--line-strong)", tick: { fontSize: 10, fill: "var(--chart-axis)" } };
 
 function fmt(v: unknown): string {
   if (typeof v !== "number") return String(v ?? "N/A");
@@ -48,7 +48,7 @@ export function RobustnessPanel({ sessionId }: Props) {
           <h3 className="section-title">Monte Carlo — Shuffle Analysis</h3>
           <p className="text-xs text-gray-500 -mt-3 mb-5">Randomly reorders trade sequence to test drawdown sensitivity to ordering</p>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <MetricCard label="Simulations" value={String(mc.data.n)} color="blue" />
+            <MetricCard label="Simulations" value={String(mc.data.n)} color="active" />
             <MetricCard label="MDD Best (p5)" value={fmt(mc.data.mdd_p05)} color="green" subtitle="Best-case drawdown" />
             <MetricCard label="MDD Median" value={fmt(mc.data.mdd_p50)} color="amber" subtitle="Expected drawdown" />
             <MetricCard label="MDD p75" value={fmt(mc.data.mdd_p75)} color="red" />
@@ -65,19 +65,19 @@ export function RobustnessPanel({ sessionId }: Props) {
               <h3 className="section-title mb-0">Parametric Monte Carlo</h3>
               <p className="text-xs text-gray-500 mt-1">Simulates future performance using fitted return distributions</p>
             </div>
-            <div className="flex gap-1.5 bg-white/[0.03] rounded-lg p-1">
+            <div className="flex gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--ink-850)] p-1">
               {["empirical", "normal", "t"].map((d) => (
-                <button key={d} onClick={() => setMcDist(d)}
-                  className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
-                    mcDist === d ? "bg-blue-500 text-white shadow-lg shadow-blue-500/25" : "text-gray-400 hover:text-gray-200"
+                <button key={d} onClick={() => setMcDist(d)} aria-pressed={mcDist === d}
+                  className={`min-h-11 cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal-active)] ${
+                    mcDist === d ? "bg-[var(--signal-active)] text-[var(--ink-950)]" : "text-gray-400 hover:text-gray-200"
                   }`}>{d}</button>
               ))}
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <MetricCard label="Simulations" value={String(pmc.data.n_simulations)} />
-            <MetricCard label="Distribution" value={String(pmc.data.distribution)} color="blue" />
-            <MetricCard label="Median Equity" value={fmt(pmc.data.final_equity_p50)} color="blue" />
+            <MetricCard label="Distribution" value={String(pmc.data.distribution)} color="active" />
+            <MetricCard label="Median Equity" value={fmt(pmc.data.final_equity_p50)} color="active" />
             <MetricCard label="5th Percentile" value={fmt(pmc.data.final_equity_p05)} color="red" subtitle="Worst 5% outcome" />
             <MetricCard label="95th Percentile" value={fmt(pmc.data.final_equity_p95)} color="green" subtitle="Best 5% outcome" />
             <MetricCard label="Prob Profitable" value={`${pmc.data.prob_profitable}%`}
@@ -94,7 +94,7 @@ export function RobustnessPanel({ sessionId }: Props) {
           <p className="text-xs text-gray-500 -mt-3 mb-5">Preserves autocorrelation structure — critical for momentum/mean-reversion strategies</p>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <MetricCard label="Block Size" value={String(bb.data.block_size)} subtitle="Auto-optimized" />
-            <MetricCard label="Sharpe Mean" value={String(bb.data.sharpe_mean)} color="blue" />
+            <MetricCard label="Sharpe Mean" value={String(bb.data.sharpe_mean)} color="active" />
             <MetricCard label="Sharpe Std" value={String(bb.data.sharpe_std)} />
             <MetricCard label="95% CI Lower" value={String(bb.data.sharpe_ci_lower)} color={(bb.data.sharpe_ci_lower as number) > 0 ? "green" : "red"} />
             <MetricCard label="95% CI Upper" value={String(bb.data.sharpe_ci_upper)} color={(bb.data.sharpe_ci_upper as number) > 0 ? "green" : "amber"} />
@@ -109,7 +109,7 @@ export function RobustnessPanel({ sessionId }: Props) {
           <h3 className="section-title">Rolling Walk-Forward Analysis</h3>
           <p className="text-xs text-gray-500 -mt-3 mb-5">Tests out-of-sample consistency across multiple time windows</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <MetricCard label="Windows" value={String(wf.data.n_windows)} color="blue" />
+            <MetricCard label="Windows" value={String(wf.data.n_windows)} color="active" />
             <MetricCard label="OOS Net Profit" value={fmt(wf.data.aggregate_oos_net)}
               color={(wf.data.aggregate_oos_net as number) > 0 ? "green" : "red"}
               badge={(wf.data.aggregate_oos_net as number) > 0 ? "PROFITABLE" : "LOSS"} />
@@ -126,9 +126,9 @@ export function RobustnessPanel({ sessionId }: Props) {
                 <XAxis dataKey="window" {...CHART_AXIS} />
                 <YAxis {...CHART_AXIS} tickFormatter={(v) => `$${v}`} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
-                <Legend wrapperStyle={{ fontSize: 11, color: "#9ca3af" }} />
-                <Bar dataKey="in_sample" fill="#3b82f6" name="In-Sample" radius={[4, 4, 0, 0]} opacity={0.7} />
-                <Bar dataKey="out_sample" fill="#10b981" name="Out-of-Sample" radius={[4, 4, 0, 0]} />
+                <Legend wrapperStyle={{ fontSize: 11, color: "var(--text-muted)" }} />
+                <Bar dataKey="in_sample" fill="var(--chart-equity)" stroke="var(--ink-950)" name="In-Sample" radius={[2, 2, 0, 0]} opacity={0.72} />
+                <Bar dataKey="out_sample" fill="var(--chart-pass)" stroke="var(--ivory)" strokeWidth={0.5} name="Out-of-Sample" radius={[2, 2, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}

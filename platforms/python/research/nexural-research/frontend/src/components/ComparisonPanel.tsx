@@ -19,10 +19,10 @@ function DeltaRow({ label, data }: { label: string; data: Record<string, unknown
       <td className="py-3 text-xs text-gray-400 capitalize">{label.replace(/_/g, " ")}</td>
       <td className="py-3 font-mono text-xs text-gray-300">{typeof data.a === "number" ? data.a.toFixed(4) : String(data.a)}</td>
       <td className="py-3 font-mono text-xs text-gray-300">{typeof data.b === "number" ? data.b.toFixed(4) : String(data.b)}</td>
-      <td className={clsx("py-3 font-mono text-xs font-semibold", (isMdd ? delta < 0 : delta > 0) ? "text-emerald-400" : delta === 0 ? "text-gray-500" : "text-red-400")}>
+      <td className={clsx("py-3 font-mono text-xs font-semibold", (isMdd ? delta < 0 : delta > 0) ? "text-[var(--signal-pass)]" : delta === 0 ? "text-gray-500" : "text-[var(--signal-fail)]")}>
         {delta > 0 ? "+" : ""}{delta.toFixed(4)}
       </td>
-      <td className={clsx("py-3 font-mono text-xs", (isMdd ? pct < 0 : pct > 0) ? "text-emerald-400" : "text-gray-500")}>
+      <td className={clsx("py-3 font-mono text-xs", (isMdd ? pct < 0 : pct > 0) ? "text-[var(--signal-pass)]" : "text-gray-500")}>
         {pct > 0 ? "+" : ""}{pct.toFixed(1)}%
       </td>
     </tr>
@@ -66,11 +66,14 @@ export function ComparisonPanel({ currentSessionId }: Props) {
           </p>
           <div
             {...getRootProps()}
-            className={clsx("glass-card p-10 cursor-pointer transition-all", isDragActive ? "border-blue-500/40 glow-blue" : "hover:border-white/[0.12]")}
+            className={clsx(
+              "glass-card cursor-pointer p-10 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal-active)]",
+              isDragActive ? "border-[var(--signal-active)] glow-active" : "hover:border-[var(--signal-active-border)]",
+            )}
           >
             <input {...getInputProps()} />
             {uploading ? (
-              <div className="animate-pulse text-blue-400 text-sm">Uploading & comparing...</div>
+              <div className="animate-pulse text-sm text-[var(--signal-active-strong)]">Uploading & comparing...</div>
             ) : (
               <>
                 <svg className="w-10 h-10 mx-auto text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -98,12 +101,12 @@ export function ComparisonPanel({ currentSessionId }: Props) {
       <div className="grid grid-cols-2 gap-6">
         <div className="panel text-center">
           <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-2">Strategy A (Current)</div>
-          <div className="text-4xl font-bold font-mono text-blue-400">{(c.grade as any)?.a}</div>
+          <div className="font-mono text-4xl font-bold text-[var(--signal-active-strong)]">{(c.grade as any)?.a}</div>
           <div className="text-xs text-gray-500 mt-1">{(c.trades as any)?.a} trades</div>
         </div>
         <div className="panel text-center">
           <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-2">Strategy B (Compared)</div>
-          <div className="text-4xl font-bold font-mono text-emerald-400">{(c.grade as any)?.b}</div>
+          <div className="font-mono text-4xl font-bold text-[var(--signal-pass)]">{(c.grade as any)?.b}</div>
           <div className="text-xs text-gray-500 mt-1">{(c.trades as any)?.b} trades</div>
         </div>
       </div>

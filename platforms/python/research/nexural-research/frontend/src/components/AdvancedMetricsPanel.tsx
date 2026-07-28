@@ -12,7 +12,7 @@ function Row({ label, value, highlight, verdict }: { label: string; value: unkno
   return (
     <tr className="border-b border-white/[0.03] group">
       <td className="py-2.5 pr-4 text-gray-500 text-xs group-hover:text-gray-400 transition-colors">{label}</td>
-      <td className={`py-2.5 font-mono text-xs ${highlight ? "text-blue-400 font-semibold" : "text-gray-300"}`}>
+      <td className={`py-2.5 font-mono text-xs ${highlight ? "text-[var(--signal-active-strong)] font-semibold" : "text-gray-300"}`}>
         <span className="flex items-center gap-2">
           {display}
           {verdict === "pass" && <span className="badge-green">PASS</span>}

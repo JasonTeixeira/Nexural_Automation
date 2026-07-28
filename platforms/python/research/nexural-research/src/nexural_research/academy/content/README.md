@@ -1,5 +1,7 @@
 # Nexural Automation Academy
 
+![Automation Academy evidence loop](https://raw.githubusercontent.com/JasonTeixeira/Nexural_Automation/main/docs/assets/diagrams/academy-learning-loop.svg)
+
 A safety-first, scenario-driven curriculum for NinjaTrader and quantitative automation. Each
 mission is an executable, versioned content package evaluated by `nexural_research.academy`.
 Learners repair a data-only declarative trace program. A trusted deterministic runner derives the
@@ -16,6 +18,9 @@ certify curriculum knowledge, not the behavior or safety of arbitrary learner co
 ## Interfaces
 
 Use the Academy from the default web workspace, versioned API, or CLI:
+
+Follow the [step-by-step learner runbook](https://jasonteixeira.github.io/Nexural_Automation/operator-manual/#3-complete-an-academy-lab)
+for the expected edit, grade, evidence, and retry cycle.
 
 ```powershell
 nexural-research academy catalog

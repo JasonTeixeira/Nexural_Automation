@@ -10,7 +10,10 @@ SECRET_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("anthropic_key", re.compile(r"\bsk-ant-[A-Za-z0-9_-]{24,}\b")),
     ("github_token", re.compile(r"\bgh[pousr]_[A-Za-z0-9_]{30,}\b")),
     ("aws_access_key", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
-    ("private_key", re.compile(r"-----BEGIN (?:RSA |OPENSSH |EC |DSA )?PRIVATE KEY-----")),
+    (
+        "private_key",
+        re.compile(r"-----BEGIN (?:RSA |OPENSSH |EC |DSA )?PRIVATE KEY-----"),
+    ),
     (
         "generic_assignment",
         re.compile(
@@ -55,7 +58,11 @@ def tracked_files(repo_root: Path) -> list[Path]:
         text=True,
         check=True,
     )
-    return [repo_root / line for line in completed.stdout.splitlines() if line.strip()]
+    return [
+        path
+        for line in completed.stdout.splitlines()
+        if line.strip() and (path := repo_root / line).is_file()
+    ]
 
 
 def should_scan(path: Path, repo_root: Path) -> bool:
@@ -68,7 +75,7 @@ def should_scan(path: Path, repo_root: Path) -> bool:
 def scan_file(path: Path) -> list[str]:
     try:
         text = path.read_text(encoding="utf-8")
-    except UnicodeDecodeError:
+    except (OSError, UnicodeDecodeError):
         return []
 
     findings: list[str] = []
@@ -83,7 +90,9 @@ def scan_file(path: Path) -> list[str]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Scan tracked files for obvious committed secrets.")
+    parser = argparse.ArgumentParser(
+        description="Scan tracked files for obvious committed secrets."
+    )
     parser.add_argument("--repo-root", default=Path(__file__).resolve().parents[2])
     args = parser.parse_args()
 
@@ -104,4 +113,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

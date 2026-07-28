@@ -9,9 +9,9 @@ import {
 
 interface Props { sessionId: string; }
 
-const CHART_GRID = { strokeDasharray: "3 3", stroke: "rgba(255,255,255,0.04)" };
-const CHART_AXIS = { stroke: "rgba(255,255,255,0.08)", tick: { fontSize: 10, fill: "#6b7280" } };
-const TOOLTIP_STYLE = { backgroundColor: "#0c1222", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", fontSize: 12, color: "#e5e7eb" };
+const CHART_GRID = { strokeDasharray: "3 3", stroke: "var(--chart-grid)" };
+const CHART_AXIS = { stroke: "var(--line-strong)", tick: { fontSize: 10, fill: "var(--chart-axis)" } };
+const TOOLTIP_STYLE = { backgroundColor: "var(--ink-900)", border: "1px solid var(--line-strong)", borderRadius: "8px", fontSize: 12, color: "var(--ivory)" };
 
 export function EquityChart({ sessionId }: Props) {
   const eq = useAsync<EquityData>();
@@ -34,16 +34,16 @@ export function EquityChart({ sessionId }: Props) {
           <AreaChart data={data}>
             <defs>
               <linearGradient id="eqGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.25} />
-                <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--chart-equity)" stopOpacity={0.25} />
+                <stop offset="100%" stopColor="var(--chart-equity)" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid {...CHART_GRID} />
             <XAxis dataKey="time" {...CHART_AXIS} tickFormatter={(v) => v.slice(5)} />
             <YAxis {...CHART_AXIS} tickFormatter={(v) => `$${(v/1000).toFixed(1)}k`} />
             <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`$${v.toFixed(2)}`, "Equity"]} />
-            <ReferenceLine y={0} stroke="rgba(255,255,255,0.06)" />
-            <Area type="monotone" dataKey="equity" stroke="#3b82f6" fill="url(#eqGrad)" strokeWidth={2} />
+            <ReferenceLine y={0} stroke="var(--line-strong)" />
+            <Area type="monotone" dataKey="equity" stroke="var(--chart-equity)" fill="url(#eqGrad)" strokeWidth={2} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -54,15 +54,15 @@ export function EquityChart({ sessionId }: Props) {
           <AreaChart data={data}>
             <defs>
               <linearGradient id="ddGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#ef4444" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--chart-fail)" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="var(--chart-fail)" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid {...CHART_GRID} />
             <XAxis dataKey="time" {...CHART_AXIS} tickFormatter={(v) => v.slice(5)} />
             <YAxis {...CHART_AXIS} tickFormatter={(v) => `$${v.toFixed(0)}`} />
             <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`$${v.toFixed(2)}`, "Drawdown"]} />
-            <Area type="monotone" dataKey="drawdown" stroke="#ef4444" fill="url(#ddGrad)" strokeWidth={2} />
+            <Area type="monotone" dataKey="drawdown" stroke="var(--chart-fail)" fill="url(#ddGrad)" strokeWidth={2} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -76,12 +76,12 @@ export function EquityChart({ sessionId }: Props) {
             <XAxis dataKey="time" {...CHART_AXIS} tickFormatter={(v) => v.slice(5)} />
             <YAxis {...CHART_AXIS} tickFormatter={(v) => `$${v}`} />
             <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`$${v.toFixed(2)}`, "PnL"]} />
-            <ReferenceLine y={0} stroke="rgba(255,255,255,0.08)" />
-            <Bar dataKey="pnl" radius={[2, 2, 0, 0]} fill="#3b82f6"
+            <ReferenceLine y={0} stroke="var(--line-strong)" />
+            <Bar dataKey="pnl" radius={[2, 2, 0, 0]} fill="var(--chart-equity)"
               // @ts-ignore - recharts supports function fill via cells
               shape={(props: any) => {
-                const fill = props.pnl >= 0 ? "#10b981" : "#ef4444";
-                return <rect {...props} fill={fill} />;
+                const fill = props.pnl >= 0 ? "var(--chart-pass)" : "var(--chart-fail)";
+                return <rect {...props} fill={fill} stroke="var(--ink-950)" strokeWidth={0.5} />;
               }}
             />
           </BarChart>

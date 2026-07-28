@@ -26,7 +26,11 @@ def equity_curve_from_trades(df_trades: pd.DataFrame) -> EquitySeries:
         raise ValueError("trades dataframe missing required column: profit")
 
     # Choose best available time column.
-    ts_col = "exit_time" if "exit_time" in df.columns else ("entry_time" if "entry_time" in df.columns else None)
+    ts_col = (
+        "exit_time"
+        if "exit_time" in df.columns
+        else ("entry_time" if "entry_time" in df.columns else None)
+    )
     if not ts_col:
         raise ValueError("trades dataframe missing required column: exit_time or entry_time")
     df = df.dropna(subset=[ts_col])
@@ -36,7 +40,11 @@ def equity_curve_from_trades(df_trades: pd.DataFrame) -> EquitySeries:
     equity = pnl.cumsum()
     ts = pd.to_datetime(df[ts_col], errors="coerce")
 
-    return EquitySeries(ts=ts.reset_index(drop=True), equity=equity.reset_index(drop=True), pnl=pnl.reset_index(drop=True))
+    return EquitySeries(
+        ts=ts.reset_index(drop=True),
+        equity=equity.reset_index(drop=True),
+        pnl=pnl.reset_index(drop=True),
+    )
 
 
 def drawdown_from_equity(equity: pd.Series) -> pd.Series:
@@ -62,6 +70,30 @@ def ulcer_index(equity: pd.Series) -> float:
 
     eq = pd.to_numeric(equity, errors="coerce").fillna(0.0)
     peak = eq.cummax()
-    # Avoid divide-by-zero: only compute when peak > 0.
-    pct_dd = pd.Series(np.where(peak.to_numpy() > 0, (eq - peak) / peak, 0.0))
-    return float(np.sqrt(np.mean(np.square(pct_dd.to_numpy())))) if len(pct_dd) else 0.0
+    if eq.empty:
+        return 0.0
+
+    eq_values = eq.to_numpy(dtype=float)
+    peak_values = peak.to_numpy(dtype=float)
+    pct_dd = np.zeros_like(eq_values)
+    with np.errstate(divide="ignore", invalid="ignore", over="ignore"):
+        np.divide(
+            eq_values - peak_values,
+            peak_values,
+            out=pct_dd,
+            where=peak_values > 0,
+        )
+    pct_dd = np.nan_to_num(
+        pct_dd,
+        nan=0.0,
+        posinf=np.finfo(float).max,
+        neginf=-np.finfo(float).max,
+    )
+
+    # Scale before squaring so valid but extreme floating-point inputs cannot
+    # overflow the RMS calculation.
+    scale = float(np.max(np.abs(pct_dd)))
+    if scale == 0.0:
+        return 0.0
+    normalized_rms = float(np.sqrt(np.mean(np.square(pct_dd / scale))))
+    return scale * normalized_rms

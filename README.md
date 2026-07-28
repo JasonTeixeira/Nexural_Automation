@@ -1,20 +1,14 @@
 <div align="center">
 
+<img src="docs/assets/brand/nexural-automation-lockup.svg" width="680" alt="Nexural Automation Systems">
+
 # Nexural Automation
 
 ### The safety-first engineering lab for NinjaTrader 8 automation
 
 Build the strategy. Prove the research. Break the bridge. Recover the state. Promote only the evidence.
 
-[![Core CI](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/ci.yml)
-[![Research CI](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/python-research-ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/python-research-ci.yml)
-[![NT8 portable CI](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/nt8-portable-ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/nt8-portable-ci.yml)
-[![Qualification](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/world-class-qualification.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/world-class-qualification.yml)
-[![CodeQL](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/codeql.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/codeql.yml)
-[![Docs](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/docs-pages.yml/badge.svg)](https://jasonteixeira.github.io/Nexural_Automation/)
-[![License](https://img.shields.io/badge/license-Apache--2.0-00b894.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.11-f6c453.svg)](platforms/python/research/nexural-research/pyproject.toml)
-[![Execution](https://img.shields.io/badge/execution-Sim101%20%7C%20Playback101-e85d3f.svg)](platforms/ninjatrader/docs/SAFETY_SPINE.md)
+[![Core CI](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/ci.yml) [![NT8 portable CI](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/nt8-portable-ci.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/nt8-portable-ci.yml) [![Qualification](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/world-class-qualification.yml/badge.svg)](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/world-class-qualification.yml) [![Documentation](https://github.com/JasonTeixeira/Nexural_Automation/actions/workflows/docs-pages.yml/badge.svg)](https://jasonteixeira.github.io/Nexural_Automation/) [![License](https://img.shields.io/badge/license-Apache--2.0-00b894.svg)](LICENSE)
 
 [Start here](#start-here) · [Visual manual](docs/operator-manual.md) · [Academy](#automation-academy) · [NT8 safety spine](#native-nt8-safety-spine) · [Research engine](#research-and-promotion-engine) · [Architecture](#architecture) · [Verification](#verification-contract) · [Docs](#documentation-map)
 
@@ -23,7 +17,12 @@ Build the strategy. Prove the research. Break the bridge. Recover the state. Pro
 > [!CAUTION]
 > Research, education, Playback, and simulated execution only. The included bridge has no live-routing mode. This project is not financial advice and passing its tests does not make a strategy safe or profitable. Read the [full disclaimer](DISCLAIMER.md).
 
-![Nexural Automation system map](docs/assets/diagrams/system-map.svg)
+<picture>
+  <source media="(max-width: 700px)" srcset="docs/assets/diagrams/system-map-mobile.svg">
+  <img src="docs/assets/diagrams/system-map.svg" alt="Nexural Automation system map">
+</picture>
+
+[Open the desktop map](docs/assets/diagrams/system-map.svg) · [Open the mobile map](docs/assets/diagrams/system-map-mobile.svg)
 
 ### Pick a mission
 
@@ -67,6 +66,8 @@ This table separates automated evidence from claims that still require a human o
 Requirements: Git, Python 3.11, and PowerShell 7 for the NT8 harness. Node.js 22 is needed only for frontend work. NinjaTrader 8 is needed only for the native compile and desktop verification steps.
 
 ![Five-step Nexural Automation quickstart](docs/assets/diagrams/quickstart-path.svg)
+
+[Open the quickstart path full-size](docs/assets/diagrams/quickstart-path.svg)
 
 ### Windows
 
@@ -112,6 +113,15 @@ Launch the local API, MCP server, and dashboard with [`scripts/start-local-stack
 The Academy is an executable curriculum, not a page of code snippets. Every lab includes:
 
 ![Automation Academy evidence loop](docs/assets/diagrams/academy-learning-loop.svg)
+
+[Open the Academy evidence loop full-size](docs/assets/diagrams/academy-learning-loop.svg)
+
+<picture>
+  <source media="(max-width: 700px)" srcset="docs/assets/screenshots/academy-mobile.png">
+  <img src="docs/assets/screenshots/academy-desktop.png" alt="Nexural Automation Academy mission control with five operating tracks and a progressive mission queue">
+</picture>
+
+[Open the desktop Academy view](docs/assets/screenshots/academy-desktop.png) · [Open the mobile Academy view](docs/assets/screenshots/academy-mobile.png)
 
 - English and Spanish concept material
 - a deliberately incomplete starter program and a reference solution
@@ -160,6 +170,8 @@ The C# core is platform-portable; the adapters compile against the proprietary N
 
 ![Native NT8 safety state machine](docs/assets/diagrams/safety-state-machine.svg)
 
+[Open the safety state machine full-size](docs/assets/diagrams/safety-state-machine.svg)
+
 The fault suite covers duplicate and non-monotonic signals, stale/future signals, unreconciled startup, every risk limit, partial fills, overfills, illegal transitions, restart persistence, cursor/ACK crash gaps, live-account rejection, and flatten-only kill-switch behavior.
 
 Build a validated NT8 import archive:
@@ -191,7 +203,12 @@ See the [MCP contract](docs/mcp-contract.md), [API examples](docs/mcp-api-exampl
 
 ## Architecture
 
-![Nexural Automation system map](docs/assets/diagrams/system-map.svg)
+<picture>
+  <source media="(max-width: 700px)" srcset="docs/assets/diagrams/system-map-mobile.svg">
+  <img src="docs/assets/diagrams/system-map.svg" alt="Nexural Automation architecture map">
+</picture>
+
+[Open the desktop architecture map](docs/assets/diagrams/system-map.svg) · [Open the mobile architecture map](docs/assets/diagrams/system-map-mobile.svg)
 
 Trust-boundary decisions are recorded in [ADR 0001](docs/adr/0001-simulation-first-trust-boundaries.md) and the [threat model](docs/threat-model.md).
 

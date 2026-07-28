@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="480" viewBox="0 0 1600 480" role="img" aria-labelledby="lockup-title lockup-desc">
+  <title id="lockup-title">Nexural Automation horizontal lockup</title>
+  <desc id="lockup-desc">The NX monogram and Nexural Automation wordmark arranged as a horizontal institutional lockup.</desc>
+  <rect width="1600" height="480" rx="48" fill="#111714"/>
+  <path d="M0 94H1600M0 400H1600" fill="none" stroke="#27332E" stroke-width="2"/>
+  <rect x="64" y="64" width="320" height="320" rx="52" fill="#18201C" stroke="#56635D" stroke-width="2"/>
+  <path d="M112 310V162L208 310V162" fill="none" stroke="#C7F464" stroke-width="24" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M242 162L334 310M334 162L242 310" fill="none" stroke="#FF6B35" stroke-width="24" stroke-linecap="square"/>
+  <rect x="112" y="124" width="42" height="7" fill="#C7F464"/>
+  <rect x="160" y="124" width="16" height="7" fill="#FF6B35"/>
+  <text x="456" y="260" fill="#F4F0E6" font-family="Space Grotesk" font-size="142" font-weight="700" letter-spacing="-5">NEXURAL</text>
+  <text x="466" y="327" fill="#C7F464" font-family="JetBrains Mono" font-size="34" font-weight="700" letter-spacing="10">AUTOMATION SYSTEMS</text>
+  <rect x="1320" y="308" width="144" height="6" fill="#FF6B35"/>
+  <circle cx="1494" cy="311" r="10" fill="#F4F0E6"/>
+</svg>

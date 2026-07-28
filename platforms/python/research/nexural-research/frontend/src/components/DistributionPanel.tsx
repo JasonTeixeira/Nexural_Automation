@@ -6,7 +6,7 @@ import { MetricCard } from "./MetricCard";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
 
 interface Props { sessionId: string; }
-const TOOLTIP_STYLE = { backgroundColor: "#0c1222", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", fontSize: 12, color: "#e5e7eb" };
+const TOOLTIP_STYLE = { backgroundColor: "var(--ink-900)", border: "1px solid var(--line-strong)", borderRadius: "8px", fontSize: 12, color: "var(--ivory)" };
 
 export function DistributionPanel({ sessionId }: Props) {
   const stats = useAsync<Record<string, unknown>>();
@@ -66,7 +66,7 @@ export function DistributionPanel({ sessionId }: Props) {
               ] as [string, unknown][]).map(([label, val]) => (
                 <div key={label} className="text-center glass-card p-3">
                   <div className="text-[10px] text-gray-500 uppercase tracking-wider">{label}</div>
-                  <div className={`font-mono text-sm mt-1 ${(val as number) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  <div className={`font-mono text-sm mt-1 ${(val as number) >= 0 ? "text-[var(--signal-pass)]" : "text-[var(--signal-fail)]"}`}>
                     ${(val as number).toFixed(2)}
                   </div>
                 </div>
@@ -81,16 +81,16 @@ export function DistributionPanel({ sessionId }: Props) {
           <h3 className="section-title">PnL Distribution Histogram</h3>
           <ResponsiveContainer width="100%" height={350}>
             <BarChart data={histData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="center" stroke="rgba(255,255,255,0.08)" tick={{ fontSize: 10, fill: "#6b7280" }}
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
+              <XAxis dataKey="center" stroke="var(--line-strong)" tick={{ fontSize: 10, fill: "var(--chart-axis)" }}
                 tickFormatter={(v) => `$${v.toFixed(0)}`} />
-              <YAxis stroke="rgba(255,255,255,0.08)" tick={{ fontSize: 10, fill: "#6b7280" }} />
+              <YAxis stroke="var(--line-strong)" tick={{ fontSize: 10, fill: "var(--chart-axis)" }} />
               <Tooltip contentStyle={TOOLTIP_STYLE}
                 formatter={(v: number) => [v, "Trades"]} labelFormatter={(v) => `PnL: $${Number(v).toFixed(2)}`} />
-              <ReferenceLine x={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="3 3" />
+              <ReferenceLine x={0} stroke="var(--line-strong)" strokeDasharray="3 3" />
               <Bar dataKey="count" radius={[3, 3, 0, 0]}>
                 {histData.map((entry, i) => (
-                  <Cell key={i} fill={entry.center >= 0 ? "#10b981" : "#ef4444"} opacity={0.8} />
+                  <Cell key={i} fill={entry.center >= 0 ? "var(--chart-pass)" : "var(--chart-fail)"} stroke="var(--ink-950)" opacity={0.82} />
                 ))}
               </Bar>
             </BarChart>

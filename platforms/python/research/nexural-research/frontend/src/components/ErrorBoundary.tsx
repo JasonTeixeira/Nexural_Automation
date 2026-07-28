@@ -32,7 +32,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="panel text-center py-10" role="alert">
-          <div className="text-red-400 text-sm font-medium mb-2">Something went wrong</div>
+          <div className="mb-2 text-sm font-medium text-[var(--signal-fail)]">Something went wrong</div>
           <div className="text-xs text-gray-500 max-w-md mx-auto mb-4">
             {this.state.error.message}
           </div>

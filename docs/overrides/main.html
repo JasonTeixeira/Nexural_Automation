@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+  {{ super() }}
+  <meta name="theme-color" content="#151713">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ config.site_name }}">
+  <meta property="og:title" content="{% if page and page.title %}{{ page.title }} · {% endif %}{{ config.site_name }}">
+  <meta property="og:description" content="{{ config.site_description }}">
+  <meta property="og:image" content="{{ config.site_url }}{{ config.extra.social_image }}">
+  <meta property="og:image:alt" content="Nexural Automation documentation cover">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{% if page and page.title %}{{ page.title }} · {% endif %}{{ config.site_name }}">
+  <meta name="twitter:description" content="{{ config.site_description }}">
+  <meta name="twitter:image" content="{{ config.site_url }}{{ config.extra.social_image }}">
+{% endblock %}
+
+{% block announce %}
+  <a class="qualification-banner" href="{{ 'status/' | url }}" aria-label="Open current qualification and evidence status">
+    <strong>{{ config.extra.status_label }}</strong>
+    <span>No release approval is asserted. Inspect the evidence ledger before promotion.</span>
+  </a>
+{% endblock %}
