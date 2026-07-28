@@ -1,5 +1,7 @@
 # Automation Academy
 
+![Automation Academy evidence loop](assets/diagrams/academy-learning-loop.svg)
+
 Nexural Automation is meant to teach contributors how to build strategy systems, not just read strategy notes. The public learning path is a loop:
 
 1. State a thesis.
@@ -84,4 +86,3 @@ A contributor is ready to submit public examples when they can:
 - Run `validate-strategy`, `validate-bridge`, and `quality-gate`.
 - Interpret each gauntlet rejection.
 - Produce a paper-first bridge proof without live order routing.
-

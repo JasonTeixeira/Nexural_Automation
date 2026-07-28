@@ -1,5 +1,11 @@
 # Security Hardening
 
+![NT8 incident recovery decision tree](assets/diagrams/incident-recovery.svg)
+
+For a runtime fault, execute the
+[incident recovery runbook](operator-manual.md#6-recover-from-an-incident) before
+attempting a reset.
+
 Nexural Automation is a local research and education system. Treat MCP access as agent access to your filesystem and strategy data.
 
 ## Defaults

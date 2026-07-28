@@ -1,5 +1,7 @@
 # Native NinjaTrader safety spine
 
+![Native NT8 safety state machine](../../../docs/assets/diagrams/safety-state-machine.svg)
+
 The safety spine separates deterministic trading controls from NinjaTrader's proprietary runtime. `src/Nexural.NT8.Core` targets `netstandard2.0` with C# 7.3, so its behavior can be tested without installing NinjaTrader and its source can also compile inside NinjaTrader 8's .NET Framework 4.8 NinjaScript project.
 
 ## Safety invariants
@@ -19,6 +21,13 @@ The safety spine separates deterministic trading controls from NinjaTrader's pro
 For a valid next signal, the coordinator evaluates controls, atomically persists the consumed cursor, then appends the acknowledgement. Cursor-first ordering gives at-most-once behavior: after a crash, the adapter will not submit the same sequence again. A crash between those writes can produce a missing acknowledgement, so startup reconciliation must compare the cursor with the journal and emit an operator-visible recovery record before accepting new input. The AddOn additionally reconstructs working-order state from the account after each reconnect.
 
 An acknowledgement with `Accepted` means only that the signal passed the safety core and is eligible for paper routing. It is not proof of an exchange, broker, or simulated fill. Order and execution callbacks remain authoritative.
+
+## Incident recovery
+
+![NT8 incident recovery decision tree](../../../docs/assets/diagrams/incident-recovery.svg)
+
+Use the [operator recovery runbook](../../../docs/operator-manual.md#6-recover-from-an-incident)
+for the evidence-preservation, reconciliation, flatten, RTO, and reviewed-reset sequence.
 
 ## Reference lifecycle
 

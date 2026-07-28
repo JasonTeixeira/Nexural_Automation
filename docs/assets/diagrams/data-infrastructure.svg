@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Portable NinjaTrader market data infrastructure</title>
+  <desc id="desc">A portable rolling 360-day last-tick data pipeline hydrates from declared providers, normalizes and validates records, writes immutable partitions and coverage, and serves research and NT8 playback consumers.</desc>
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#C7F464"/></marker><style>.d{font-family:"Space Grotesk","Segoe UI",sans-serif;font-weight:700}.m{font-family:"JetBrains Mono","Consolas",monospace}.n{fill:#18201C;stroke:#56635D;stroke-width:2}.e{fill:none;stroke:#C7F464;stroke-width:3;marker-end:url(#a)}</style></defs>
+  <rect width="1200" height="675" fill="#111714"/>
+  <text x="52" y="58" class="d" font-size="28" fill="#F4F0E6">PORTABLE DATA INFRASTRUCTURE / 360-DAY LAST-TICK</text>
+  <text x="52" y="88" class="m" font-size="13" fill="#8E9B95">DECLARED COVERAGE • INTEGRITY BEFORE CONSUMPTION • NO SILENT GAPS</text>
+  <text x="52" y="130" class="m" font-size="12" fill="#8E9B95">SOURCE</text><text x="286" y="130" class="m" font-size="12" fill="#8E9B95">INGEST</text><text x="520" y="130" class="m" font-size="12" fill="#8E9B95">CONTROL</text><text x="754" y="130" class="m" font-size="12" fill="#8E9B95">STORE</text><text x="988" y="130" class="m" font-size="12" fill="#8E9B95">CONSUME</text>
+  <rect x="52" y="154" width="180" height="264" class="n"/>
+  <text x="74" y="190" class="d" font-size="20" fill="#F4F0E6">Providers</text><text x="74" y="229" class="m" font-size="13" fill="#8E9B95">Databento</text><text x="74" y="259" class="m" font-size="13" fill="#8E9B95">NT8 export</text><text x="74" y="289" class="m" font-size="13" fill="#8E9B95">approved cache</text>
+  <path d="M74 318H210" stroke="#56635D"/><text x="74" y="348" class="m" font-size="12" fill="#C7F464">ES NQ CL GC</text><text x="74" y="375" class="m" font-size="12" fill="#C7F464">SI HG ZB RTY</text>
+  <rect x="286" y="154" width="180" height="264" class="n"/>
+  <text x="308" y="190" class="d" font-size="20" fill="#F4F0E6">Hydrator</text><text x="308" y="229" class="m" font-size="13" fill="#8E9B95">rolling window</text><text x="308" y="259" class="m" font-size="13" fill="#8E9B95">resume cursor</text><text x="308" y="289" class="m" font-size="13" fill="#8E9B95">bounded retries</text><text x="308" y="348" class="m" font-size="12" fill="#C7F464">idempotent writes</text>
+  <rect x="520" y="154" width="180" height="264" fill="#241A14" stroke="#FF6B35" stroke-width="2"/>
+  <text x="542" y="190" class="d" font-size="20" fill="#F4F0E6">Integrity gate</text><text x="542" y="229" class="m" font-size="13" fill="#8E9B95">schema + UTC</text><text x="542" y="259" class="m" font-size="13" fill="#8E9B95">monotonic time</text><text x="542" y="289" class="m" font-size="13" fill="#8E9B95">duplicates</text><text x="542" y="319" class="m" font-size="13" fill="#8E9B95">gaps + coverage</text><text x="542" y="374" class="m" font-size="12" fill="#FF8A5C">reject bad partition</text>
+  <rect x="754" y="154" width="180" height="264" class="n"/>
+  <text x="776" y="190" class="d" font-size="20" fill="#F4F0E6">Portable cache</text><text x="776" y="229" class="m" font-size="13" fill="#8E9B95">daily partitions</text><text x="776" y="259" class="m" font-size="13" fill="#8E9B95">SHA-256 manifest</text><text x="776" y="289" class="m" font-size="13" fill="#8E9B95">coverage snapshot</text><text x="776" y="348" class="m" font-size="12" fill="#C7F464">copy • verify • reuse</text>
+  <rect x="988" y="154" width="160" height="120" class="n"/><text x="1010" y="190" class="d" font-size="19" fill="#F4F0E6">Research</text><text x="1010" y="226" class="m" font-size="12" fill="#8E9B95">replay • QA</text><text x="1010" y="251" class="m" font-size="12" fill="#8E9B95">feature tests</text>
+  <rect x="988" y="298" width="160" height="120" class="n"/><text x="1010" y="334" class="d" font-size="19" fill="#F4F0E6">NT8</text><text x="1010" y="370" class="m" font-size="12" fill="#8E9B95">Playback prep</text><text x="1010" y="395" class="m" font-size="12" fill="#8E9B95">native evidence</text>
+  <path d="M232 286H276" class="e"/><path d="M466 286H510" class="e"/><path d="M700 286H744" class="e"/><path d="M934 214H978" class="e"/><path d="M934 358H978" class="e"/>
+  <rect x="52" y="480" width="1096" height="106" fill="#F4F0E6"/>
+  <text x="76" y="515" class="d" font-size="19" fill="#111714">OPERATOR LOOP</text>
+  <text x="76" y="548" class="m" font-size="13" fill="#27332E">plan coverage → hydrate missing partitions → run integrity checks → inspect coverage snapshot → publish manifest</text>
+  <text x="76" y="573" class="m" font-size="12" fill="#27332E">A requested 360-day window is a target. Only the generated coverage snapshot states what is actually available.</text>
+  <text x="52" y="640" class="m" font-size="12" fill="#FF8A5C">NO-LOOKAHEAD BOUNDARY: consumer queries must be cut at the decision timestamp; future records remain inaccessible.</text>
+</svg>

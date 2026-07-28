@@ -1,5 +1,11 @@
 # Public Launch Checklist
 
+![World-class qualification and release pipeline](assets/diagrams/qualification-release.svg)
+
+Public launch does not replace qualification. Execute the
+[signed release runbook](operator-manual.md#7-qualify-and-release) before treating
+any launch item as releasable.
+
 ## Code
 
 - [x] `nexural-research quality-gate --threshold 0.95 --json` returns `score: 1.0`.

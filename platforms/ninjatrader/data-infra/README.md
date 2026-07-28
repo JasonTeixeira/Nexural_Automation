@@ -1,5 +1,7 @@
 # NT8 Data Infrastructure
 
+![Portable NT8 data infrastructure](../../../docs/assets/diagrams/data-infrastructure.svg)
+
 This module makes local NinjaTrader 8 history auditable and reproducible without redistributing provider-licensed market data.
 
 It contains:

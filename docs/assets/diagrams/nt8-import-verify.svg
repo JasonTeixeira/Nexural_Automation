@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">NinjaTrader 8 build, import, and verification runbook</title>
+  <desc id="desc">A controlled ten-step desktop process from preflight and archive creation through import, compile, simulator testing, fault injection, restart recovery, sanitization, and evidence generation.</desc>
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#C7F464"/></marker><style>.d{font-family:"Space Grotesk","Segoe UI",sans-serif;font-weight:700}.m{font-family:"JetBrains Mono","Consolas",monospace}.n{fill:#18201C;stroke:#56635D;stroke-width:2}.e{stroke:#C7F464;stroke-width:3;marker-end:url(#a)}</style></defs>
+  <rect width="1200" height="675" fill="#111714"/>
+  <text x="52" y="56" class="d" font-size="27" fill="#F4F0E6">NT8 DESKTOP / BUILD → IMPORT → BREAK → RECOVER → PROVE</text>
+  <text x="52" y="86" class="m" font-size="13" fill="#8E9B95">MANUAL NATIVE EVIDENCE • EXACT ARCHIVE DIGEST • SIMULATION ACCOUNTS ONLY</text>
+  <g class="m" font-size="12">
+    <rect x="52" y="130" width="200" height="105" class="n"/><text x="70" y="160" fill="#C7F464">01 / PREFLIGHT</text><text x="70" y="190" fill="#F4F0E6">backup custom scripts</text><text x="70" y="214" fill="#8E9B95">clean existing compile</text>
+    <rect x="276" y="130" width="200" height="105" class="n"/><text x="294" y="160" fill="#C7F464">02 / PACKAGE</text><text x="294" y="190" fill="#F4F0E6">build validated ZIP</text><text x="294" y="214" fill="#8E9B95">record SHA-256</text>
+    <rect x="500" y="130" width="200" height="105" class="n"/><text x="518" y="160" fill="#C7F464">03 / IMPORT</text><text x="518" y="190" fill="#F4F0E6">Tools → Import</text><text x="518" y="214" fill="#8E9B95">NinjaScript Add-On</text>
+    <rect x="724" y="130" width="200" height="105" class="n"/><text x="742" y="160" fill="#C7F464">04 / COMPILE</text><text x="742" y="190" fill="#F4F0E6">Editor → F5</text><text x="742" y="214" fill="#8E9B95">0 errors + version</text>
+    <rect x="948" y="130" width="200" height="105" class="n"/><text x="966" y="160" fill="#C7F464">05 / CONNECT</text><text x="966" y="190" fill="#F4F0E6">activate AddOn</text><text x="966" y="214" fill="#8E9B95">Sim101 / Playback101</text>
+    <rect x="948" y="340" width="200" height="105" class="n"/><text x="966" y="370" fill="#C7F464">06 / ROUNDTRIP</text><text x="966" y="400" fill="#F4F0E6">signal → ACK</text><text x="966" y="424" fill="#8E9B95">processed archive</text>
+    <rect x="724" y="340" width="200" height="105" fill="#241A14" stroke="#FF6B35" stroke-width="2"/><text x="742" y="370" fill="#FF8A5C">07 / BREAK IT</text><text x="742" y="400" fill="#F4F0E6">duplicate • stale</text><text x="742" y="424" fill="#8E9B95">disconnect • overfill</text>
+    <rect x="500" y="340" width="200" height="105" fill="#241A14" stroke="#FF6B35" stroke-width="2"/><text x="518" y="370" fill="#FF8A5C">08 / RESTART</text><text x="518" y="400" fill="#F4F0E6">kill switch persists</text><text x="518" y="424" fill="#8E9B95">reconcile before entry</text>
+    <rect x="276" y="340" width="200" height="105" class="n"/><text x="294" y="370" fill="#C7F464">09 / SANITIZE</text><text x="294" y="400" fill="#F4F0E6">logs + screenshots</text><text x="294" y="424" fill="#8E9B95">remove identifiers</text>
+    <rect x="52" y="340" width="200" height="105" class="n"/><text x="70" y="370" fill="#C7F464">10 / ATTEST</text><text x="70" y="400" fill="#F4F0E6">generate JSON</text><text x="70" y="424" fill="#8E9B95">validate all digests</text>
+  </g>
+  <line x1="252" y1="182" x2="266" y2="182" class="e"/><line x1="476" y1="182" x2="490" y2="182" class="e"/><line x1="700" y1="182" x2="714" y2="182" class="e"/><line x1="924" y1="182" x2="938" y2="182" class="e"/>
+  <path d="M1048 235V330" fill="none" class="e"/><line x1="948" y1="392" x2="934" y2="392" class="e"/><line x1="724" y1="392" x2="710" y2="392" class="e"/><line x1="500" y1="392" x2="486" y2="392" class="e"/><line x1="276" y1="392" x2="262" y2="392" class="e"/>
+  <rect x="52" y="500" width="1096" height="86" fill="#F4F0E6"/>
+  <text x="76" y="535" class="d" font-size="18" fill="#111714">PASS CONDITION</text>
+  <text x="250" y="535" class="m" font-size="13" fill="#27332E">The same frozen ZIP passes both account modes across two independent Windows/NT8 environments.</text>
+  <text x="76" y="565" class="m" font-size="12" fill="#27332E">RTO: disconnect ≤ 5 s • restart ≤ 30 s • no duplicate order • no naked position • no live account</text>
+  <text x="52" y="635" class="m" font-size="12" fill="#FF8A5C">STOP: an import or compile error invalidates the run. Fix, rebuild, record a new digest, and restart at step 01.</text>
+</svg>

@@ -1,5 +1,11 @@
 # Build, import, and verify
 
+![NT8 desktop verification runbook](../../../docs/assets/diagrams/nt8-import-verify.svg)
+
+The diagram is an orientation aid. Execute every numbered step below and use the
+[visual operator manual](../../../docs/operator-manual.md#4-build-import-break-recover-and-prove-in-nt8)
+for stop conditions and evidence handling.
+
 ## Automated checks and archive
 
 From `platforms/ninjatrader`:

@@ -6,6 +6,7 @@ paper-first validation.
 
 ## Start Here
 
+- [Visual Operator Manual](operator-manual.md)
 - [Polished Docs Landing Page](index.html)
 - [Public MVP Tutorial](public-mvp-tutorial.md)
 - [MCP Automation Server](mcp-automation-server.md)

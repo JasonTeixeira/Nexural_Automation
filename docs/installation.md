@@ -1,5 +1,11 @@
 # Installation
 
+![Five-step Nexural Automation quickstart](assets/diagrams/quickstart-path.svg)
+
+Installation is complete only after a verification command passes. The
+[visual operator manual](operator-manual.md#2-get-your-first-local-success) shows
+the supported paths and the evidence to retain.
+
 ## Prerequisites
 - Git
 - NinjaTrader 8 (for NinjaScript examples)

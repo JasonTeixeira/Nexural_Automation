@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Five-step Nexural Automation quickstart</title>
+  <desc id="desc">Clone, install, verify, choose a learning path, and preserve evidence. Native NT8 work remains simulation-only.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#C7F464"/></marker>
+    <style>.d{font-family:"Space Grotesk","Segoe UI",sans-serif;font-weight:700}.m{font-family:"JetBrains Mono","Consolas",monospace}.box{fill:#18201C;stroke:#56635D;stroke-width:2}.line{stroke:#C7F464;stroke-width:3;marker-end:url(#a)}</style>
+  </defs>
+  <rect width="1200" height="675" fill="#111714"/>
+  <text x="52" y="58" class="d" font-size="28" fill="#F4F0E6">FIRST SUCCESS / FIVE CONTROLLED STEPS</text>
+  <text x="52" y="88" class="m" font-size="13" fill="#8E9B95">TARGET: A REPRODUCIBLE LOCAL RESULT, NOT A LIVE TRADE</text>
+  <line x1="112" y1="300" x2="1082" y2="300" class="line"/>
+  <g>
+    <rect x="52" y="160" width="194" height="220" class="box"/><rect x="52" y="160" width="194" height="8" fill="#C7F464"/>
+    <text x="72" y="207" class="m" font-size="15" fill="#C7F464">01 / CLONE</text><text x="72" y="246" class="d" font-size="20" fill="#F4F0E6">Get the source</text>
+    <text x="72" y="282" class="m" font-size="12" fill="#8E9B95">git clone …</text><text x="72" y="307" class="m" font-size="12" fill="#8E9B95">cd Nexural_…</text>
+    <text x="72" y="354" class="m" font-size="12" fill="#F4F0E6">PIN: commit SHA</text>
+  </g>
+  <g>
+    <rect x="278" y="160" width="194" height="220" class="box"/><rect x="278" y="160" width="194" height="8" fill="#C7F464"/>
+    <text x="298" y="207" class="m" font-size="15" fill="#C7F464">02 / INSTALL</text><text x="298" y="246" class="d" font-size="20" fill="#F4F0E6">Python 3.11</text>
+    <text x="298" y="282" class="m" font-size="12" fill="#8E9B95">pip install</text><text x="298" y="307" class="m" font-size="12" fill="#8E9B95">-e ".[dev,mcp]"</text>
+    <text x="298" y="354" class="m" font-size="12" fill="#F4F0E6">VERIFY: version</text>
+  </g>
+  <g>
+    <rect x="504" y="160" width="194" height="220" class="box"/><rect x="504" y="160" width="194" height="8" fill="#FF6B35"/>
+    <text x="524" y="207" class="m" font-size="15" fill="#FF8A5C">03 / VERIFY</text><text x="524" y="246" class="d" font-size="20" fill="#F4F0E6">Run the gates</text>
+    <text x="524" y="282" class="m" font-size="12" fill="#8E9B95">quality-gate</text><text x="524" y="307" class="m" font-size="12" fill="#8E9B95">NT8 safety spine</text>
+    <text x="524" y="354" class="m" font-size="12" fill="#F4F0E6">STOP ON: failure</text>
+  </g>
+  <g>
+    <rect x="730" y="160" width="194" height="220" class="box"/><rect x="730" y="160" width="194" height="8" fill="#C7F464"/>
+    <text x="750" y="207" class="m" font-size="15" fill="#C7F464">04 / CHOOSE</text><text x="750" y="246" class="d" font-size="20" fill="#F4F0E6">Follow one path</text>
+    <text x="750" y="282" class="m" font-size="12" fill="#8E9B95">Academy lab</text><text x="750" y="307" class="m" font-size="12" fill="#8E9B95">research / NT8</text>
+    <text x="750" y="354" class="m" font-size="12" fill="#F4F0E6">ONE outcome</text>
+  </g>
+  <g>
+    <rect x="956" y="160" width="194" height="220" class="box"/><rect x="956" y="160" width="194" height="8" fill="#C7F464"/>
+    <text x="976" y="207" class="m" font-size="15" fill="#C7F464">05 / RECORD</text><text x="976" y="246" class="d" font-size="20" fill="#F4F0E6">Keep evidence</text>
+    <text x="976" y="282" class="m" font-size="12" fill="#8E9B95">logs • reports</text><text x="976" y="307" class="m" font-size="12" fill="#8E9B95">digests • version</text>
+    <text x="976" y="354" class="m" font-size="12" fill="#F4F0E6">SHARE: sanitized</text>
+  </g>
+  <rect x="52" y="430" width="1098" height="116" fill="#F4F0E6"/>
+  <text x="76" y="470" class="d" font-size="20" fill="#111714">DECISION AFTER STEP 3</text>
+  <text x="76" y="506" class="m" font-size="14" fill="#27332E">NO NT8?  Run Academy + research + portable safety kernel.</text>
+  <text x="636" y="506" class="m" font-size="14" fill="#27332E">NT8 INSTALLED?  Continue only with Sim101 / Playback101.</text>
+  <rect x="52" y="584" width="1098" height="42" fill="#241A14" stroke="#FF6B35" stroke-width="2"/>
+  <text x="601" y="611" class="m" font-size="13" font-weight="700" fill="#FF8A5C" text-anchor="middle">LIVE ACCOUNT ROUTING IS NOT PRESENT — DO NOT INVENT A BYPASS</text>
+</svg>

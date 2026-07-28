@@ -1,6 +1,12 @@
 # World-class qualification evidence
 
+![World-class qualification and release pipeline](../docs/assets/diagrams/qualification-release.svg)
+
 `world-class` is a computed state. It is never granted by editing a badge or checking a box.
+
+The [visual qualification runbook](../docs/operator-manual.md#7-qualify-and-release)
+explains the frozen-candidate, evidence-only delta, reproducibility, SBOM, signing,
+verification, and publication sequence.
 
 Run the current evidence report:
 

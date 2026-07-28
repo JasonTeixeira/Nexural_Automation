@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Native NT8 safety state machine</title>
+  <desc id="desc">The system starts cold, reconciles, arms for simulation, executes, and returns healthy. Any invariant failure engages a durable safety stop where flatten remains available but entry remains blocked.</desc>
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#C7F464"/></marker><marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#FF6B35"/></marker><style>.d{font-family:"Space Grotesk","Segoe UI",sans-serif;font-weight:700}.m{font-family:"JetBrains Mono","Consolas",monospace}.n{fill:#18201C;stroke:#56635D;stroke-width:2}.ok{fill:none;stroke:#C7F464;stroke-width:3;marker-end:url(#a)}.bad{fill:none;stroke:#FF6B35;stroke-width:3;marker-end:url(#o)}</style></defs>
+  <rect width="1200" height="675" fill="#111714"/>
+  <text x="52" y="58" class="d" font-size="28" fill="#F4F0E6">NT8 SAFETY SPINE / FAIL-CLOSED STATE MACHINE</text>
+  <text x="52" y="88" class="m" font-size="13" fill="#8E9B95">ENTRY IS A PRIVILEGE • FLATTEN IS ALWAYS THE ESCAPE PATH</text>
+  <g>
+    <rect x="52" y="162" width="190" height="104" class="n"/><text x="75" y="198" class="m" font-size="13" fill="#8E9B95">STATE 00</text><text x="75" y="232" class="d" font-size="22" fill="#F4F0E6">COLD</text><text x="75" y="252" class="m" font-size="11" fill="#8E9B95">entries blocked</text>
+    <rect x="290" y="162" width="190" height="104" class="n"/><text x="313" y="198" class="m" font-size="13" fill="#C7F464">STATE 01</text><text x="313" y="232" class="d" font-size="22" fill="#F4F0E6">RECONCILING</text><text x="313" y="252" class="m" font-size="11" fill="#8E9B95">orders • position • P/L</text>
+    <rect x="528" y="162" width="190" height="104" fill="#1C261F" stroke="#C7F464" stroke-width="3"/><text x="551" y="198" class="m" font-size="13" fill="#C7F464">STATE 02</text><text x="551" y="232" class="d" font-size="22" fill="#F4F0E6">ARMED</text><text x="551" y="252" class="m" font-size="11" fill="#8E9B95">simulation gate passed</text>
+    <rect x="766" y="162" width="190" height="104" class="n"/><text x="789" y="198" class="m" font-size="13" fill="#C7F464">STATE 03</text><text x="789" y="232" class="d" font-size="22" fill="#F4F0E6">EXECUTING</text><text x="789" y="252" class="m" font-size="11" fill="#8E9B95">callbacks authoritative</text>
+  </g>
+  <line x1="242" y1="214" x2="280" y2="214" class="ok"/><line x1="480" y1="214" x2="518" y2="214" class="ok"/><line x1="718" y1="214" x2="756" y2="214" class="ok"/>
+  <path d="M861 266V312H623V276" class="ok"/><text x="735" y="331" class="m" font-size="11" fill="#C7F464" text-anchor="middle">ORDER TERMINAL + POSITION RECONCILED</text>
+  <rect x="364" y="432" width="472" height="126" fill="#241A14" stroke="#FF6B35" stroke-width="3"/>
+  <text x="394" y="469" class="m" font-size="13" fill="#FF8A5C">STATE 99 / DURABLE SAFETY STOP</text>
+  <text x="394" y="507" class="d" font-size="24" fill="#F4F0E6">ENTRY BLOCKED • FLATTEN AVAILABLE</text>
+  <text x="394" y="535" class="m" font-size="12" fill="#8E9B95">operator identity + successful reconciliation required to reset</text>
+  <path d="M147 266V388H364V447" class="bad"/><path d="M385 266V388H456V422" class="bad"/><path d="M623 266V422" class="bad"/><path d="M861 266V388H744V422" class="bad"/>
+  <text x="76" y="378" class="m" font-size="11" fill="#FF8A5C">startup fault</text><text x="302" y="378" class="m" font-size="11" fill="#FF8A5C">reconcile mismatch</text><text x="638" y="378" class="m" font-size="11" fill="#FF8A5C">risk / sequence / time</text><text x="850" y="378" class="m" font-size="11" fill="#FF8A5C">disconnect / invalid fill</text>
+  <path d="M364 495H270V336H385V276" class="ok"/><text x="196" y="328" class="m" font-size="11" fill="#C7F464">reviewed reset</text>
+  <rect x="52" y="598" width="1096" height="38" fill="#F4F0E6"/>
+  <text x="600" y="622" class="m" font-size="12" fill="#111714" text-anchor="middle">Live account/provider mismatch has no transition to ARMED. It is rejected before and immediately before submission.</text>
+</svg>
