@@ -38,7 +38,7 @@ colorama==0.4.6
     #   pytest
 coverage==7.15.2
     # via pytest-cov
-cryptography==49.0.0
+cryptography==50.0.0
     # via pyjwt
 duckdb==1.5.4
     # via nexural-research (pyproject.toml)
